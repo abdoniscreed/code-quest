@@ -1,0 +1,1887 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Code Arcade</title>
+<meta name="description" content="Code Arcade — 7 story games that teach HTML, CSS and JavaScript by writing real code.">
+<meta name="theme-color" content="#fdf8ef">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=Press+Start+2P&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fdf8ef; --panel:#ffffff; --ink:#2a2840; --muted:#6e6a85; --line:#ebe3d3;
+  --accent:#ff7a59; --blue:#4f8cff; --good:#1f9d6b; --bad:#e5484d;
+  --gold:#f5b301; --code:#f3f0ff; --codeInk:#5b3fd1; --shadow:0 6px 0 rgba(42,40,64,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;color:inherit}
+.pix{font-family:"Press Start 2P",monospace;letter-spacing:.5px}
+code,pre,textarea,.code1{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+.hidden{display:none!important}
+h2,h3{margin:.2em 0 .5em}
+.center{text-align:center}
+.muted{color:var(--muted);font-weight:700}
+
+/* ---------- shared UI ---------- */
+.chip{background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:4px 10px;font-weight:800;font-size:13px;white-space:nowrap}
+button.chip{cursor:pointer}
+button.chip:hover{border-color:var(--ink)}
+.btn{border:2px solid var(--ink);background:#fff;border-radius:12px;padding:10px 12px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 3px 0 var(--ink);transition:transform .05s}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.big{font-size:18px;padding:14px}
+.btn.ghost{background:transparent;box-shadow:none;border-color:var(--line)}
+.btn.sm{padding:7px 10px;font-size:13px}
+.overlay{position:fixed;inset:0;background:var(--bg);z-index:20;overflow:auto;-webkit-overflow-scrolling:touch}
+#modal{position:fixed;inset:0;background:rgba(42,40,64,.45);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px}
+#modal .card{background:#fff;border:3px solid var(--ink);border-radius:18px;max-width:620px;width:100%;max-height:88vh;overflow:auto;padding:20px;box-shadow:var(--shadow);animation:pop .25s}
+#modal .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+@keyframes pop{from{transform:scale(.92);opacity:0}}
+.box{background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px;min-width:0}
+.work{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+@media(max-width:860px){.work{grid-template-columns:1fr}}
+.lesson,.mission,.bstory{font-size:16px;line-height:1.55}
+.lesson code,.mission code,.feedback code,.hintbox code,.codex code,.bstory code,.intro code{background:var(--code);padding:1px 6px;border-radius:6px;font-size:.9em;color:var(--codeInk);font-weight:700;white-space:nowrap}
+.bstory .story{background:#fff8ec;border-left:5px solid var(--accent);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.bstory .story b.who{display:block;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
+.exl{font-weight:900;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:12px 0 4px}
+pre.ex{background:var(--code);border-radius:12px;padding:12px;white-space:pre-wrap;font-size:14px;border-left:5px solid #8b7cff;margin:0;color:#3a2a8a;overflow:auto}
+.edhead{display:flex;justify-content:space-between;align-items:center;font-weight:900;margin:12px 0 6px;font-size:14px;gap:8px}
+.edhead small{color:var(--muted);font-weight:700}
+#editor,textarea.code{width:100%;min-height:190px;font-size:16px;line-height:1.55;border:3px solid var(--ink);border-radius:12px;padding:10px 12px;background:#fffef9;resize:vertical;tab-size:2;color:#2a2840;outline:none}
+#editor:focus,textarea.code:focus,.code1:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(79,140,255,.18)}
+.code1{width:100%;font-size:16px;border:3px solid var(--ink);border-radius:12px;padding:10px 12px;background:#fffef9;color:#2a2840;outline:none}
+.snips{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.snips button{min-width:38px;height:36px;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;border:2px solid var(--line);background:#fff;border-radius:9px;cursor:pointer;padding:0 8px}
+.snips button:active{background:var(--code)}
+.snips button.cmd{font-size:13px;color:var(--codeInk);background:#faf8ff}
+#preview,iframe.prev{width:100%;height:230px;border:3px solid var(--ink);border-radius:12px;background:#fff;display:block}
+iframe.fixed{width:300px!important;height:200px!important;flex:none}
+.framewrap{display:flex;justify-content:center}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.actions .wide{grid-column:1/-1}
+.feedback{margin-top:10px;border-radius:12px;font-weight:800;line-height:1.45}
+.feedback.bad{background:#fdecec;color:#9f1d22;padding:10px 12px;border:2px solid #f5b5b7}
+.feedback.good{background:#e7f8ef;color:#136c48;padding:10px 12px;border:2px solid #a7e3c6}
+.feedback.info{background:#eef4ff;color:#21407a;padding:10px 12px;border:2px solid #c3d6ff}
+.hintbox{margin-top:10px;line-height:1.5}
+.hintbox .h{background:#fff8e1;border:2px solid #f6dd8a;border-radius:12px;padding:10px 12px;margin-bottom:6px;font-weight:700}
+.hintbox .t{background:#eef4ff;border-color:#c3d6ff}
+.hintbox .a{background:#f3f0ff;border-color:#d4cbff}
+.hintbox pre.ex{margin-top:6px}
+.stars{color:var(--gold);letter-spacing:2px}
+.stars .off{color:#ddd3bf}
+@media(max-width:480px){.actions{grid-template-columns:1fr 1fr}}
+
+/* ---------- hub ---------- */
+.hubhead{text-align:center;padding:26px 14px 6px}
+.hublogo{font-size:24px;line-height:1.6;color:var(--accent);text-shadow:3px 3px 0 var(--ink);margin:0}
+.hubgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;max-width:1100px;margin:0 auto;padding:14px}
+.gcard{background:#fff;border:3px solid var(--ink);border-radius:20px;padding:16px;box-shadow:var(--shadow);cursor:pointer;text-align:left;position:relative;transition:transform .15s;display:flex;flex-direction:column;gap:6px}
+.gcard:hover{transform:translateY(-4px)}
+.gcard .em{font-size:40px;line-height:1}
+.gcard h3{margin:2px 0 0;font-size:19px}
+.gcard p{margin:0;color:var(--muted);font-weight:700;font-size:14px;line-height:1.4;flex:1}
+.gcard .tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:900;border-radius:6px;padding:2px 7px;background:#ffe9e2;color:#b2401f}
+.tag.css{background:#e4eeff;color:#2a56b8}.tag.js{background:#fff3c4;color:#8a6200}
+.pbar{height:9px;background:#f0e9db;border-radius:9px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--good);border-radius:9px}
+.ribbon{position:absolute;top:12px;right:12px;background:var(--accent);color:#fff;font-size:11px;font-weight:900;padding:3px 8px;border-radius:8px}
+.hubfoot{text-align:center;padding:10px 14px 40px;color:var(--muted);font-weight:700;font-size:13px}
+
+/* ---------- game shell ---------- */
+.gwrap{max-width:1120px;margin:0 auto;padding:0 12px 40px}
+.topbar{display:flex;align-items:center;gap:10px;position:sticky;top:0;background:var(--bg);z-index:5;padding:10px 0;flex-wrap:wrap}
+.topbar .gt{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:900;flex:1;min-width:0}
+.topbar .ge{font-size:26px}
+.intro{margin-bottom:14px}
+.intro h2{margin-top:0}
+.chap{font-weight:900;margin:16px 0 8px;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:1px}
+.lvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.lv{border:2px solid var(--ink);background:#fff;border-radius:14px;padding:12px;text-align:left;cursor:pointer;box-shadow:0 3px 0 var(--ink);font-weight:800}
+.lv small{display:block;color:var(--muted);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.lv .stars{font-size:13px;display:block;margin-top:4px}
+.lv.lock{opacity:.45;cursor:not-allowed;box-shadow:none;border-color:var(--line)}
+.lv.next{background:#fff1ea}
+.lvhead{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.lvhead b{font-size:17px;flex:1}
+
+/* ---------- quest (world) ---------- */
+#app{max-width:760px;margin:0 auto;padding:10px 12px 28px}
+#app header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+#app header .logo{font-size:12px;color:var(--accent);margin:0;line-height:1.5}
+.stats{display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap}
+.minihp{width:56px;height:8px;background:#eee;border-radius:9px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:4px}
+.minihp i{display:block;height:100%;background:var(--good);transition:width .4s}
+#stage{position:relative;border:4px solid var(--ink);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);background:#a8e06a;user-select:none}
+#cv{display:block;width:100%;height:auto}
+#dialog{position:absolute;left:8px;right:8px;bottom:8px;background:#fff;border:3px solid var(--ink);border-radius:12px;padding:14px 16px 16px;font-size:16px;line-height:1.45;min-height:72px;cursor:pointer;font-weight:700}
+#dialog .who{position:absolute;top:-13px;left:12px;background:var(--accent);color:#fff;font-weight:900;font-size:12px;padding:3px 10px;border-radius:8px}
+#dialog .more{position:absolute;right:12px;bottom:6px;font-size:12px;animation:bob 1s infinite}
+#banner{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#fff;border:3px solid var(--ink);border-radius:12px;padding:8px 14px;font-size:10px;opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap}
+#banner.show{opacity:1}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+#flash.go{animation:flash .65s}
+#flash.fade{animation:fade .45s}
+@keyframes flash{0%,100%{opacity:0}15%,45%,75%{opacity:1}30%,60%{opacity:.15}}
+@keyframes fade{0%,100%{opacity:0}50%{opacity:1}}
+@keyframes bob{50%{transform:translateY(-3px)}}
+.controls{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px}
+.dpad{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(3,54px);gap:4px;touch-action:none}
+.dpad button{border:3px solid var(--ink);background:#fff;border-radius:12px;font-size:20px;font-weight:900;box-shadow:0 4px 0 var(--ink);cursor:pointer;touch-action:none}
+.dpad button:active,.dpad button.on{transform:translateY(3px);box-shadow:0 1px 0 var(--ink);background:#fff1ea}
+.dpad .u{grid-column:2;grid-row:1}.dpad .l{grid-column:1;grid-row:2}.dpad .r{grid-column:3;grid-row:2}.dpad .d{grid-column:2;grid-row:3}
+.mid{flex:1;text-align:center;color:var(--muted);font-size:13px;line-height:1.5;font-weight:700}
+.abtn{width:78px;height:78px;border-radius:50%;background:var(--accent);color:#fff;font-size:26px;font-weight:900;border:3px solid var(--ink);box-shadow:0 5px 0 var(--ink);cursor:pointer;touch-action:none}
+.abtn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+kbd{background:#fff;border:2px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:0 5px;font-family:inherit;font-size:12px}
+#title{display:flex;align-items:flex-start;justify-content:center;padding:20px 14px 40px}
+.tcard{max-width:640px;width:100%;text-align:center}
+.tlogo{font-size:22px;line-height:1.6;color:var(--accent);text-shadow:3px 3px 0 var(--ink);margin:18px 0 6px}
+.tsub{color:var(--muted);font-weight:700;margin:0 0 18px}
+.tbox{background:#fff;border:3px solid var(--ink);border-radius:18px;padding:18px;box-shadow:var(--shadow);text-align:left;margin-bottom:14px}
+.tbox label{font-weight:900;display:block;margin-bottom:6px}
+.tbox input{width:100%;font:inherit;font-size:17px;padding:10px 12px;border:2px solid var(--ink);border-radius:12px;font-weight:700}
+.starters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.starter{border:3px solid var(--line);border-radius:16px;padding:10px 6px;background:#fffdf8;cursor:pointer;text-align:center;transition:transform .15s}
+.starter:hover{transform:translateY(-3px)}
+.starter.on{border-color:var(--ink);background:#fff1ea;box-shadow:0 4px 0 var(--ink)}
+.starter b{display:block;font-size:15px}
+.starter small{color:var(--muted);font-weight:700;font-size:12px;display:block;line-height:1.3}
+@media(max-width:480px){.starter svg{width:72px;height:72px}.tlogo{font-size:17px}}
+.bwrap{max-width:1120px;margin:0 auto;padding:12px 12px 30px}
+.arena{position:relative;height:230px;border-radius:16px;border:3px solid var(--ink);background:linear-gradient(#e3f4ff 0 52%,#cdeea9 52%);overflow:hidden}
+.plat{position:absolute;width:150px;height:30px;border-radius:50%;background:rgba(80,140,60,.28)}
+.plat.f{right:9%;top:118px}.plat.m{left:6%;bottom:8px}
+.sprite{position:absolute;transition:opacity .3s}
+#foeSprite{right:calc(9% + 15px);top:14px}
+#meSprite{left:calc(6% + 15px);bottom:12px;transform:scaleX(-1)}
+.hpcard{position:absolute;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:6px 10px;min-width:170px;font-weight:900;font-size:14px;z-index:2}
+.hpcard small{display:block;color:var(--muted);font-weight:800;font-size:11px}
+.hpcard.foe{left:12px;top:12px}.hpcard.me{right:12px;bottom:12px}
+.hp{height:10px;background:#eee;border-radius:9px;overflow:hidden;margin-top:4px;border:1px solid #ddd}
+.hp i{display:block;height:100%;background:var(--good);transition:width .6s,background .3s}
+.hit{animation:hit .5s}
+@keyframes hit{20%,60%{translate:-8px 0;opacity:.35}40%,80%{translate:8px 0;opacity:1}}
+.lungeF{animation:lungeF .4s}@keyframes lungeF{50%{translate:-46px 26px}}
+.lungeM{animation:lungeM .4s}@keyframes lungeM{50%{translate:-46px -26px}}
+.faint{animation:faint .7s forwards}@keyframes faint{to{translate:0 40px;opacity:0}}
+.appear{animation:appear .5s}@keyframes appear{from{translate:60px 0;opacity:0}}
+.bmsg{margin:10px 0;background:#fff;border:3px solid var(--ink);border-radius:12px;padding:10px 14px;font-weight:800;font-size:16px;min-height:46px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{flex:1;border:2px solid var(--ink);background:#fff;border-radius:10px;padding:8px;font-weight:900;cursor:pointer}
+.tabs button.on{background:var(--ink);color:#fff}
+@media(max-width:860px){.arena{height:190px}.plat.f{top:94px}#preview{height:180px}}
+@media(max-width:480px){.hpcard{min-width:140px;font-size:13px}#foeSprite svg,#meSprite svg{width:92px;height:92px}}
+.cxgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.cx{border:2px solid var(--line);border-radius:14px;padding:8px;text-align:center;background:#fffdf8;cursor:pointer;font-weight:800;font-size:13px}
+.cx.lock{opacity:.55;cursor:default}
+.cx small{display:block;color:var(--muted);font-weight:700}
+.cxsec{font-weight:900;margin:14px 0 8px;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:1px}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{border:2px solid var(--line);border-radius:12px;padding:6px 10px;font-weight:800;font-size:13px;background:#fff;opacity:.45}
+.badge.on{opacity:1;border-color:var(--gold);background:#fff8e1}
+
+/* ---------- dungeon ---------- */
+iframe.droom{width:100%;height:230px;border:3px solid var(--ink);border-radius:12px;background:#efe6d3;display:block}
+.selrow{display:flex;align-items:center;gap:8px}
+.selrow .brace{font-family:"JetBrains Mono",monospace;color:var(--muted);font-weight:700;white-space:nowrap;font-size:14px}
+.count{font-weight:800;font-size:14px;color:var(--muted);margin-top:8px}
+
+/* ---------- café ---------- */
+.cafe{border:3px solid var(--ink);border-radius:18px;overflow:hidden;background:#fff;margin-bottom:12px}
+.cafe .awning{height:22px;background:repeating-linear-gradient(90deg,#ff7a59 0 28px,#fff 28px 56px)}
+.cafe .front{padding:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:linear-gradient(#fff9ef,#ffeeda)}
+.cafe .sign{font-weight:900;font-size:20px;background:#2a2840;color:#fff;border-radius:10px;padding:8px 14px}
+.cafe .decor{font-size:26px;letter-spacing:4px}
+.cafe .stats2{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.cafe .crowd{padding:6px 14px 12px;font-size:20px;letter-spacing:2px;background:#ffeeda;min-height:20px}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.shop button{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px;font-weight:800;cursor:pointer;box-shadow:0 3px 0 var(--ink)}
+.shop button.own{background:#e7f8ef;box-shadow:none;cursor:default}
+.shop .e{font-size:28px;display:block}
+
+/* ---------- racer ---------- */
+.track{position:relative;border:3px solid var(--ink);border-radius:16px;background:#5d6170;padding:10px 0;overflow:hidden}
+.lane{position:relative;height:56px;border-bottom:3px dashed rgba(255,255,255,.55)}
+.lane:last-of-type{border-bottom:none}
+.lane .lbl{position:absolute;left:8px;top:4px;font-size:11px;font-weight:900;color:#fff;opacity:.8}
+.car{position:absolute;top:8px;font-size:38px;transition:left .5s ease-out;transform:scaleX(-1);left:0}
+.car.spin{animation:spin .6s}
+@keyframes spin{to{transform:scaleX(-1) rotate(360deg)}}
+.finish{position:absolute;right:30px;top:0;bottom:0;width:14px;background:repeating-conic-gradient(#fff 0 25%,#222 0 50%) 0 0/14px 14px}
+.rstat{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;font-weight:800}
+.countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:54px;color:#fff;font-weight:900;text-shadow:0 4px 0 #2a2840;background:rgba(42,40,64,.35)}
+iframe.mini{height:110px!important}
+
+/* ---------- robot ---------- */
+.rgridwrap{display:flex;justify-content:center;margin:10px 0}
+.rgrid{position:relative;display:grid;gap:3px;background:#2a2840;padding:3px;border-radius:12px}
+.rcell{width:var(--cell);height:var(--cell);border-radius:6px;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:calc(var(--cell)*.55)}
+.rcell.wall{background:#8a8fa8}
+.rcell.goal{background:#c9f2db}
+.bot{position:absolute;width:var(--cell);height:var(--cell);display:flex;align-items:center;justify-content:center;font-size:calc(var(--cell)*.7);transition:left .2s,top .2s;z-index:2}
+.bot.bonk{animation:hit .4s}
+.bubble{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#fff;border:2px solid var(--ink);border-radius:10px;padding:2px 8px;font-size:13px;font-weight:800;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<!-- ================= HUB ================= -->
+<section class="screen" id="hub">
+  <div class="hubhead">
+    <h1 class="hublogo pix">CODE<br>ARCADE</h1>
+    <p class="muted" style="margin:10px 0 0">7 story games. Real code. Learn HTML, CSS &amp; JavaScript by playing.</p>
+  </div>
+  <div class="hubgrid" id="hubGrid"></div>
+  <div class="hubfoot">
+    <p>Suggested order: 🌿 Codeling Quest → 🐞 Bug Hunter → 🏰 Dungeon → 🎨 Copy the Picture → ☕ Café → 🏎️ Racer → 🤖 Robot</p>
+    <p>Your progress saves automatically on this device. <button class="btn ghost sm" id="resetAll">Reset all progress</button></p>
+  </div>
+</section>
+
+<!-- ================= CODELING QUEST ================= -->
+<section class="screen hidden" id="g-quest">
+<div id="app">
+  <header>
+    <button class="chip" id="qBack">← Arcade</button>
+    <h1 class="logo pix">CODELING<br>QUEST</h1>
+    <div class="stats">
+      <span class="chip" id="hudName">—</span>
+      <span class="chip" id="hudLv">Lv 1</span>
+      <span class="chip">HP<span class="minihp"><i id="hudHp" style="width:100%"></i></span></span>
+      <span class="chip" id="hudBadges">🏅 0/4</span>
+      <button class="chip" id="btnCodex">📘 Codedex</button>
+      <button class="chip" id="btnMenu">⚙️</button>
+    </div>
+  </header>
+  <div id="stage">
+    <canvas id="cv" width="1280" height="960" aria-label="Game world"></canvas>
+    <div id="banner" class="pix"></div>
+    <div id="flash"></div>
+    <div id="dialog" class="hidden"><span class="who" id="dWho"></span><span id="dText"></span><span class="more">▼</span></div>
+  </div>
+  <div class="controls">
+    <div class="dpad" id="dpad">
+      <button class="u" data-d="up" aria-label="Up">▲</button>
+      <button class="l" data-d="left" aria-label="Left">◀</button>
+      <button class="r" data-d="right" aria-label="Right">▶</button>
+      <button class="d" data-d="down" aria-label="Down">▼</button>
+    </div>
+    <div class="mid">Move: <kbd>Arrows</kbd> / <kbd>WASD</kbd><br>Talk / next: <kbd>Space</kbd> or <b>A</b><br>Wild Codelings hide in <b>tall grass</b> 🌿</div>
+    <button class="abtn" id="aBtn" aria-label="A button">A</button>
+  </div>
+</div>
+</section>
+<div id="title" class="overlay hidden"></div>
+<div id="battle" class="overlay hidden">
+  <div class="bwrap">
+    <div class="arena">
+      <div class="hpcard foe"><span id="foeName">—</span><small id="foeTag"></small><div class="hp"><i id="foeHp"></i></div></div>
+      <div class="plat f"></div><div class="plat m"></div>
+      <div class="sprite" id="foeSprite"></div>
+      <div class="sprite" id="meSprite"></div>
+      <div class="hpcard me"><span id="meName">—</span><small id="meTag"></small><div class="hp"><i id="meHp"></i></div><small id="meHpTxt"></small></div>
+    </div>
+    <div class="bmsg" id="bmsg"></div>
+    <div class="work">
+      <div class="box">
+        <div class="tabs"><button data-tab="lesson">📖 Lesson</button><button data-tab="mission">🎯 Mission</button></div>
+        <div id="tabLesson"></div>
+        <div id="tabMission"></div>
+        <div class="edhead">✍️ Your code <small>Ctrl + Enter = Attack</small></div>
+        <textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Code editor"></textarea>
+        <div class="snips" id="snips"></div>
+      </div>
+      <div class="box">
+        <div class="edhead" style="margin-top:0">👀 Live preview <small>updates as you type</small></div>
+        <iframe id="preview" sandbox="allow-same-origin" title="Live preview"></iframe>
+        <div class="actions">
+          <button class="btn primary big wide" id="bAttack">⚔️ ATTACK! <small style="font-weight:700">(check my code)</small></button>
+          <button class="btn" id="bHint">💡 Hint</button>
+          <button class="btn" id="bTip">✨ Tip</button>
+          <button class="btn" id="bAnswer">👁 Answer</button>
+          <button class="btn ghost" id="bReset">↺ Reset code</button>
+          <button class="btn ghost" id="bRun">🏃 Run away</button>
+        </div>
+        <div id="feedback" class="feedback"></div>
+        <div id="hintBox" class="hintbox"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal" class="hidden"><div class="card" id="modalCard"></div></div>
+
+<script>
+/* =====================================================================
+   SHARED TOOLKIT
+   ===================================================================== */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const md=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+const debounce=(fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};};
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const AKEY='code-arcade-v1', QKEY='codeling-quest-v1';
+const freshProg=()=>({bug:{},art:{},dungeon:{},cafe:{code:'',start:'',coins:0,decor:[],stars:{}},racer:{},robot:{}});
+let PROG=Object.assign(freshProg(),store.get(AKEY,{}));
+const saveProg=()=>store.set(AKEY,PROG);
+
+/* ---- colours as browsers report them ---- */
+const RED='rgb(255, 0, 0)',GREEN='rgb(0, 128, 0)',PURPLE='rgb(128, 0, 128)',LIGHTBLUE='rgb(173, 216, 230)',CLEAR='rgba(0, 0, 0, 0)',
+      BLUE='rgb(0, 0, 255)',YELLOW='rgb(255, 255, 0)',ORANGE='rgb(255, 165, 0)',WHITE='rgb(255, 255, 255)',INK='rgb(34, 34, 34)';
+
+/* ---- rendering code into a sandboxed frame ---- */
+const BASE_CSS='body{font-family:system-ui,sans-serif;margin:12px;color:#222}';
+function renderInto(frame,code,base=BASE_CSS){
+  return new Promise(res=>{
+    const id=(frame._seq=(frame._seq||0)+1);let done=false;
+    const finish=()=>{if(done)return;done=true;res(makeApi(frame.contentDocument,frame.contentWindow));};
+    frame.onload=()=>{if(id===frame._seq)finish();};
+    setTimeout(finish,1500);
+    frame.srcdoc=`<!doctype html><html><head><meta charset="utf-8"><style>${base}</style></head><body>${code}\n<!--${id}--></body></html>`;
+  });
+}
+function makeApi(doc,win){
+  return {doc,win,$:s=>doc.querySelector(s),$$:s=>[...doc.querySelectorAll(s)],
+    text:el=>el?el.textContent.replace(/\s+/g,' ').trim().toLowerCase():'',
+    css:(el,p)=>el?win.getComputedStyle(el)[p]:'',
+    rules:()=>{const out=[];for(const sh of doc.styleSheets){try{for(const r of sh.cssRules)out.push(r);}catch(e){}}return out;}};
+}
+/* ---- check builders (sizes are compared with a 1px tolerance — phones round pixels) ---- */
+const px=v=>parseFloat(v)||0;
+const has=(s,m)=>[a=>!!a.$(s),m];
+const hasText=(s,w,m)=>[a=>a.text(a.$(s)).includes(w),m];
+const cssIs=(s,p,v,m)=>[a=>a.css(a.$(s),p)===v,m];
+const cssPx=(s,p,n,m,tol=1)=>[a=>{const e=a.$(s);return !!e&&Math.abs(px(a.css(e,p))-n)<=tol;},m];
+const cssMin=(s,p,n,m)=>[a=>{const e=a.$(s);return !!e&&px(a.css(e,p))>=n;},m];
+const cssNot=(s,p,vals,m)=>[a=>{const e=a.$(s);return !!e&&![].concat(vals).includes(a.css(e,p));},m];
+const gapPx=(s,n,m)=>[a=>{const e=a.$(s);return !!e&&(Math.abs(px(a.css(e,'columnGap'))-n)<=1||Math.abs(px(a.css(e,'rowGap'))-n)<=1);},m];
+const hoverRule=(sel,m)=>[a=>a.rules().some(r=>r.selectorText&&r.selectorText.replace(/\s/g,'').includes(sel)&&r.style.backgroundColor),m];
+async function runChecksCode(frame,code,checks,base){
+  const a=await renderInto(frame,code,base);
+  for(const[fn,msg]of checks){let ok=false;try{ok=!!fn(a);}catch(e){ok=false;}if(!ok)return{ok:false,msg};}
+  return{ok:true};
+}
+
+/* ---- modal ---- */
+function modal(html,buttons=[['OK',null,'primary']]){
+  const c=$('#modalCard');c.innerHTML=html+'<div class="row"></div>';const row=c.querySelector('.row');
+  buttons.forEach(([label,fn,cls])=>{const b=document.createElement('button');b.className='btn '+(cls||'');b.textContent=label;b.onclick=()=>{closeModal();if(fn)fn();};row.appendChild(b);});
+  $('#modal').classList.remove('hidden');
+}
+function closeModal(){$('#modal').classList.add('hidden');}
+
+/* ---- editor helpers ---- */
+function insertAt(ed,txt,after){const s=ed.selectionStart,e=ed.selectionEnd;ed.setRangeText(txt,s,e,'end');ed.focus();after&&after();}
+function addSnips(box,ed,after,keys=['<','>','/','=','"','{','}',':',';','.','#','-']){
+  keys.forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k;b.onmousedown=e=>e.preventDefault();b.onclick=()=>insertAt(ed,k,after);box.appendChild(b);});
+  const b=document.createElement('button');b.type='button';b.textContent='⇥';b.title='Indent';b.onmousedown=e=>e.preventDefault();b.onclick=()=>insertAt(ed,'  ',after);box.appendChild(b);
+}
+function wireEditor(ed,onInput,onSubmit){
+  ed.addEventListener('input',onInput);
+  ed.addEventListener('keydown',e=>{
+    if(e.key==='Tab'&&ed.tagName==='TEXTAREA'){e.preventDefault();insertAt(ed,'  ',onInput);}
+    if(e.key==='Enter'&&(e.ctrlKey||e.metaKey||ed.tagName==='INPUT')){e.preventDefault();onSubmit();}
+  });
+}
+const starsHTML=(n,max=3)=>`<span class="stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(max-n)}</span></span>`;
+const storyHTML=(who,text)=>`<div class="story"><b class="who">${esc(who)}</b>${md(text)}</div>`;
+
+/* =====================================================================
+   BENCH — the shared "write code, preview, check" workspace
+   ===================================================================== */
+function Bench(root,opt={}){
+  const base=opt.base||BASE_CSS;
+  root.innerHTML=`<div class="work">
+   <div class="box">
+     <div class="bstory"></div>
+     ${opt.target?`<div class="edhead">🎯 The original <small>make yours match this</small></div><div class="framewrap"><iframe class="tgt fixed prev" sandbox="allow-same-origin" title="Target"></iframe></div>`:''}
+     <div class="edhead">✍️ Your code <small>Ctrl + Enter = check</small></div>
+     <textarea class="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Code editor"></textarea>
+     <div class="snips"></div>
+   </div>
+   <div class="box">
+     <div class="edhead" style="margin-top:0">👀 ${opt.target?'Your version':'Live preview'} <small>updates as you type</small></div>
+     <div class="framewrap"><iframe class="prev ${opt.target?'fixed':''}" sandbox="allow-same-origin" title="Preview"></iframe></div>
+     <div class="actions">
+       <button class="btn primary big wide" data-a="check">${opt.checkLabel||'✅ Check my code'}</button>
+       <button class="btn" data-a="hint">💡 Hint</button>
+       <button class="btn" data-a="tip">✨ Tip</button>
+       <button class="btn" data-a="answer">👁 Answer</button>
+       <button class="btn ghost wide" data-a="reset">↺ ${opt.resetLabel||'Reset code'}</button>
+     </div>
+     <div class="feedback"></div>
+     <div class="hintbox"></div>
+   </div></div>`;
+  const ed=$('textarea.code',root),fr=$('iframe.prev:not(.tgt)',root),tg=$('iframe.tgt',root),fbEl=$('.feedback',root),hb=$('.hintbox',root);
+  let T=null,hints=0,used=false,busy=false,resetCode='';
+  const live=debounce(()=>renderInto(fr,ed.value,base),250);
+  const onInput=()=>{live();opt.onInput&&opt.onInput(ed.value);};
+  wireEditor(ed,onInput,()=>check());
+  addSnips($('.snips',root),ed,onInput);
+  const fb=(t,h)=>{fbEl.className='feedback '+(t||'');fbEl.innerHTML=h||'';};
+  const hintBtn=$('[data-a=hint]',root);
+  const label=()=>{hintBtn.textContent=`💡 Hint ${Math.min(hints,T.hints.length)}/${T.hints.length}`;};
+  async function check(){
+    if(busy||!T)return;
+    if(!ed.value.trim()){fb('bad','Your code box is empty! Type your code first.');return;}
+    busy=true;
+    const r=opt.checker?await opt.checker(T,ed.value,{fr,tg,base}):await runChecksCode(fr,ed.value,T.checks,base);
+    busy=false;
+    if(r.ok){const stars=used?1:hints?2:3;fb('good',`✅ ${opt.winText||'It works! Your code is correct.'} ${r.extra||''}`);opt.onPass&&opt.onPass(stars,ed.value);}
+    else{fb('bad',`❌ ${md(r.msg)}${r.extra?'<br>'+r.extra:''}<br><small style="font-weight:700">Fix it and check again. Stuck? Tap 💡 Hint.</small>`);}
+  }
+  $('[data-a=check]',root).onclick=check;
+  hintBtn.onclick=()=>{if(!T)return;if(hints<T.hints.length)hints++;label();
+    hb.innerHTML=T.hints.slice(0,hints).map((h,i)=>`<div class="h">💡 <b>Hint ${i+1}:</b> ${md(h)}</div>`).join('')+(hints>=T.hints.length?`<div class="h" style="background:#fff;border-style:dashed">That's every hint! Still stuck? Tap 👁 Answer — totally fine.</div>`:'');};
+  $('[data-a=tip]',root).onclick=()=>{if(T)hb.insertAdjacentHTML('afterbegin',`<div class="h t">✨ <b>Pro tip:</b> ${md(T.tip)}</div>`);};
+  $('[data-a=answer]',root).onclick=()=>{if(!T)return;used=true;
+    if(opt.answer){opt.answer(T,ed,hb,onInput);return;}
+    ed.value=T.answer;onInput();
+    hb.innerHTML=`<div class="h a">👁 <b>Here's a correct answer.</b> Read it line by line and compare it with what you had — spot the difference. Then press check.<br><small>(You'll get 1 star this time. Learning is the real win.)</small></div>`;};
+  $('[data-a=reset]',root).onclick=()=>{ed.value=resetCode;onInput();ed.focus();};
+  return{
+    load(task,code){T=task;hints=0;used=false;busy=false;resetCode=code!=null?code:task.starter;
+      $('.bstory',root).innerHTML=task.storyHTML;ed.value=resetCode;renderInto(fr,ed.value,base);
+      if(tg&&task.target!=null)renderInto(tg,task.target,base);fb();hb.innerHTML='';label();},
+    ed,fr,tg,fb,setReset(c){resetCode=c;}
+  };
+}
+
+/* =====================================================================
+   GAME SHELL — level select, stars, unlocking, win screen
+   ===================================================================== */
+const GAMES={};
+let CURRENT='hub';
+function Game(def){
+  const sec=document.createElement('section');sec.className='screen hidden';sec.id='g-'+def.id;
+  sec.innerHTML=`<div class="gwrap"><div class="topbar"><button class="btn sm" data-back>← Arcade</button><div class="gt"><span class="ge">${def.emoji}</span><span>${esc(def.title)}</span></div><span class="chip gprog"></span></div><div class="gbody"></div></div>`;
+  document.body.insertBefore(sec,$('#modal'));
+  const body=$('.gbody',sec);
+  const S=()=>def.starStore?def.starStore():PROG[def.id];
+  const st=id=>S()[id]||0;
+  const unlocked=i=>i===0||st(def.levels[i-1].id)>0;
+  const g={def,
+    progress(){const done=def.levels.filter(l=>st(l.id)>0).length;const stars=def.levels.reduce((n,l)=>n+st(l.id),0);return{done,total:def.levels.length,stars,max:def.levels.length*3};},
+    prog(){const p=g.progress();$('.gprog',sec).textContent=`⭐ ${p.stars}/${p.max}`;},
+    levels(){g.cleanup();g.prog();let html=`<div class="intro box">${def.intro}</div>`;
+      if(def.header)html+=`<div class="ghead"></div>`;
+      let chap=null,next=def.levels.findIndex((l,i)=>unlocked(i)&&!st(l.id));
+      def.levels.forEach((l,i)=>{if(l.ch!==chap){if(chap!==null)html+='</div>';chap=l.ch;html+=`<div class="chap">${esc(chap)}</div><div class="lvgrid">`;}
+        const lock=!unlocked(i);
+        html+=`<button class="lv ${lock?'lock':''} ${i===next?'next':''}" data-i="${i}" ${lock?'disabled':''}><small>${def.unit||'Level'} ${i+1}${lock?' · 🔒':''}</small>${esc(l.title)}${starsHTML(st(l.id))}</button>`;});
+      html+='</div>';body.innerHTML=html;
+      if(def.header)def.header($('.ghead',body),g);
+      $$('.lv',body).forEach(b=>b.onclick=()=>g.open(+b.dataset.i));window.scrollTo(0,0);},
+    open(i){g.cleanup();const L=def.levels[i];g.cur=i;
+      body.innerHTML=`<div class="lvhead"><button class="btn sm ghost" data-lv>← ${def.unit||'Level'}s</button><b>${def.unit||'Level'} ${i+1}: ${esc(L.title)}</b>${starsHTML(st(L.id))}</div><div class="lvplay"></div>`;
+      $('[data-lv]',body).onclick=()=>g.levels();
+      def.play(L,$('.lvplay',body),stars=>g.win(i,stars),g);window.scrollTo(0,0);},
+    win(i,stars){const L=def.levels[i];const prev=st(L.id);S()[L.id]=Math.max(prev,stars);saveProg();g.prog();
+      const hasNext=i+1<def.levels.length;
+      setTimeout(()=>modal(`<div class="center"><div style="font-size:52px">${stars===3?'🏆':stars===2?'🎉':'👍'}</div><h2>${esc(def.winWord||'Level complete!')}</h2><div style="font-size:30px">${starsHTML(stars)}</div>
+        ${L.outro?`<p style="font-weight:700">${md(L.outro)}</p>`:''}<p class="muted">${stars===3?'Perfect — no hints needed!':stars===2?'Nice! Try again with no hints for 3 stars.':'You used the answer — try it again later from memory for more stars.'}</p>
+        ${!hasNext&&def.finale?`<p style="font-weight:800">${md(def.finale)}</p>`:''}</div>`,
+        hasNext?[['Level list',()=>g.levels()],['Next →',()=>g.open(i+1),'primary']]:[['Level list',()=>g.levels(),'primary']]),700);},
+    cleanup(){def.cleanup&&def.cleanup();}
+  };
+  $('[data-back]',sec).onclick=()=>APP.show('hub');
+  GAMES[def.id]=g;return g;
+}
+
+const APP={show(id){
+  if(CURRENT!=='hub'&&CURRENT!=='quest'&&GAMES[CURRENT])GAMES[CURRENT].cleanup();
+  $$('.screen').forEach(s=>s.classList.add('hidden'));
+  CURRENT=id;
+  if(id==='hub'){$('#hub').classList.remove('hidden');window.QUEST&&QUEST.leave();renderHub();}
+  else if(id==='quest'){$('#g-quest').classList.remove('hidden');QUEST.enter();}
+  else{$('#g-'+id).classList.remove('hidden');window.QUEST&&QUEST.leave();GAMES[id].levels();}
+  window.scrollTo(0,0);
+}};
+</script>
+
+<!-- =====================================================================
+     GAME 1: CODELING QUEST
+     ===================================================================== -->
+<script>
+(()=>{
+'use strict';
+const STYLE_START="\n\n<style>\n  \n</style>";
+const CH=[
+{id:'h1',g:'r1',name:'Hedlet',color:'#f59e0b',concept:'Headings <h1>',
+ learn:"A web page is built from **tags**. A tag is like a labelled box — it tells the browser what's inside.\n\n`<h1>` means **biggest heading**. You open the box with `<h1>`, put your words inside, then close it with `</h1>`.\n\nThe closing tag always has a slash `/`. No slash = the box never closes!",
+ example:"<h1>My Adventure</h1>",mission:"Write a big heading (`<h1>`) that says **Hello World**.",starter:"",
+ hints:["Type the opening tag first: `<h1>`","Now type the words Hello World.","Close the box with `</h1>` — don't forget the slash!"],answer:"<h1>Hello World</h1>",
+ tip:"Everyone writes tags in lowercase. `<h1>` not `<H1>`. Good habit from day one!",
+ checks:[has('h1',"I can't see an `<h1>` tag yet. Check: less-than sign, the letter h, the number 1, greater-than sign."),hasText('h1','hello world',"Your `<h1>` is there, but the words inside should be Hello World.")]},
+{id:'p',g:'r1',name:'Parabug',color:'#84cc16',concept:'Paragraphs <p>',
+ learn:"Headings are titles. For normal sentences we use `<p>` — short for **paragraph**.\n\nSame rule as before: open with `<p>`, close with `</p>`.",
+ example:"<h1>Day 1</h1>\n<p>I left my village today.</p>",mission:"Write a paragraph (`<p>`) that says **I am learning HTML**.",starter:"",
+ hints:["The paragraph tag is just the letter p: `<p>`","Words go in the middle.","Close it with `</p>`"],answer:"<p>I am learning HTML</p>",
+ tip:"The browser ignores extra spaces and Enter key presses in your code. To make a new paragraph, you need a new `<p>` tag.",
+ checks:[has('p',"I can't find a `<p>` tag. It's just: less-than, p, greater-than."),hasText('p','i am learning html',"The paragraph should say: I am learning HTML")]},
+{id:'hx',g:'r1',name:'Sizlet',color:'#06b6d4',concept:'Heading sizes h1–h6',
+ learn:"There are **6 heading sizes**. `<h1>` is the biggest boss, `<h6>` is the tiniest.\n\nThink of a book: `<h1>` is the book title, `<h2>` is a chapter, `<h3>` is a section inside a chapter.",
+ example:"<h1>Book</h1>\n<h2>Chapter</h2>\n<h3>Section</h3>",mission:"Make an `<h2>` that says **Level 2** and an `<h3>` that says **Level 3**.",starter:"",
+ hints:["You need TWO lines — one for each tag.","Line 1: `<h2>Level 2</h2>`","Line 2 is the same idea, but with h3."],answer:"<h2>Level 2</h2>\n<h3>Level 3</h3>",
+ tip:"Use only ONE `<h1>` per page — it's the main title. Search engines like Google use it to understand your page.",
+ checks:[has('h2',"Missing the `<h2>` tag."),hasText('h2','level 2',"Your `<h2>` should say Level 2."),has('h3',"Missing the `<h3>` tag."),hasText('h3','level 3',"Your `<h3>` should say Level 3.")]},
+{id:'strong',g:'r1',name:'Boldra',color:'#ef4444',concept:'Bold text <strong>',
+ learn:"You can put tags **inside** other tags — like a small box inside a big box. This is called **nesting**.\n\n`<strong>` makes words bold (it means: this is important!).\n`<em>` makes words italic (it means: say this with feeling).",
+ example:"<p>I found a <strong>golden</strong> key!</p>",mission:"Make a paragraph that says **I am brave**, with ONLY the word **brave** inside `<strong>` tags.",starter:"",
+ hints:["Start the paragraph: `<p>I am `","Now wrap just one word: `<strong>brave</strong>`","Finally close the paragraph with `</p>` at the very end."],answer:"<p>I am <strong>brave</strong></p>",
+ tip:"Close boxes in reverse order: the last box you opened is the first one you close. Open p → open strong → close strong → close p.",
+ checks:[has('p',"Start with a `<p>` paragraph."),has('p strong',"I need a `<strong>` tag INSIDE your `<p>` tag."),[a=>a.text(a.$('p strong'))==='brave',"Only the word brave should be inside `<strong>`."],hasText('p','i am brave',"The whole paragraph should read: I am brave")]},
+{id:'a',g:'r1',name:'Linkoo',color:'#8b5cf6',concept:'Links <a href>',
+ learn:"Links use the `<a>` tag. But a link needs to know WHERE to go.\n\nWe tell it using an **attribute** — extra info written INSIDE the opening tag.\n\n`href` is the attribute that holds the web address. It looks like this: `href=\"address\"`",
+ example:"<a href=\"https://example.com\">Click me</a>",mission:"Make a link to **https://example.com** that says **Visit**.",starter:"",
+ hints:["Attributes go inside the opening tag: `<a href=\"\">`","Put the address between the two quote marks.","The word Visit goes between `<a ...>` and `</a>`."],answer:"<a href=\"https://example.com\">Visit</a>",
+ tip:"Attributes always follow the pattern name=\"value\" — an equals sign, then the value in quotes.",
+ checks:[has('a',"I can't find an `<a>` tag."),[a=>(a.$('a').getAttribute('href')||'').includes('example.com'),"Your link needs `href=\"https://example.com\"` inside the opening tag."],hasText('a','visit',"The clickable words should say Visit.")]},
+{id:'img',g:'r1',name:'Pixipic',color:'#ec4899',concept:'Images <img>',
+ learn:"Images use `<img>`. It's special — it has **no closing tag**, because there's nothing to put inside it.\n\nIt needs two attributes:\n• `src` = which picture file to show\n• `alt` = words describing the picture, for people who can't see it",
+ example:"<img src=\"dragon.png\" alt=\"A red dragon\">",mission:"Add an image with src **cat.png** and alt **A cute cat**.\n\n(There's no real cat.png here, so the picture can't load — you'll see the alt words instead. That's alt doing its job!)",starter:"",
+ hints:["Start with `<img`","Add `src=\"cat.png\"` then a space, then `alt=\"A cute cat\"`","Finish with `>` — no closing tag needed!"],answer:"<img src=\"cat.png\" alt=\"A cute cat\">",
+ tip:"Always write alt text. Screen readers read it out loud for blind users — it's kind AND it helps Google.",
+ checks:[has('img',"I can't find an `<img>` tag."),[a=>(a.$('img').getAttribute('src')||'').includes('cat.png'),"Your image needs `src=\"cat.png\"`"],[a=>(a.$('img').getAttribute('alt')||'').toLowerCase().includes('cute cat'),"Your image needs `alt=\"A cute cat\"`"]]},
+{id:'ul',g:'r1',name:'Listra',color:'#14b8a6',concept:'Lists <ul> <li>',
+ learn:"A bullet list needs two kinds of tags:\n• `<ul>` = the list box (unordered list)\n• `<li>` = each item (list item)\n\nEvery `<li>` goes INSIDE the `<ul>`.",
+ example:"<ul>\n  <li>Map</li>\n  <li>Torch</li>\n</ul>",mission:"Make a bullet list with 3 items: **Sword**, **Shield**, **Potion**.",starter:"",
+ hints:["Open the list box: `<ul>`","Each item: `<li>Sword</li>` — do 3 of these.","Close the list: `</ul>`"],answer:"<ul>\n  <li>Sword</li>\n  <li>Shield</li>\n  <li>Potion</li>\n</ul>",
+ tip:"The spaces at the start of each `<li>` line are optional. They just make your code easier to read — pros always do it.",
+ checks:[has('ul',"I can't find a `<ul>` list box."),[a=>a.$$('ul li').length>=3,"Your `<ul>` needs 3 `<li>` items inside it."],[a=>{const t=a.text(a.$('ul'));return['sword','shield','potion'].every(w=>t.includes(w));},"The 3 items should be Sword, Shield and Potion."]]},
+{id:'button',g:'r1',name:'Clicko',color:'#f97316',concept:'Buttons <button>',
+ learn:"`<button>` makes a clickable button.\n\nLater, with JavaScript, you'll make buttons actually DO things. For now — let's make one appear!",
+ example:"<button>Start</button>",mission:"Make a button that says **Fight!**",starter:"",
+ hints:["The tag name is the word button.","`<button>` … words … `</button>`"],answer:"<button>Fight!</button>",
+ tip:"Notice the browser draws the button shape for you. CSS can restyle it to look like anything later.",
+ checks:[has('button',"I can't find a `<button>` tag."),hasText('button','fight',"Your button should say Fight!")]},
+{id:'ol',g:'g1',name:'Numbro',color:'#6366f1',concept:'Numbered lists <ol>',
+ learn:"`<ol>` means **ordered list**. It works exactly like `<ul>`, but the browser numbers the items 1, 2, 3 for you.\n\nPerfect for steps or rankings.",
+ example:"<ol>\n  <li>Wake up</li>\n  <li>Eat</li>\n</ol>",mission:"Make a numbered list with 3 steps: **Wake up**, **Code**, **Sleep**.",starter:"",
+ hints:["Same as a bullet list, but the box is `<ol>` instead of `<ul>`.","Three `<li>` items inside."],answer:"<ol>\n  <li>Wake up</li>\n  <li>Code</li>\n  <li>Sleep</li>\n</ol>",
+ tip:"ul = unordered (bullets). ol = ordered (numbers). That's the whole difference!",
+ checks:[has('ol',"I need an `<ol>` (numbered list) box."),[a=>a.$$('ol li').length>=3,"Your `<ol>` needs 3 `<li>` items."],[a=>{const t=a.text(a.$('ol'));return['wake up','code','sleep'].every(w=>t.includes(w));},"The steps should be Wake up, Code, Sleep."]]},
+{id:'div',g:'g1',name:'Boxxy',color:'#0ea5e9',concept:'Boxes <div>',
+ learn:"`<div>` is an **invisible box** used to group things together.\n\nOn its own it looks like nothing. But later, CSS will turn divs into cards, menus, and whole page layouts. Pros use divs everywhere!",
+ example:"<div>\n  <h2>Shop</h2>\n  <p>Open now</p>\n</div>",mission:"Make a `<div>` that holds an `<h2>` saying **Hero** and a `<p>` saying **Level 5**.",starter:"",
+ hints:["Open the box: `<div>`","Inside it, put `<h2>Hero</h2>` and `<p>Level 5</p>`","Close the box at the end: `</div>`"],answer:"<div>\n  <h2>Hero</h2>\n  <p>Level 5</p>\n</div>",
+ tip:"Indenting things inside a div makes it obvious what's inside what. Your future self will thank you.",
+ checks:[has('div',"I can't find a `<div>`."),has('div h2',"The `<h2>` must be INSIDE the `<div>`."),hasText('div h2','hero',"The `<h2>` should say Hero."),has('div p',"The `<p>` must be INSIDE the `<div>`."),hasText('div p','level 5',"The `<p>` should say Level 5.")]},
+{id:'input',g:'g1',name:'Inputa',color:'#a855f7',concept:'Text boxes <input>',
+ learn:"`<input>` makes a box you can type into. Like `<img>`, it has **no closing tag**.\n\nThe `placeholder` attribute shows grey hint words inside the box before you type.",
+ example:"<input placeholder=\"Search...\">\n<button>Go</button>",mission:"Make an `<input>` with placeholder **Your name**, and a `<button>` that says **Go**.",starter:"",
+ hints:["`<input placeholder=\"\">` — fill in the quotes.","Then on the next line, a button that says Go."],answer:"<input placeholder=\"Your name\">\n<button>Go</button>",
+ tip:"Try typing in your input box in the preview — it really works!",
+ checks:[has('input',"I can't find an `<input>` tag."),[a=>(a.$('input').getAttribute('placeholder')||'').toLowerCase().includes('your name'),"Your input needs `placeholder=\"Your name\"`"],has('button',"Don't forget the `<button>`."),hasText('button','go',"The button should say Go.")]},
+{id:'color',g:'r2',name:'Painto',color:'#e11d48',concept:'CSS colour',
+ learn:"HTML builds the body. **CSS** is the paint and the clothes!\n\nCSS goes inside a `<style>` tag. A CSS rule looks like this:\n`h1 { color: red; }`\n\n• `h1` = WHO to style (the selector)\n• `color` = WHAT to change (the property)\n• `red` = the new VALUE\n\nCurly braces `{ }` hold the rule. Colon `:` between property and value. Semicolon `;` at the end.",
+ example:"<h1>Hi</h1>\n\n<style>\n  h1 { color: blue; }\n</style>",mission:"Inside the `<style>` tag, make the `<h1>` text **red**.",starter:"<h1>Paint me!</h1>"+STYLE_START,
+ hints:["Click on the empty line inside `<style>` and write the selector: `h1 { }`","Inside the curly braces write: `color: red;`","Full rule: `h1 { color: red; }`"],answer:"<h1>Paint me!</h1>\n\n<style>\n  h1 { color: red; }\n</style>",
+ tip:"Sneaky trap: CSS only understands the American spelling `color`. Writing colour won't work!",
+ checks:[has('h1',"Keep the `<h1>` — we need something to paint!"),cssIs('h1','color',RED,"The h1 isn't red yet. Check the pattern: `h1 { color: red; }` — curly braces, colon, semicolon.")]},
+{id:'bg',g:'r2',name:'Skyla',color:'#38bdf8',concept:'Background colour',
+ learn:"`background-color` paints the area BEHIND things.\n\nWant to colour the whole page? Target the `body` — it's the box that holds everything you see.\n\nCSS knows 140 colour names, like `lightblue`, `gold`, `tomato` and `hotpink`!",
+ example:"body { background-color: gold; }",mission:"Give the **body** a `background-color` of **lightblue**.",starter:"<h1>Sky Level</h1>"+STYLE_START,
+ hints:["The selector is `body`","The property has a dash in the middle: `background-color`","`body { background-color: lightblue; }`"],answer:"<h1>Sky Level</h1>\n\n<style>\n  body { background-color: lightblue; }\n</style>",
+ tip:"CSS property names with two words always use a dash: background-color, font-size, text-align.",
+ checks:[cssIs('body','backgroundColor',LIGHTBLUE,"The page background isn't lightblue yet. Pattern: `body { background-color: lightblue; }`")]},
+{id:'fontsize',g:'r2',name:'Fonto',color:'#65a30d',concept:'Text size',
+ learn:"`font-size` changes how big text is.\n\n`px` means **pixels** — the tiny dots that make up your screen. `16px` is normal text. `40px` is huge!",
+ example:"p { font-size: 24px; }",mission:"Make the `<p>` text **30px** big.",starter:"<p>Grow!</p>"+STYLE_START,
+ hints:["Selector: `p`","Property: `font-size`","`p { font-size: 30px; }`"],answer:"<p>Grow!</p>\n\n<style>\n  p { font-size: 30px; }\n</style>",
+ tip:"No space between the number and the unit: 30px ✅   30 px ❌",
+ checks:[cssPx('p','fontSize',30,"The paragraph isn't 30px yet. Check for `font-size: 30px;` — no space between 30 and px.")]},
+{id:'class',g:'r2',name:'Classie',color:'#16a34a',concept:'Classes .name',
+ learn:"What if you only want to style SOME things? Give them a **class** — like a name tag.\n\nIn HTML: `<p class=\"hero\">`\nIn CSS, you target a class with a **dot**: `.hero { }`\n\nNow only things wearing that name tag get styled.",
+ example:"<p class=\"gold\">Rare item</p>\n\n<style>\n  .gold { color: orange; }\n</style>",mission:"Use `.hero` to make ONLY the hero paragraph **green**. The villager must stay normal!",
+ starter:"<p class=\"hero\">I am the hero</p>\n<p>I am a villager</p>"+STYLE_START,
+ hints:["Don't use `p` as the selector — that would hit BOTH paragraphs.","Use a dot + the class name: `.hero { }`","`.hero { color: green; }`"],answer:"<p class=\"hero\">I am the hero</p>\n<p>I am a villager</p>\n\n<style>\n  .hero { color: green; }\n</style>",
+ tip:"Many elements can share the same class. Style the class once — and every element with it changes. That's the superpower.",
+ checks:[has('p.hero',"Keep the hero paragraph with `class=\"hero\"`."),cssIs('p.hero','color',GREEN,"The hero isn't green yet. Pattern: `.hero { color: green; }`"),[a=>{const v=a.$('p:not(.hero)');return !v||a.css(v,'color')!==GREEN;},"Oops — the villager turned green too! Use `.hero` (with a dot), not `p`."]]},
+{id:'border',g:'r2',name:'Bordo',color:'#78716c',concept:'Borders',
+ learn:"`border` draws a line around a box. It takes **3 values** in one go: thickness, style, colour.\n\n`border: 2px solid black;`\n\nStyles include `solid`, `dashed` and `dotted`.",
+ example:".card { border: 4px dashed hotpink; }",mission:"Give `.box` a border of **3px solid black**.",starter:"<div class=\"box\">Treasure</div>"+STYLE_START,
+ hints:["Selector: `.box`","`border: 3px solid black;`"],answer:"<div class=\"box\">Treasure</div>\n\n<style>\n  .box { border: 3px solid black; }\n</style>",
+ tip:"When a property takes several values, separate them with spaces — not commas.",
+ checks:[has('.box',"Keep the `<div class=\"box\">`."),cssPx('.box','borderTopWidth',3,"The border should be 3px thick."),cssIs('.box','borderTopStyle','solid',"The border style should be solid.")]},
+{id:'padding',g:'r2',name:'Paddo',color:'#f472b6',concept:'Padding & margin',
+ learn:"Every element on a page is a **box**.\n\n• **Padding** = space INSIDE the box (between the border and the words)\n• **Margin** = space OUTSIDE the box (pushing other boxes away)\n\nThink of a parcel: padding is the bubble wrap inside. Margin is the gap between parcels on the shelf.",
+ example:".card { padding: 12px; margin: 20px; }",mission:"Give `.box` **20px** of padding so the word has room to breathe.",
+ starter:"<div class=\"box\">Loot</div>\n\n<style>\n  .box { border: 2px solid black; }\n  \n</style>",
+ hints:["You can add it inside the existing `.box` rule, or write a new `.box { }` rule.","`padding: 20px;`"],answer:"<div class=\"box\">Loot</div>\n\n<style>\n  .box { border: 2px solid black; padding: 20px; }\n</style>",
+ tip:"One rule can hold many properties. Just keep adding them, each ending with a semicolon.",
+ checks:[cssPx('.box','paddingTop',20,"`.box` needs `padding: 20px;`")]},
+{id:'radius',g:'r2',name:'Coinz',color:'#eab308',concept:'Round corners',
+ learn:"`border-radius` rounds the corners of a box.\n\nSmall numbers like `8px` = slightly rounded corners.\n`50%` on a square = a perfect circle!",
+ example:".avatar { border-radius: 50%; }",mission:"Turn the `.coin` into a circle with `border-radius: 50%`.",
+ starter:"<div class=\"coin\"></div>\n\n<style>\n  .coin { width: 80px; height: 80px; background: gold; }\n  \n</style>",
+ hints:["Add to the `.coin` rule (or a new `.coin { }` rule).","`border-radius: 50%;`"],answer:"<div class=\"coin\"></div>\n\n<style>\n  .coin { width: 80px; height: 80px; background: gold; border-radius: 50%; }\n</style>",
+ tip:"Almost every modern button and card uses a small border-radius. Sharp corners feel old-school.",
+ checks:[[a=>{const v=a.css(a.$('.coin'),'borderTopLeftRadius');return v==='50%'||px(v)>=39;},"The coin isn't round yet. Add `border-radius: 50%;` to `.coin`."]]},
+{id:'id',g:'g2',name:'Idol',color:'#9333ea',concept:'IDs #name',
+ learn:"An **id** is like a class, but for ONE single thing on the page — like a passport number. No two things share an id.\n\nIn HTML: `id=\"boss\"`\nIn CSS, use a **hash**: `#boss { }`",
+ example:"<h1 id=\"logo\">Shop</h1>\n\n<style>\n  #logo { color: teal; }\n</style>",mission:"Use `#boss` to make the text **purple**.",starter:"<h1 id=\"boss\">Final Boss</h1>"+STYLE_START,
+ hints:["Class uses a dot. Id uses a hash `#`.","`#boss { color: purple; }`"],answer:"<h1 id=\"boss\">Final Boss</h1>\n\n<style>\n  #boss { color: purple; }\n</style>",
+ tip:"Memory trick: class = dot (.) because there can be lots, like dots. id = hash (#) like a unique number.",
+ checks:[cssIs('#boss','color',PURPLE,"The boss isn't purple yet. Pattern: `#boss { color: purple; }`")]},
+{id:'center',g:'g2',name:'Centra',color:'#0891b2',concept:'Centering text',
+ learn:"`text-align` moves text left, right or to the middle of its box.\n\n`text-align: center;` — the most used one!",
+ example:"h2 { text-align: right; }",mission:"Center the `<h1>` text.",starter:"<h1>Arena</h1>"+STYLE_START,
+ hints:["Selector: `h1`","`text-align: center;`"],answer:"<h1>Arena</h1>\n\n<style>\n  h1 { text-align: center; }\n</style>",
+ tip:"text-align centers TEXT inside a box. To center whole boxes, you'll use Flexbox — coming soon in Flex Peaks!",
+ checks:[cssIs('h1','textAlign','center',"The h1 isn't centered yet. Try `h1 { text-align: center; }`")]},
+{id:'hover',g:'g2',name:'Hovera',color:'#f97316',concept:'Hover effects :hover',
+ learn:"Add `:hover` to a selector and the style ONLY happens while the mouse is over it.\n\n`.btn:hover { }`\n\nThis is how buttons light up when you point at them!",
+ example:".link:hover { color: red; }",mission:"Make `.btn` get an **orange** background-color when you hover over it.\n\n(Then move your mouse over the button in the preview to test it!)",
+ starter:"<button class=\"btn\">Hover me</button>\n\n<style>\n  .btn { padding: 10px 20px; }\n  \n</style>",
+ hints:["Write a NEW rule with the selector `.btn:hover`","No space between `.btn` and `:hover`","`.btn:hover { background-color: orange; }`"],answer:"<button class=\"btn\">Hover me</button>\n\n<style>\n  .btn { padding: 10px 20px; }\n  .btn:hover { background-color: orange; }\n</style>",
+ tip:"On phones there's no mouse, so hover effects are a bonus — never hide important things behind hover.",
+ checks:[hoverRule('.btn:hover',"I need a rule like `.btn:hover { background-color: orange; }`")]},
+{id:'flex',g:'r3',name:'Flexo',color:'#10b981',concept:'Flexbox: display flex',
+ learn:"By default, `<div>` boxes stack on top of each other like pancakes 🥞.\n\n**Flexbox** lines them up side by side like train carriages 🚃.\n\nPut `display: flex;` on the **parent** box (the one holding the others) and its children line up in a row.",
+ example:".row { display: flex; }",mission:"Make `.row` a flex container so A, B and C sit side by side.",
+ starter:"<div class=\"row\">\n  <div class=\"item\">A</div>\n  <div class=\"item\">B</div>\n  <div class=\"item\">C</div>\n</div>\n\n<style>\n  .item { background: gold; padding: 10px; margin: 4px; }\n  \n</style>",
+ hints:["The parent is `.row` — style that, not `.item`.","`.row { display: flex; }`"],
+ answer:"<div class=\"row\">\n  <div class=\"item\">A</div>\n  <div class=\"item\">B</div>\n  <div class=\"item\">C</div>\n</div>\n\n<style>\n  .item { background: gold; padding: 10px; margin: 4px; }\n  .row { display: flex; }\n</style>",
+ tip:"Flex goes on the PARENT, not the children. Parent = the box holding the others. This is the #1 beginner mix-up.",
+ checks:[cssIs('.row','display','flex',"`.row` isn't flex yet. Remember: flex goes on the parent — `.row { display: flex; }`")]},
+{id:'justify',g:'r3',name:'Centrix',color:'#3b82f6',concept:'justify-content',
+ learn:"Once a box is flex, `justify-content` decides WHERE its children sit along the row:\n\n• `flex-start` = left\n• `center` = middle\n• `flex-end` = right\n• `space-between` = spread out to the edges",
+ example:".row { display: flex; justify-content: flex-end; }",mission:"Move A, B and C to the **center** of the row.",
+ starter:"<div class=\"row\">\n  <div class=\"item\">A</div>\n  <div class=\"item\">B</div>\n  <div class=\"item\">C</div>\n</div>\n\n<style>\n  .item { background: gold; padding: 10px; margin: 4px; }\n  .row { display: flex; }\n  \n</style>",
+ hints:["Add it to the `.row` rule.","`justify-content: center;`"],
+ answer:"<div class=\"row\">\n  <div class=\"item\">A</div>\n  <div class=\"item\">B</div>\n  <div class=\"item\">C</div>\n</div>\n\n<style>\n  .item { background: gold; padding: 10px; margin: 4px; }\n  .row { display: flex; justify-content: center; }\n</style>",
+ tip:"Change the value to flex-end, then space-between, and watch the preview. Playing is the fastest way to learn this.",
+ checks:[cssIs('.row','display','flex',"Keep `display: flex;` on `.row`."),cssIs('.row','justifyContent','center',"Add `justify-content: center;` to `.row`.")]},
+{id:'gap',g:'r3',name:'Gapper',color:'#f59e0b',concept:'gap',
+ learn:"`gap` adds equal space BETWEEN flex children. No margins needed, no maths!",
+ example:".row { display: flex; gap: 8px; }",mission:"Add a **20px** gap between the items.",
+ starter:"<div class=\"row\">\n  <div class=\"item\">A</div>\n  <div class=\"item\">B</div>\n  <div class=\"item\">C</div>\n</div>\n\n<style>\n  .item { background: gold; padding: 10px; }\n  .row { display: flex; }\n  \n</style>",
+ hints:["Add to `.row`.","`gap: 20px;`"],
+ answer:"<div class=\"row\">\n  <div class=\"item\">A</div>\n  <div class=\"item\">B</div>\n  <div class=\"item\">C</div>\n</div>\n\n<style>\n  .item { background: gold; padding: 10px; }\n  .row { display: flex; gap: 20px; }\n</style>",
+ tip:"gap only adds space BETWEEN items, never on the outside edges. Super clean.",
+ checks:[cssIs('.row','display','flex',"Keep `display: flex;` on `.row`."),gapPx('.row',20,"Add `gap: 20px;` to `.row`.")]},
+{id:'column',g:'r3',name:'Stacko',color:'#8b5cf6',concept:'flex-direction',
+ learn:"`flex-direction` picks which way the train runs:\n\n• `row` = side by side (the default)\n• `column` = top to bottom\n\nPhone layouts use columns ALL the time.",
+ example:".menu { display: flex; flex-direction: column; }",mission:"Stack the items in a **column**.",
+ starter:"<div class=\"row\">\n  <div class=\"item\">A</div>\n  <div class=\"item\">B</div>\n  <div class=\"item\">C</div>\n</div>\n\n<style>\n  .item { background: gold; padding: 10px; }\n  .row { display: flex; gap: 8px; }\n  \n</style>",
+ hints:["Add to `.row`.","`flex-direction: column;`"],
+ answer:"<div class=\"row\">\n  <div class=\"item\">A</div>\n  <div class=\"item\">B</div>\n  <div class=\"item\">C</div>\n</div>\n\n<style>\n  .item { background: gold; padding: 10px; }\n  .row { display: flex; gap: 8px; flex-direction: column; }\n</style>",
+ tip:"Notice gap still works in a column — it just adds space up-and-down now.",
+ checks:[cssIs('.row','display','flex',"Keep `display: flex;` on `.row`."),cssIs('.row','flexDirection','column',"Add `flex-direction: column;` to `.row`.")]},
+{id:'align',g:'r3',name:'Alignis',color:'#ec4899',concept:'align-items',
+ learn:"Two directions, two controls:\n\n• `justify-content` → along the row (left ↔ right)\n• `align-items` → across the row (up ↕ down)\n\n`align-items: center;` puts things in the vertical middle.",
+ example:".bar { display: flex; height: 60px; align-items: center; }",mission:"Center the items **vertically** (up-down) using `align-items`.",
+ starter:"<div class=\"row\">\n  <div class=\"item\">A</div>\n  <div class=\"item\">B</div>\n</div>\n\n<style>\n  .item { background: gold; padding: 10px; }\n  .row { display: flex; gap: 8px; height: 180px; background: #eef2ff; }\n  \n</style>",
+ hints:["Add to `.row`.","`align-items: center;`"],
+ answer:"<div class=\"row\">\n  <div class=\"item\">A</div>\n  <div class=\"item\">B</div>\n</div>\n\n<style>\n  .item { background: gold; padding: 10px; }\n  .row { display: flex; gap: 8px; height: 180px; background: #eef2ff; align-items: center; }\n</style>",
+ tip:"Memory trick: justify = journey along the road. align = altitude (height).",
+ checks:[cssIs('.row','display','flex',"Keep `display: flex;` on `.row`."),cssIs('.row','alignItems','center',"Add `align-items: center;` to `.row`.")]},
+{id:'perfect',g:'g3',name:'Perfecto',color:'#22c55e',concept:'Perfect centering',
+ learn:"The most famous trick in web design — centering something in BOTH directions:\n\n`display: flex;`\n`justify-content: center;`\n`align-items: center;`\n\nThree lines. Every web developer on Earth knows them.",
+ example:".stage {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}",mission:"Center the ⭐ `.hero` both left-right AND up-down inside `.stage`.",
+ starter:"<div class=\"stage\">\n  <div class=\"hero\">⭐</div>\n</div>\n\n<style>\n  .stage { height: 200px; background: #eef2ff; }\n  .hero { font-size: 40px; }\n  \n</style>",
+ hints:["All three lines go on the parent: `.stage`","You need display, justify-content AND align-items."],
+ answer:"<div class=\"stage\">\n  <div class=\"hero\">⭐</div>\n</div>\n\n<style>\n  .stage { height: 200px; background: #eef2ff; display: flex; justify-content: center; align-items: center; }\n  .hero { font-size: 40px; }\n</style>",
+ tip:"Save this combo somewhere. You'll use it for the rest of your life as a developer.",
+ checks:[cssIs('.stage','display','flex',"`.stage` needs `display: flex;`"),cssIs('.stage','justifyContent','center',"`.stage` needs `justify-content: center;`"),cssIs('.stage','alignItems','center',"`.stage` needs `align-items: center;`")]},
+{id:'nav',g:'g3',name:'Navvy',color:'#0ea5e9',concept:'Navigation bars',
+ learn:"Almost every website has a menu bar at the top. It's just a flex box!\n\n`justify-content: space-between;` pushes the first item to the left edge, the last to the right edge, and spreads the rest evenly.",
+ example:".nav { display: flex; justify-content: space-between; }",mission:"Make `.nav` a flex box and spread the links out with `space-between`.",
+ starter:"<div class=\"nav\">\n  <a href=\"#\">Home</a>\n  <a href=\"#\">Shop</a>\n  <a href=\"#\">Contact</a>\n</div>\n\n<style>\n  .nav { background: #fff1ea; padding: 12px; }\n  \n</style>",
+ hints:["Two properties on `.nav`.","`display: flex;` and `justify-content: space-between;`"],
+ answer:"<div class=\"nav\">\n  <a href=\"#\">Home</a>\n  <a href=\"#\">Shop</a>\n  <a href=\"#\">Contact</a>\n</div>\n\n<style>\n  .nav { background: #fff1ea; padding: 12px; display: flex; justify-content: space-between; }\n</style>",
+ tip:"`href=\"#\"` is a placeholder link that goes nowhere — handy while you're still building.",
+ checks:[cssIs('.nav','display','flex',"`.nav` needs `display: flex;`"),cssIs('.nav','justifyContent','space-between',"`.nav` needs `justify-content: space-between;`")]},
+{id:'wrap',g:'g3',name:'Wrapper',color:'#a855f7',concept:'flex-wrap',
+ learn:"If there are too many items for one row, flex squishes them all to fit.\n\n`flex-wrap: wrap;` lets them drop onto a new line instead — just like words in a sentence. This is how photo galleries work!",
+ example:".gallery { display: flex; flex-wrap: wrap; }",mission:"Let the items in `.grid` wrap onto new lines.",
+ starter:"<div class=\"grid\">\n  <div class=\"item\">1</div><div class=\"item\">2</div><div class=\"item\">3</div>\n  <div class=\"item\">4</div><div class=\"item\">5</div><div class=\"item\">6</div>\n</div>\n\n<style>\n  .item { width: 120px; background: gold; padding: 14px; }\n  .grid { display: flex; gap: 8px; }\n  \n</style>",
+ hints:["Add to `.grid`.","`flex-wrap: wrap;`"],
+ answer:"<div class=\"grid\">\n  <div class=\"item\">1</div><div class=\"item\">2</div><div class=\"item\">3</div>\n  <div class=\"item\">4</div><div class=\"item\">5</div><div class=\"item\">6</div>\n</div>\n\n<style>\n  .item { width: 120px; background: gold; padding: 14px; }\n  .grid { display: flex; gap: 8px; flex-wrap: wrap; }\n</style>",
+ tip:"Wrap + gap = an instant responsive gallery that works on phones and big screens.",
+ checks:[cssIs('.grid','display','flex',"Keep `display: flex;` on `.grid`."),cssIs('.grid','flexWrap','wrap',"Add `flex-wrap: wrap;` to `.grid`.")]},
+{id:'card',g:'ch',name:'Cardinal',color:'#dc2626',concept:'Build a card',
+ learn:"Final test, champ! Real websites are just the small skills you learned, stacked together.\n\nA **card** = a div box + a heading + some text + border + padding. You've done every piece already.",
+ example:"<div class=\"card\">\n  <h2>Title</h2>\n  <p>Text</p>\n</div>\n\n<style>\n  .card { border: 2px solid black; padding: 16px; }\n</style>",
+ mission:"Make a `<div class=\"card\">` containing an `<h2>` (any name) and a `<p>` (any text).\nThen in CSS, give `.card` any **border** and **16px padding**.",starter:"<!-- build your card here -->\n"+STYLE_START,
+ hints:["HTML first: `<div class=\"card\">` with an h2 and a p inside, then `</div>`.","CSS: `.card { }`","Inside: `border: 2px solid black; padding: 16px;`"],
+ answer:"<div class=\"card\">\n  <h2>Flexo</h2>\n  <p>A friendly layout Codeling.</p>\n</div>\n\n<style>\n  .card { border: 2px solid black; padding: 16px; }\n</style>",
+ tip:"Add `border-radius: 12px;` too, just for style points. Real cards almost always have it.",
+ checks:[has('div.card',"I need a `<div class=\"card\">`."),has('.card h2',"Put an `<h2>` inside the card."),has('.card p',"Put a `<p>` inside the card."),cssNot('.card','borderTopStyle','none',"Give `.card` a border, e.g. `border: 2px solid black;`"),cssPx('.card','paddingTop',16,"Give `.card` `padding: 16px;`")]},
+{id:'menu',g:'ch',name:'Menuet',color:'#2563eb',concept:'Build a menu',
+ learn:"Menus are usually lists turned sideways with flexbox. HTML for meaning (it IS a list of links), CSS for the look.",
+ example:"<ul class=\"menu\">\n  <li>Home</li>\n</ul>",mission:"Make a `<ul class=\"menu\">` with **3** `<li>` items (any words).\nThen make `.menu` **display flex** with a **gap of 10px**.",starter:"<!-- your menu here -->\n"+STYLE_START,
+ hints:["HTML: `<ul class=\"menu\">` + 3 `<li>` + `</ul>`","CSS: `.menu { display: flex; gap: 10px; }`"],
+ answer:"<ul class=\"menu\">\n  <li>Home</li>\n  <li>Games</li>\n  <li>About</li>\n</ul>\n\n<style>\n  .menu { display: flex; gap: 10px; }\n</style>",
+ tip:"Want to remove the bullet dots? Add `list-style: none;` to `.menu`.",
+ checks:[has('ul.menu',"I need a `<ul class=\"menu\">`."),[a=>a.$$('ul.menu li').length>=3,"Your menu needs 3 `<li>` items."],cssIs('.menu','display','flex',"`.menu` needs `display: flex;`"),gapPx('.menu',10,"`.menu` needs `gap: 10px;`")]},
+{id:'banner',g:'ch',name:'Bannerox',color:'#f5b301',concept:'Build a banner',
+ learn:"The big strip at the top of a website is called a **hero banner**. Coloured background, big centered heading. You have every skill you need. Finish this, and the crown is yours!",
+ example:".banner { background-color: tomato; text-align: center; }",
+ mission:"Make a `<div class=\"banner\">` containing an `<h1>` (any words).\nGive `.banner` any **background-color** and make the heading text **centered**.",starter:"<!-- your banner here -->\n"+STYLE_START,
+ hints:["HTML: `<div class=\"banner\">` with an `<h1>` inside.","CSS on `.banner`: `background-color: gold;`","…and `text-align: center;` (text inside the banner will center)."],
+ answer:"<div class=\"banner\">\n  <h1>Welcome, Champion!</h1>\n</div>\n\n<style>\n  .banner { background-color: gold; text-align: center; padding: 30px; }\n</style>",
+ tip:"text-align on a parent is inherited by the text inside it. Styles flow down from parent to children — that's the 'Cascading' in Cascading Style Sheets.",
+ checks:[has('div.banner',"I need a `<div class=\"banner\">`."),has('.banner h1',"Put an `<h1>` inside the banner."),cssNot('.banner','backgroundColor',CLEAR,"Give `.banner` a `background-color`."),cssIs('.banner h1','textAlign','center',"Center the heading with `text-align: center;`")]}
+];
+const CHM=Object.fromEntries(CH.map((c,i)=>[c.id,Object.assign(c,{v:i})]));
+const POOL=g=>CH.filter(c=>c.g===g).map(c=>c.id);
+const GYMS={
+ tag:{leader:'Marka',title:'Tag Gym',badge:'Tag Badge',icon:'🏷️',need:'r1',pool:POOL('g1'),
+   intro:["Welcome to the Tag Gym! I'm Marka, the leader.","I've been building web pages since before you could spell <html>!","Three rounds. Show me you can structure a page. Ready? Let's go!"],
+   win:["Incredible! You really know your tags, {name}.","Take the TAG BADGE. The guard to the east will now let you into Style Forest!"]},
+ style:{leader:'Hue',title:'Style Gym',badge:'Style Badge',icon:'🎨',need:'r2',pool:POOL('g2'),
+   intro:["Ah, a new challenger. I'm Hue.","Anyone can build a page. Making it BEAUTIFUL? That's an art.","Three rounds. Dazzle me!"],
+   win:["Stunning work! You have real style, {name}.","The STYLE BADGE is yours. The path north to Flex Peaks is now open!"]},
+ flex:{leader:'Flexa',title:'Flex Gym',badge:'Flex Badge',icon:'🧩',need:'r3',pool:POOL('g3'),
+   intro:["I'm Flexa. I can bend any layout to my will.","Layouts are where most beginners give up. Let's see if you're different.","Three rounds. Stay flexible!"],
+   win:["You... you actually did it! Flawless layouts.","Take the FLEX BADGE. The Champion awaits you in the golden tower."]},
+ champ:{leader:'Champion Kode',title:'Champion Tower',badge:'Champion Crown',icon:'👑',pool:POOL('ch'),
+   intro:["So. You're the one everyone's talking about.","I'm Kode, the Champion. I don't test single skills. I test if you can BUILD.","Three real builds. Win, and the crown is yours."],
+   win:["...Remarkable. You didn't just learn tags and styles. You learned to build.","From today, you are the CODE CHAMPION, {name}!"]}
+};
+const STARTERS=[{name:'Tagglet',color:'#ff7a59',v:3,desc:'Fiery & loves HTML tags'},{name:'Stylo',color:'#4f8cff',v:9,desc:'Cool & stylish with CSS'},{name:'Flexi',color:'#22c55e',v:14,desc:'Bends into any layout'}];
+
+function shade(hex,amt){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const t=amt<0?0:255,p=Math.abs(amt);r=Math.round((t-r)*p+r);g=Math.round((t-g)*p+g);b=Math.round((t-b)*p+b);return `rgb(${r},${g},${b})`;}
+function creatureSVG(col,v=0,size=120,ghost=false){
+ const d=shade(col,-.28),l=shade(col,.5),ears=v%4,body=Math.floor(v/4)%3,face=v%3;
+ const tops=[`<path d="M30 50 L34 12 L56 40Z" fill="${d}"/><path d="M90 50 L86 12 L64 40Z" fill="${d}"/><path d="M36 42 L37 22 L48 38Z" fill="${l}"/><path d="M84 42 L83 22 L72 38Z" fill="${l}"/>`,
+  `<path d="M50 40 Q44 20 34 12" stroke="${d}" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="34" cy="12" r="7" fill="${l}" stroke="${d}" stroke-width="2.5"/><path d="M70 40 Q76 20 86 12" stroke="${d}" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="86" cy="12" r="7" fill="${l}" stroke="${d}" stroke-width="2.5"/>`,
+  `<path d="M28 52 L36 20 L48 40 L60 12 L72 40 L84 20 L92 52Z" fill="${d}"/>`,
+  `<circle cx="32" cy="40" r="14" fill="${d}"/><circle cx="88" cy="40" r="14" fill="${d}"/><circle cx="32" cy="40" r="7" fill="${l}"/><circle cx="88" cy="40" r="7" fill="${l}"/>`];
+ const bodies=[`<ellipse cx="60" cy="74" rx="40" ry="36" fill="${col}"/>`,`<rect x="22" y="38" width="76" height="72" rx="28" fill="${col}"/>`,`<path d="M18 82 Q14 38 60 36 Q106 38 102 82 Q100 112 60 112 Q20 112 18 82Z" fill="${col}"/>`];
+ const brows=face===1?`<path d="M38 52 L54 57" stroke="#2a2840" stroke-width="3.5" stroke-linecap="round"/><path d="M82 52 L66 57" stroke="#2a2840" stroke-width="3.5" stroke-linecap="round"/>`:'';
+ const mouth=face===2?`<path d="M52 80 Q60 88 68 80" stroke="#2a2840" stroke-width="3" fill="#fff" stroke-linecap="round"/><path d="M55 81 L57 86 L59 81" fill="#fff"/>`:`<path d="M52 79 Q60 87 68 79" stroke="#2a2840" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+ const svg=`${tops[ears]}<ellipse cx="42" cy="110" rx="12" ry="6" fill="${d}"/><ellipse cx="78" cy="110" rx="12" ry="6" fill="${d}"/>${bodies[body]}
+ <ellipse cx="60" cy="92" rx="22" ry="15" fill="${l}"/><text x="60" y="97" font-size="12" text-anchor="middle" fill="${d}" font-family="monospace" font-weight="bold">&lt;/&gt;</text>
+ <circle cx="45" cy="66" r="9.5" fill="#fff"/><circle cx="75" cy="66" r="9.5" fill="#fff"/><circle cx="47" cy="67" r="5.2" fill="#2a2840"/><circle cx="77" cy="67" r="5.2" fill="#2a2840"/>
+ <circle cx="49" cy="64.5" r="1.9" fill="#fff"/><circle cx="79" cy="64.5" r="1.9" fill="#fff"/>${brows}
+ <circle cx="31" cy="80" r="5.5" fill="#ff8fa3" opacity=".55"/><circle cx="89" cy="80" r="5.5" fill="#ff8fa3" opacity=".55"/>${mouth}`;
+ return `<svg viewBox="0 0 120 120" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" ${ghost?'style="filter:grayscale(1) brightness(1.4);opacity:.45"':''}>${svg}</svg>`;
+}
+
+const fresh=()=>({name:'',starter:0,map:'town',x:10,y:7,dir:'down',hp:100,xp:0,caught:{},seen:{},badges:{},started:false,champion:false});
+let S=fresh();
+function save(){store.set(QKEY,S);}
+function load(){const o=store.get(QKEY,null);return o&&o.started?Object.assign(fresh(),o):null;}
+const lvl=()=>1+Math.floor(S.xp/100);
+const maxHP=()=>80+lvl()*20;
+const caughtCount=()=>CH.filter(c=>S.caught[c.id]).length;
+const badgeCount=()=>Object.keys(GYMS).filter(k=>S.badges[k]).length;
+const fill=s=>s.replace(/\{name\}/g,S.name||'Coder');
+
+const TW=20,TH=15,T=32;
+const THEMES={
+ town:{grass:'#b5e57c',speck:'#9fd466',path:'#f1dca7',tall:'#7cc35a',tallDark:'#4f9a3a',tree:'#4fa64a',treeHi:'#7cc96a'},
+ r1:{grass:'#a9e173',speck:'#93cf5c',path:'#ecd59b',tall:'#74be52',tallDark:'#469334',tree:'#47a043',treeHi:'#72c463'},
+ r2:{grass:'#98d68a',speck:'#82c274',path:'#e6d2a6',tall:'#5fae62',tallDark:'#3a8443',tree:'#2f8a4a',treeHi:'#5bb06c'},
+ r3:{grass:'#c4e19a',speck:'#aed083',path:'#e9d8b4',tall:'#8fbf63',tallDark:'#5f9440',tree:'#5a9b58',treeHi:'#85bf77'}};
+const MAPS={
+ town:{name:'PIXEL TOWN',theme:'town',rows:["TTTTTTTTTEETTTTTTTTT","T....F...,,...F....T","T.HHHH...,,...CCCC.T","T.HHHH...,,...CCCC.T","T.HHDH...,,...CCcC.T","T...,....,,.....,..T","T...,,,,,,,,,,,,,..T","T.S.......,.....F..T","T..F...............T","T~~~~..........F...T","T~~~~..............T","T~~~~.....F........T","T..F...........F...T","T..................T","TTTTTTTTTTTTTTTTTTTT"],
+  exits:{'9,0':['route1',9,13],'10,0':['route1',10,13]},signs:{'2,7':["PIXEL TOWN — where every coder's journey begins.","↑ North: HTML Meadow"]},
+  npcs:[{x:12,y:7,name:'Prof. Byte',shirt:'#ffffff',cap:'#8b7cff',lines:()=>{const b=badgeCount();
+     if(S.champion)return["{name}! The Code Champion! I'm so proud.","Keep training in the grass anytime. Every review makes the skills stick."];
+     if(b===0)return["Head north to HTML Meadow, {name}!","Walk through the tall grass — wild Codelings hide there.","You win battles by WRITING the code they ask for. Stuck? Use Hint, Tip or Answer. No shame in learning!"];
+     return[`${b} badge${b>1?'s':''} already! You're a natural, {name}.`,"Open your Codedex (top of the screen) any time — it's your personal cheat sheet of everything you've learned."];}},
+   {x:6,y:11,name:'Kid',shirt:'#ffd166',cap:'#ef476f',lines:()=>["Did you know? Every website you've EVER visited is made of HTML!","Even video sites. Even games in your browser. Wild, right?"]},
+   {x:14,y:12,name:'Nurse Joy-Code',shirt:'#ffb3c7',cap:'#ff6b9a',lines:()=>["Hurt after a battle? Step into the Code Center (pink roof) to heal and save your game.","Your home (red roof) works too!"]}]},
+ route1:{name:'HTML MEADOW',theme:'r1',pool:'r1',gymDoor:'tag',rows:["TTTTTTTTTTTTTTTTTTTT","T.....GGGGGG.......T","T.....GGGGGG.......T","T.....GGGgGG.......T","T........,.........T","T.wwwww..,..wwwwww.T","T.wwwww..,..wwwwww.T","T.wwwww..,,,,,,,,,,E","T.wwwww..,..wwwwww.T","T........,.........T","T..wwww..,...wwww..T","T..wwww..,...wwww..T","T..S.....,.........T","T........,,........T","TTTTTTTTTEETTTTTTTTT"],
+  exits:{'9,14':['town',9,1],'10,14':['town',10,1],'19,7':['route2',1,7]},signs:{'3,12':["HTML MEADOW","HTML-type Codelings live in the tall grass.","Tame all 8, then challenge the Tag Gym up north!"]},
+  npcs:[{x:18,y:7,name:'Gate Guard',shirt:'#4f8cff',cap:'#2a2840',show:()=>!S.badges.tag,lines:()=>["Halt! Style Forest lies beyond this gate.","Only trainers with the TAG BADGE may pass.","The Tag Gym is just north of here."]},
+   {x:15,y:12,name:'Old Hiker',shirt:'#c98f4f',cap:'#6b4423',lines:()=>["Tip from an old hiker: when your code doesn't work, check for typos first.","Most bugs are a missing < or > or a misspelled word. Even for pros!"]}]},
+ route2:{name:'STYLE FOREST',theme:'r2',pool:'r2',gymDoor:'style',rows:["TTTTTTTTTETTTTTTTTTT","TwwwT....,....GGGGGT","TwwwT....,....GGGGGT","TwwwT....,....GGgGGT","Twww.....,,,,,,,,..T","T........,....TT...T","T.TT.....,....wwww.T","E,,,,,,,,,....wwww.T","T.TT.www......wwww.T","T....www..TT.......T","T.ww.www......TTwwwT","T.ww.....ww...TTwwwT","T.ww..S..ww........T","T.........ww......TT","TTTTTTTTTTTTTTTTTTTT"],
+  exits:{'0,7':['route1',18,7],'9,0':['route3',9,13]},signs:{'6,12':["STYLE FOREST","CSS-type Codelings live here. They teach you to paint pages.","Tame all 7, then face Hue at the Style Gym!"]},
+  npcs:[{x:9,y:1,name:'Gate Guard',shirt:'#4f8cff',cap:'#2a2840',show:()=>!S.badges.style,lines:()=>["The mountain path to Flex Peaks is dangerous.","Come back with the STYLE BADGE from Hue's gym."]},
+   {x:12,y:11,name:'Painter',shirt:'#f472b6',cap:'#facc15',lines:()=>["HTML is WHAT things are. CSS is how they LOOK.","Like a house: HTML is the bricks and walls. CSS is the paint and the furniture."]}]},
+ route3:{name:'FLEX PEAKS',theme:'r3',pool:'r3',gymDoor:'flex',rows:["TTTTTTTTTTTTTTTTTTTT","T..KKKKK.....GGGGG.T","T..KKKKK.....GGGGG.T","T..KKkKK.....GGgGG.T","T....,.........,...T","T....,,,,,,,,,,,...T","T.wwww...,....www..T","T.wwww...,....www..T","T.wwww...,....www..T","T........,.........T","T..www...,...wwww..T","T..www...,...wwww..T","T......S.,.........T","T........,.........T","TTTTTTTTTETTTTTTTTTT"],
+  exits:{'9,14':['route2',9,1]},signs:{'7,12':["FLEX PEAKS","Layout-type Codelings roam these slopes.","Tame all 5, beat Flexa, then climb the golden Champion Tower!"]},
+  npcs:[{x:5,y:4,name:'Tower Guard',shirt:'#f5b301',cap:'#2a2840',show:()=>!S.badges.flex,lines:()=>["This is the Champion Tower.","Only those holding the FLEX BADGE may challenge Champion Kode."]},
+   {x:16,y:12,name:'Mountaineer',shirt:'#10b981',cap:'#065f46',lines:()=>["Before Flexbox existed, centering a box was a NIGHTMARE. People wrote hacks for years!","Now it's three lines. You'll see."]}]}};
+for(const m of Object.values(MAPS)){
+ m.rows=m.rows.map(r=>r.length===TW?r:r.length<TW?r.slice(0,-1).padEnd(TW-1,'.')+r.slice(-1):r.slice(0,TW-1)+r.slice(-1));
+ m.doors=[];m.rows.forEach((r,y)=>[...r].forEach((c,x)=>{if('Dcgk'.includes(c))m.doors.push({x,y,c});}));}
+let CUR=MAPS.town;
+const WALK='.,wFEDcgk';
+const BLD={H:{wall:'#f8ead0',roof:'#e5484d'},C:{wall:'#ffffff',roof:'#ff6b9a'},G:{wall:'#f1ecff',roof:'#7c5cff'},K:{wall:'#fff6d6',roof:'#f5b301'}};
+const DOOR2B={D:'H',c:'C',g:'G',k:'K'};
+const grp=c=>BLD[c]?c:DOOR2B[c]||null;
+const tileAt=(x,y)=>(CUR.rows[y]||'')[x]||'T';
+const npcAt=(x,y)=>CUR.npcs.find(n=>n.x===x&&n.y===y&&(!n.show||n.show()));
+
+const cv=$('#cv'),ctx=cv.getContext('2d');ctx.scale(2,2);
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);ctx.fill();}
+function circ(x,y,r){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}
+function drawTile(c,x,y,t){
+ const th=THEMES[CUR.theme],px=x*T,py=y*T;
+ ctx.fillStyle=th.grass;ctx.fillRect(px,py,T,T);
+ if((x*7+y*13)%5===0&&'.FST'.includes(c)){ctx.fillStyle=th.speck;ctx.fillRect(px+7,py+9,3,3);ctx.fillRect(px+21,py+21,3,3);}
+ if(c===','||c==='E'){ctx.fillStyle=th.path;ctx.fillRect(px,py,T,T);ctx.fillStyle='rgba(120,90,40,.10)';if((x+y)%3===0)ctx.fillRect(px+6,py+7,4,3);if((x*3+y)%4===0)ctx.fillRect(px+20,py+20,3,3);return;}
+ if(c==='w'){ctx.fillStyle=th.tall;ctx.fillRect(px,py,T,T);const s=Math.sin(t/450+x*.9+y*.6)*1.8;ctx.fillStyle=th.tallDark;
+  for(const[ox,oy]of[[3,12],[13,6],[22,14],[7,24],[18,26]]){ctx.beginPath();ctx.moveTo(px+ox,py+oy+7);ctx.lineTo(px+ox+3+s,py+oy-3);ctx.lineTo(px+ox+7,py+oy+7);ctx.fill();}return;}
+ if(c==='T'){ctx.fillStyle='rgba(0,0,0,.12)';ctx.beginPath();ctx.ellipse(px+16,py+28,11,4,0,0,7);ctx.fill();ctx.fillStyle='#8b5a2b';ctx.fillRect(px+13,py+19,6,10);
+  ctx.fillStyle=th.tree;circ(px+16,py+14,13);ctx.fillStyle=th.treeHi;circ(px+11,py+10,5);return;}
+ if(c==='~'){ctx.fillStyle='#86cdf5';ctx.fillRect(px,py,T,T);ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=2;const o=(t/300+x+y)%6;
+  ctx.beginPath();ctx.moveTo(px+4,py+12+o*.3);ctx.quadraticCurveTo(px+10,py+8+o*.3,px+16,py+12+o*.3);ctx.stroke();ctx.beginPath();ctx.moveTo(px+16,py+24-o*.3);ctx.quadraticCurveTo(px+22,py+20-o*.3,px+28,py+24-o*.3);ctx.stroke();return;}
+ if(c==='F'){const cols=['#ff6b9a','#ffd166','#ffffff','#a78bfa'];for(const[i,[ox,oy]]of[[6,8],[20,12],[12,22],[24,25]].entries()){ctx.fillStyle=cols[(i+x+y)%4];circ(px+ox,py+oy,3.2);ctx.fillStyle='#f59e0b';circ(px+ox,py+oy,1.2);}return;}
+ if(c==='S'){ctx.fillStyle='#8b5a2b';ctx.fillRect(px+14,py+16,4,13);ctx.fillStyle='#d9a066';rr(px+5,py+6,22,13,3);ctx.fillStyle='#8b5a2b';ctx.fillRect(px+9,py+10,14,2);ctx.fillRect(px+9,py+14,10,2);return;}
+ const g=grp(c);if(!g)return;const b=BLD[g];const top=grp(tileAt(x,y-1))!==g;
+ if(top){ctx.fillStyle=b.roof;ctx.fillRect(px,py,T,T);ctx.fillStyle='rgba(0,0,0,.12)';ctx.fillRect(px,py+T-6,T,6);ctx.fillStyle='rgba(255,255,255,.18)';for(let i=0;i<T;i+=8)ctx.fillRect(px+i,py+4,4,T-12);}
+ else{ctx.fillStyle=b.wall;ctx.fillRect(px,py,T,T);ctx.fillStyle='rgba(0,0,0,.07)';ctx.fillRect(px,py+T-3,T,3);
+  if(DOOR2B[c]){ctx.fillStyle='#7a4a2a';rr(px+8,py+6,16,26,4);ctx.fillStyle='#f5b301';circ(px+20,py+20,1.8);}
+  else if(x%2===0){ctx.fillStyle='#2a2840';ctx.fillRect(px+7,py+8,18,14);ctx.fillStyle='#bfe6ff';ctx.fillRect(px+9,py+10,14,10);ctx.fillStyle='#fff';ctx.fillRect(px+10,py+11,4,3);}}
+}
+const LABEL={D:'HOME',c:'HEAL',g:'GYM',k:'CHAMP'};
+function drawPerson(px,py,dir,shirt,cap,bob){
+ const cx=px+16,y=py+bob;
+ ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(cx,py+29,10,4,0,0,7);ctx.fill();
+ ctx.fillStyle=shirt;rr(cx-8,y+16,16,12,5);ctx.strokeStyle='#2a2840';ctx.lineWidth=1.5;ctx.strokeRect(cx-8,y+16,16,12);
+ ctx.fillStyle='#ffd9b3';circ(cx,y+12,8);
+ ctx.fillStyle=cap;ctx.beginPath();ctx.arc(cx,y+10,8.6,Math.PI,0);ctx.fill();
+ if(dir==='down')ctx.fillRect(cx-8,y+8,16,3);else if(dir==='left')ctx.fillRect(cx-12,y+8,9,3);else if(dir==='right')ctx.fillRect(cx+3,y+8,9,3);else{circ(cx,y+11,8);}
+ ctx.fillStyle='#2a2840';
+ if(dir==='down'){circ(cx-3,y+14,1.5);circ(cx+3,y+14,1.5);}else if(dir==='left')circ(cx-4,y+14,1.5);else if(dir==='right')circ(cx+4,y+14,1.5);
+}
+let P={vx:10,vy:7};
+function draw(t){
+ ctx.clearRect(0,0,640,480);
+ for(let y=0;y<TH;y++)for(let x=0;x<TW;x++)drawTile(tileAt(x,y),x,y,t);
+ ctx.font='bold 8px Nunito, sans-serif';ctx.textAlign='center';
+ for(const d of CUR.doors){const lx=d.x*T+16,ly=(d.y-1)*T+6;ctx.fillStyle='#2a2840';rr(lx-15,ly-1,30,11,3);ctx.fillStyle='#fff';ctx.fillText(LABEL[d.c],lx,ly+7);}
+ const people=CUR.npcs.filter(n=>!n.show||n.show()).map(n=>({y:n.y,f:()=>{drawPerson(n.x*T,n.y*T,'down',n.shirt,n.cap,0);
+   if(n.name.includes('Guard')){ctx.fillStyle='#2a2840';ctx.font='bold 10px Nunito';ctx.fillText('!',n.x*T+16,n.y*T-2);}}}));
+ const st=STARTERS[S.starter];
+ people.push({y:P.vy,f:()=>drawPerson(P.vx*T,P.vy*T,S.dir,st?st.color:'#ff7a59','#e5484d',mv?Math.abs(Math.sin(mv.p*Math.PI))*-2:0)});
+ people.sort((a,b)=>a.y-b.y).forEach(p=>p.f());
+}
+
+const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+let mode='title',held=null,mv=null,stepsSince=0;
+const MOVE_MS=165;
+function step(dir){
+ S.dir=dir;const[dx,dy]=DIRS[dir],nx=S.x+dx,ny=S.y+dy;
+ if(nx<0||ny<0||nx>=TW||ny>=TH)return;
+ const c=tileAt(nx,ny);if(!WALK.includes(c)||npcAt(nx,ny))return;
+ mv={sx:S.x,sy:S.y,p:0};S.x=nx;S.y=ny;
+}
+function arrive(){
+ const ex=CUR.exits[`${S.x},${S.y}`];
+ if(ex){held=null;fade(()=>goMap(ex[0],ex[1],ex[2]));return;}
+ const c=tileAt(S.x,S.y);
+ if(c==='D'||c==='c'){held=null;S.y+=1;P.vy=S.y;S.hp=maxHP();save();hud();
+  say(c==='D'?["Home sweet home. You take a quick nap...","Your Codeling is fully healed! (Game saved.)"]:["Welcome to the Code Center!","Your Codeling is fully healed, and your game is saved. 💗"],null,c==='D'?'Home':'Nurse Joy-Code');return;}
+ if(c==='g'||c==='k'){held=null;S.y+=1;P.vy=S.y;tryGym(c==='k'?'champ':CUR.gymDoor);return;}
+ stepsSince++;
+ if(c==='w'&&CUR.pool&&stepsSince>=3&&Math.random()<.22){held=null;stepsSince=0;encounter();}
+}
+function update(dt){
+ if(mv){mv.p+=dt/MOVE_MS;if(mv.p>=1){mv=null;P.vx=S.x;P.vy=S.y;arrive();}else{P.vx=mv.sx+(S.x-mv.sx)*mv.p;P.vy=mv.sy+(S.y-mv.sy)*mv.p;}}
+ if(!mv&&mode==='walk'&&held)step(held);
+}
+let last=performance.now();
+function loop(t){const dt=Math.min(50,t-last);last=t;if(CURRENT==='quest'){update(dt);draw(t);}requestAnimationFrame(loop);}
+function goMap(id,x,y){CUR=MAPS[id];S.map=id;S.x=x;S.y=y;P.vx=x;P.vy=y;mv=null;save();showBanner(CUR.name);}
+function fade(fn){const f=$('#flash');f.className='';void f.offsetWidth;f.className='fade';mode='busy';setTimeout(()=>{fn();},220);setTimeout(()=>{if(mode==='busy')mode='walk';},450);}
+let bannerT;function showBanner(t){const b=$('#banner');b.textContent=t;b.classList.add('show');clearTimeout(bannerT);bannerT=setTimeout(()=>b.classList.remove('show'),1800);}
+function interact(){
+ if(mode==='dialog'){advance();return;}
+ if(mode!=='walk'||mv)return;
+ const[dx,dy]=DIRS[S.dir],fx=S.x+dx,fy=S.y+dy;
+ const n=npcAt(fx,fy);if(n){say(n.lines(),null,n.name);return;}
+ const sg=CUR.signs&&CUR.signs[`${fx},${fy}`];if(sg)say(sg,null,'Sign');
+}
+const KEYDIR={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right',W:'up',S:'down',A:'left',D:'right'};
+document.addEventListener('keydown',e=>{
+ if(CURRENT!=='quest')return;
+ const tag=(e.target.tagName||'').toLowerCase();if(tag==='textarea'||tag==='input')return;
+ if(mode==='battle'||mode==='title')return;
+ if(!$('#modal').classList.contains('hidden')){if(e.key==='Enter'||e.key==='Escape'){const b=$('#modalCard .row .btn.primary')||$('#modalCard .row .btn');if(b){e.preventDefault();b.click();}}return;}
+ if(KEYDIR[e.key]){e.preventDefault();held=KEYDIR[e.key];if(mode==='walk'&&!mv)step(held);}
+ else if(e.key===' '||e.key==='Enter'||e.key==='z'){e.preventDefault();interact();}
+});
+document.addEventListener('keyup',e=>{if(KEYDIR[e.key]&&held===KEYDIR[e.key])held=null;});
+$$('#dpad button').forEach(b=>{
+ const on=e=>{e.preventDefault();held=b.dataset.d;b.classList.add('on');if(mode==='dialog')return;if(mode==='walk'&&!mv)step(held);};
+ const off=()=>{if(held===b.dataset.d)held=null;b.classList.remove('on');};
+ b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off);
+});
+$('#aBtn').addEventListener('click',interact);
+$('#dialog').addEventListener('click',advance);
+
+let dlg=null;
+function say(lines,done,who=''){mode='dialog';held=null;dlg={lines:lines.map(fill),i:0,done,typing:false,timer:null};$('#dWho').textContent=who;$('#dWho').style.display=who?'':'none';$('#dialog').classList.remove('hidden');typeLine();}
+function typeLine(){const el=$('#dText'),s=dlg.lines[dlg.i];let n=0;dlg.typing=true;el.textContent='';clearInterval(dlg.timer);
+ dlg.timer=setInterval(()=>{n+=2;el.textContent=s.slice(0,n);if(n>=s.length){clearInterval(dlg.timer);dlg.typing=false;}},18);}
+function advance(){if(!dlg)return;if(dlg.typing){clearInterval(dlg.timer);$('#dText').textContent=dlg.lines[dlg.i];dlg.typing=false;return;}
+ dlg.i++;if(dlg.i<dlg.lines.length){typeLine();return;}
+ const d=dlg.done;dlg=null;$('#dialog').classList.add('hidden');mode='walk';if(d)d();}
+
+function hud(){
+ $('#hudName').textContent='🧑 '+(S.name||'—');$('#hudLv').textContent='Lv '+lvl();
+ S.hp=Math.min(S.hp,maxHP());$('#hudHp').style.width=(S.hp/maxHP()*100)+'%';$('#hudHp').style.background=S.hp/maxHP()<.3?'var(--bad)':'var(--good)';
+ $('#hudBadges').textContent=`🏅 ${badgeCount()}/4`;$('#btnCodex').textContent=`📘 ${caughtCount()}/${CH.length}`;
+}
+
+function encounter(){
+ const pool=POOL(CUR.pool),un=pool.filter(id=>!S.caught[id]);
+ const review=!un.length,id=review?pool[Math.floor(Math.random()*pool.length)]:un[0];
+ const f=$('#flash');f.className='';void f.offsetWidth;f.className='go';mode='busy';
+ setTimeout(()=>openBattle({type:'wild',ids:[id],review}),650);
+}
+function tryGym(gid){
+ const g=GYMS[gid];
+ if(S.badges[gid]){say([`You already hold the ${g.badge}, {name}!`,"Keep your skills sharp by training in the tall grass."],null,g.leader);return;}
+ if(g.need){const pool=POOL(g.need),n=pool.filter(id=>S.caught[id]).length;
+  if(n<pool.length){say([`Hold on! Come back when you've tamed every Codeling on this route.`,`You've tamed ${n} of ${pool.length}. Walk through the tall grass to find the rest!`],null,g.leader);return;}}
+ say(g.intro,()=>{const ids=g.pool.filter(id=>!S.caught[id]);openBattle({type:'gym',gid,ids:ids.length?ids:g.pool.slice()});},g.leader);
+}
+
+let B=null;
+const editor=$('#editor'),preview=$('#preview');
+const ATTACKS=['Syntax Error','Missing Bracket','Typo Tackle','Bug Bite','Null Slam','Undefined Uppercut','Unclosed Tag Twister'];
+function openBattle(o){
+ mode='battle';held=null;B=Object.assign({idx:0},o);B.total=B.type==='gym'?GYMS[B.gid].pool.length:1;B.doneBefore=B.type==='gym'?B.total-B.ids.length:0;
+ $('#battle').classList.remove('hidden');document.body.style.overflow='hidden';$('#battle').scrollTop=0;
+ const st=STARTERS[S.starter];$('#meSprite').innerHTML=creatureSVG(st.color,st.v,110);$('#meName').textContent=st.name;
+ $('#bRun').textContent=B.type==='gym'?'🚪 Leave gym':'🏃 Run away';
+ loadRound();
+}
+function setFoeHP(){const rem=B.type==='gym'?(B.total-B.doneBefore-B.idx)/B.total:1;const e=$('#foeHp');e.style.width=(rem*100)+'%';e.style.background=rem<.34?'var(--bad)':rem<.67?'var(--gold)':'var(--good)';}
+function setMeHP(){const m=maxHP(),r=S.hp/m,e=$('#meHp');e.style.width=(r*100)+'%';e.style.background=r<.3?'var(--bad)':r<.6?'var(--gold)':'var(--good)';
+ $('#meHpTxt').textContent=`${S.hp} / ${m} HP`;$('#meTag').textContent=`Lv ${lvl()} · ${S.name}'s partner`;hud();}
+function loadRound(){
+ const ch=CHM[B.ids[B.idx]];B.ch=ch;B.hints=0;B.usedAnswer=false;B.locked=false;
+ const fs=$('#foeSprite');fs.className='sprite appear';fs.innerHTML=creatureSVG(ch.color,ch.v,120);
+ $('#foeName').textContent=ch.name;
+ $('#foeTag').textContent=B.type==='gym'?`${GYMS[B.gid].leader}'s Codeling · Round ${B.doneBefore+B.idx+1}/${B.total}`:(B.review?'Review battle':'Wild')+` · ${ch.concept} type`;
+ setFoeHP();setMeHP();
+ bmsg(B.type==='gym'?`${GYMS[B.gid].leader} sent out ${ch.name}!`:B.review?`A wild ${ch.name} wants a rematch! (Review = easy XP)`:`A wild ${ch.name} appeared! Defeat it with code.`);
+ editor.value=ch.starter;livePreview();
+ $('#feedback').className='feedback';$('#feedback').innerHTML='';$('#hintBox').innerHTML='';
+ $('#tabLesson').innerHTML=`<h3>📖 ${esc(ch.concept)}</h3><div class="lesson">${md(ch.learn)}</div><div class="exl">Example</div><pre class="ex">${esc(ch.example)}</pre><div style="margin-top:12px"><button class="btn primary" id="toMission">Got it — show my mission →</button></div>`;
+ $('#tabMission').innerHTML=`<h3>🎯 Mission</h3><div class="mission">${md(ch.mission)}</div><p style="color:var(--muted);font-weight:700;font-size:14px;margin-bottom:0">Type your code below. Watch the preview. Then hit ⚔️ ATTACK!</p>`;
+ $('#toMission').onclick=()=>{tab('mission');editor.focus();};
+ tab(S.seen[ch.id]?'mission':'lesson');S.seen[ch.id]=true;
+ hintLabel();
+}
+function tab(t){$('#tabLesson').classList.toggle('hidden',t!=='lesson');$('#tabMission').classList.toggle('hidden',t!=='mission');$$('#battle .tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));}
+$$('#battle .tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
+function bmsg(s){$('#bmsg').textContent=s;}
+function hintLabel(){$('#bHint').textContent=`💡 Hint ${Math.min(B.hints,B.ch.hints.length)}/${B.ch.hints.length}`;}
+function anim(el,cls){el.classList.remove('hit','lungeF','lungeM','appear');void el.offsetWidth;el.classList.add(cls);}
+const livePreview=debounce(()=>renderInto(preview,editor.value),250);
+wireEditor(editor,livePreview,()=>attack());
+addSnips($('#snips'),editor,livePreview);
+async function attack(){
+ if(!B||B.locked)return;
+ if(!editor.value.trim()){fb('bad',"Your code box is empty! Type your code first, then attack.");return;}
+ B.locked=true;$('#bAttack').disabled=true;
+ const r=await runChecksCode(preview,editor.value,B.ch.checks);
+ if(r.ok)win();else lose(r.msg);
+}
+function fb(type,html){const f=$('#feedback');f.className='feedback '+type;f.innerHTML=html;}
+function xpFor(){if(B.usedAnswer)return 5;const base=B.review?10:B.type==='gym'?50:30;return Math.max(B.review?5:10,base-B.hints*5);}
+function win(){
+ const ch=B.ch,xp=xpFor(),before=lvl();
+ anim($('#meSprite'),'lungeM');setTimeout(()=>anim($('#foeSprite'),'hit'),200);
+ const newCatch=!S.caught[ch.id];S.caught[ch.id]=true;S.xp+=xp;const up=lvl()>before;if(up)S.hp=maxHP();
+ fb('good',`✅ It worked! Your code is correct. <b>+${xp} XP</b>${up?` · 🎉 LEVEL UP! You're now Lv ${lvl()}!`:''}`);
+ bmsg(`${STARTERS[S.starter].name} used CLEAN CODE! It's super effective!`);
+ setTimeout(()=>{B.idx++;setFoeHP();$('#foeSprite').classList.add('faint');bmsg(`${ch.name} fainted!`);setMeHP();save();},700);
+ setTimeout(()=>{
+  $('#bAttack').disabled=false;
+  if(B.type==='gym'&&B.idx<B.ids.length){loadRound();return;}
+  if(B.type==='gym'){finishGym();return;}
+  modal(`<div class="center">${creatureSVG(ch.color,ch.v,110)}<h2>${newCatch?'You tamed '+esc(ch.name)+'!':'Review complete!'}</h2>
+   <p><b>+${xp} XP</b>${up?` · 🎉 Level up! Now Lv ${lvl()}`:''}</p>${newCatch?`<p>📘 New Codedex page: <b>${esc(ch.concept)}</b></p>`:''}
+   <p style="color:var(--muted);font-weight:700">${routeProgress()}</p></div>`,[['Continue',closeBattle,'primary']]);
+ },1900);
+}
+function routeProgress(){if(!CUR.pool)return'';const p=POOL(CUR.pool),n=p.filter(id=>S.caught[id]).length;
+ return n<p.length?`${n}/${p.length} Codelings tamed on this route.`:`Route complete! Head to the gym when you're ready. 🏟️`;}
+function lose(msg){
+ const ch=B.ch,dmg=14+Math.floor(Math.random()*10);
+ anim($('#foeSprite'),'lungeF');setTimeout(()=>anim($('#meSprite'),'hit'),200);
+ S.hp=Math.max(0,S.hp-dmg);
+ bmsg(`${ch.name} used ${ATTACKS[Math.floor(Math.random()*ATTACKS.length)]}! −${dmg} HP`);
+ fb('bad',`❌ Not quite. ${md(msg)}<br><small style="font-weight:700">Fix it, then attack again. Stuck? Tap 💡 Hint. You've got this.</small>`);
+ setTimeout(()=>{setMeHP();save();B.locked=false;$('#bAttack').disabled=false;
+  if(S.hp<=0){B.locked=true;modal(`<div class="center"><div style="font-size:54px">😵‍💫</div><h2>Your Codeling is worn out!</h2><p>You rush back to the Code Center in Pixel Town. Nothing you learned is lost.</p></div>`,[['Back to town',blackout,'primary']]);}
+ },600);
+}
+function blackout(){closeBattle();S.hp=maxHP();goMap('town',16,5);hud();save();
+ say(["There we go — all healed up!","Don't worry. Every developer sees errors every single day. Errors are how you learn.","Use the 💡 Hint button when you're stuck. Go get 'em!"],null,'Nurse Joy-Code');}
+function finishGym(){
+ const g=GYMS[B.gid],gid=B.gid;S.badges[gid]=true;if(gid==='champ')S.champion=true;save();
+ modal(`<div class="center"><div style="font-size:60px">${g.icon}</div><h2>You earned the ${esc(g.badge)}!</h2><p>${esc(g.leader)} has been defeated.</p><p><b>Badges: ${badgeCount()}/4</b></p></div>`,
+  [['Continue',()=>{closeBattle();say(g.win,gid==='champ'?ending:null,g.leader);},'primary']]);
+}
+function closeBattle(){$('#battle').classList.add('hidden');document.body.style.overflow='';B=null;mode='walk';save();hud();}
+$('#bAttack').onclick=attack;
+$('#bHint').onclick=()=>{const ch=B.ch;if(B.hints<ch.hints.length)B.hints++;hintLabel();
+ $('#hintBox').innerHTML=ch.hints.slice(0,B.hints).map((h,i)=>`<div class="h">💡 <b>Hint ${i+1}:</b> ${md(h)}</div>`).join('')+(B.hints>=ch.hints.length?`<div class="h" style="background:#fff;border-style:dashed">That's every hint! Still stuck? Tap 👁 Answer — totally fine.</div>`:'');};
+$('#bTip').onclick=()=>{$('#hintBox').insertAdjacentHTML('afterbegin',`<div class="h t">✨ <b>Pro tip:</b> ${md(B.ch.tip)}</div>`);};
+$('#bAnswer').onclick=()=>{B.usedAnswer=true;editor.value=B.ch.answer;livePreview();
+ $('#hintBox').innerHTML=`<div class="h a">👁 <b>Here's a correct answer.</b> Read it line by line and compare it to yours — spot the difference. Then press ⚔️ ATTACK.<br><small>(You'll earn fewer XP this time. Learning is the real win.)</small></div>`;};
+$('#bReset').onclick=()=>{editor.value=B.ch.starter;livePreview();editor.focus();};
+$('#bRun').onclick=()=>{
+ if(B.type==='gym'){const leader=GYMS[B.gid].leader;modal(`<h3>Leave the gym?</h3><p>Rounds you've already won are saved. You can come back any time.</p>`,[['Stay',null],['Leave',()=>{closeBattle();say(["Come back when you're ready, {name}!"],null,leader);},'primary']]);}
+ else{closeBattle();say(["You got away safely!","(That Codeling is still out there. Come back when you're ready.)"]);}
+};
+
+const SECTIONS=[['r1','HTML Meadow'],['g1','Tag Gym'],['r2','Style Forest'],['g2','Style Gym'],['r3','Flex Peaks'],['g3','Flex Gym'],['ch','Champion Tower']];
+function openCodex(){
+ const html=`<h2>📘 Codedex <small style="color:var(--muted)">${caughtCount()}/${CH.length}</small></h2>
+  <p style="margin-top:0;color:var(--muted);font-weight:700">Your personal cheat sheet. Tap any Codeling you've tamed to re-read its lesson.</p>
+  <div class="badges">${Object.entries(GYMS).map(([k,g])=>`<span class="badge ${S.badges[k]?'on':''}">${g.icon} ${esc(g.badge)}</span>`).join('')}</div>
+  ${SECTIONS.map(([g,label])=>`<div class="cxsec">${label}</div><div class="cxgrid">${CH.filter(c=>c.g===g).map(c=>S.caught[c.id]
+   ?`<div class="cx" data-id="${c.id}">${creatureSVG(c.color,c.v,64)}<div>${esc(c.name)}</div><small>${esc(c.concept)}</small></div>`
+   :`<div class="cx lock">${creatureSVG('#bbbbbb',c.v,64,true)}<div>???</div><small>Not tamed yet</small></div>`).join('')}</div>`).join('')}`;
+ modal(html,[['Close',null,'primary']]);
+ $$('#modalCard .cx[data-id]').forEach(el=>el.onclick=()=>{const c=CHM[el.dataset.id];
+  modal(`<div class="codex"><div class="center">${creatureSVG(c.color,c.v,90)}</div><h2>${esc(c.name)} · ${esc(c.concept)}</h2><div class="lesson">${md(c.learn)}</div><div class="exl">Example</div><pre class="ex">${esc(c.example)}</pre><div class="exl">Pro tip</div><div class="lesson">${md(c.tip)}</div></div>`,[['← Back',openCodex],['Close',null,'primary']]);});
+}
+$('#btnCodex').onclick=()=>{if(mode==='walk'||mode==='dialog')openCodex();};
+function help(){modal(`<h2>How to play</h2>
+ <p>🕹️ <b>Move</b> with arrow keys / WASD, or the D-pad. <b>Talk</b> to people and read signs with Space or <b>A</b> while facing them.</p>
+ <p>🌿 <b>Tall grass</b> hides wild Codelings. Each one teaches you ONE new HTML or CSS skill.</p>
+ <p>⚔️ <b>Battles</b>: read the 📖 Lesson, then do the 🎯 Mission by typing real code. Watch the live preview, then hit <b>ATTACK</b> to check it. Wrong code = you take damage. Right code = you tame it!</p>
+ <p>💡 <b>Hint</b> gives clues one at a time · ✨ <b>Tip</b> gives pro advice · 👁 <b>Answer</b> shows a solution (fewer XP).</p>
+ <p>🏟️ Tame every Codeling on a route to unlock its <b>Gym</b>. Win 3 badges, then beat the <b>Champion</b>!</p>
+ <p>💗 Heal and save at the <b>Code Center</b> or your <b>Home</b>. The game also auto-saves on this device.</p>`,[['Let\'s go!',null,'primary']]);}
+$('#btnMenu').onclick=()=>{if(mode!=='walk')return;modal(`<h2>Menu</h2><p>Trainer: <b>${esc(S.name)}</b> · Lv ${lvl()} · ${S.xp} XP total</p><p>Codelings tamed: <b>${caughtCount()}/${CH.length}</b> · Badges: <b>${badgeCount()}/4</b></p>`,
+ [['How to play',help],['Start over',()=>modal(`<h3>Start a brand new Codeling Quest?</h3><p>This deletes your Quest progress on this device. This can't be undone.</p>`,[['Cancel',null],['Yes, delete',()=>{try{localStorage.removeItem(QKEY);}catch(e){}S=fresh();mode='title';titleScreen();$('#title').classList.remove('hidden');},'primary']])],['Save',()=>{save();say(["Game saved! 💾"]);}],['Close',null,'primary']]);};
+function ending(){modal(`<div class="center"><div style="font-size:64px">🏆</div><h2 class="pix" style="font-size:16px;line-height:1.7;color:var(--accent)">CODE CHAMPION</h2>
+ <p>${esc(S.name)}, you beat all three gyms and the Champion!</p><p>You learned <b>${caughtCount()} real web skills</b> — the same ones professional developers use every day.</p></div>
+ <h3>What's next?</h3><ul style="line-height:1.6"><li>Open the 📘 Codedex and re-read anything that felt shaky.</li><li>Try 🐞 Bug Hunter in the Arcade — fixing broken code is what real developers do most.</li><li>Then 🤖 Robot Commander to start JavaScript.</li></ul>`,[['Keep exploring',null,'primary']]);}
+function titleScreen(){
+ const saved=load();let pick=0;
+ $('#title').innerHTML=`<div class="tcard">
+  <div style="text-align:left"><button class="btn sm" id="tBack">← Arcade</button></div>
+  <div class="tlogo pix">CODELING<br>QUEST</div>
+  <p class="tsub">Tame wild creatures by writing real HTML & CSS.</p>
+  ${saved?`<div class="tbox center"><p style="margin-top:0"><b>Welcome back, ${esc(saved.name)}!</b><br>Lv ${1+Math.floor(saved.xp/100)} · ${Object.keys(saved.caught).length} Codelings · ${Object.keys(saved.badges).length} badges</p><button class="btn primary big" id="tCont" style="width:100%">▶ Continue</button></div><p class="tsub" style="margin:4px 0 12px">— or start a new adventure —</p>`:''}
+  <div class="tbox"><label for="tName">What's your trainer name?</label><input id="tName" maxlength="14" placeholder="Type your name" autocomplete="off"></div>
+  <div class="tbox"><label>Choose your partner Codeling</label><div class="starters">${STARTERS.map((s,i)=>`<div class="starter ${i===0?'on':''}" data-i="${i}">${creatureSVG(s.color,s.v,90)}<b>${s.name}</b><small>${s.desc}</small></div>`).join('')}</div></div>
+  <button class="btn primary big" id="tNew" style="width:100%">${saved?'Start new game':'Begin adventure →'}</button>
+ </div>`;
+ $('#tBack').onclick=()=>APP.show('hub');
+ $$('.starter').forEach(el=>el.onclick=()=>{pick=+el.dataset.i;$$('.starter').forEach(x=>x.classList.toggle('on',x===el));});
+ if(saved)$('#tCont').onclick=()=>{S=saved;startWorld(false);};
+ $('#tNew').onclick=()=>{
+  const n=$('#tName').value.trim();if(!n){$('#tName').focus();$('#tName').style.borderColor='var(--bad)';$('#tName').placeholder='Please type a name first';return;}
+  const go=()=>{S=fresh();S.name=n;S.starter=pick;S.started=true;S.hp=maxHP();save();startWorld(true);};
+  if(saved)modal(`<h3>Start over?</h3><p>Your old save (${esc(saved.name)}) will be replaced.</p>`,[['Cancel',null],['Start new',go,'primary']]);else go();
+ };
+}
+function startWorld(isNew){
+ $('#title').classList.add('hidden');CUR=MAPS[S.map]||MAPS.town;P.vx=S.x;P.vy=S.y;mode='walk';hud();showBanner(CUR.name);
+ if(isNew){const st=STARTERS[S.starter];
+  say(["Welcome, {name}! I'm Professor Byte.",`I see you've chosen ${st.name} as your partner. Great pick!`,"In this world, creatures called Codelings are made of code. You tame them by WRITING code.",
+   "Head north to HTML Meadow and walk through the tall grass 🌿 to find them.","Move with the arrow keys or D-pad. Press A or Space to talk. Good luck!"],help,'Prof. Byte');}
+}
+$('#qBack').onclick=()=>{if(mode==='dialog'){if(dlg)clearInterval(dlg.timer);dlg=null;$('#dialog').classList.add('hidden');mode='walk';}if(mode==='walk'||mode==='title')APP.show('hub');};
+window.QUEST={
+ enter(){if(mode==='title'){titleScreen();$('#title').classList.remove('hidden');}else hud();},
+ leave(){$('#title').classList.add('hidden');held=null;},
+ progress(){const s=load();const n=s?CH.filter(c=>s.caught[c.id]).length:0;return{done:n,total:CH.length,badges:s?Object.keys(s.badges).length:0};},
+ _test:{CH,runChecksCode}
+};
+requestAnimationFrame(loop);
+})();
+</script>
+
+<!-- =====================================================================
+     GAME 2: BUG HUNTER
+     ===================================================================== -->
+<script>
+(()=>{
+const SS="\n\n<style>\n";
+const BUGS=[
+{id:'b1',ch:'HTML Mysteries',title:'The Swallowing Headline',
+ story:"Bugtown's welcome sign is broken! The heading is so big it swallowed the population line too.",
+ mission:"Fix the code so only **Welcome to Bugtown** is the heading, and the population line is a normal paragraph.",
+ starter:"<h1>Welcome to Bugtown\n<p>Population: 42</p>",
+ hints:["Every opening tag needs a closing tag. Look closely at the `<h1>`.","The `<h1>` never closes, so everything after it gets stuck inside.","Add `</h1>` right after the word Bugtown."],
+ answer:"<h1>Welcome to Bugtown</h1>\n<p>Population: 42</p>",
+ tip:"Missing closing tags are the #1 HTML bug in the world. When things look weirdly big or bold, hunt for a missing `</...>`.",
+ outro:"Case closed! The sign is fixed. The mayor thanks you, Detective.",
+ checks:[has('h1',"Keep the `<h1>`."),[a=>!a.$('h1 p'),"The paragraph is still stuck inside the heading. Close the `<h1>` first!"],[a=>a.text(a.$('h1'))==='welcome to bugtown',"The heading should only say Welcome to Bugtown."],has('p',"Keep the paragraph.")]},
+{id:'b2',ch:'HTML Mysteries',title:'The Invisible Button',
+ story:"The bakery's Order button vanished. Customers just see the plain word on screen — nobody can click it!",
+ mission:"Make the **Order** button appear as a real button.",
+ starter:"<p>Fresh bread every morning!</p>\n<buton>Order</buton>",
+ hints:["Read the tag name very slowly, letter by letter.","How many t's are in button?","`<buton>` → `<button>` (and the closing tag too)."],
+ answer:"<p>Fresh bread every morning!</p>\n<button>Order</button>",
+ tip:"Browsers don't show errors for misspelled tags — they quietly ignore them. That's why bugs are sneaky!",
+ outro:"The bakery is selling bread again. Smells like victory.",
+ checks:[has('button',"Still no real button. Check the spelling of the tag name."),hasText('button','order',"The button should say Order."),[a=>!a.$('buton'),"There's still a misspelled `<buton>` tag in there."]]},
+{id:'b3',ch:'HTML Mysteries',title:'The Link to Nowhere',
+ story:"The library's map link looks fine, but clicking it does absolutely nothing. Someone tampered with it...",
+ mission:"Fix the link so it goes to **https://example.com**",
+ starter:"<a herf=\"https://example.com\">Library map</a>",
+ hints:["Links get their address from an attribute.","Look at that attribute's spelling. Is it really what links use?","`herf` → `href`"],
+ answer:"<a href=\"https://example.com\">Library map</a>",
+ tip:"Memory trick: href = Hypertext REFerence. H-R-E-F.",
+ outro:"Readers can find the library again. Nice detective work.",
+ checks:[[a=>(a.$('a')?.getAttribute('href')||'').includes('example.com'),"The link still has no working `href`. Check the attribute's spelling."]]},
+{id:'b4',ch:'HTML Mysteries',title:'The Silent Picture',
+ story:"Blind visitors to the zoo website say the lion photo tells them nothing at all. Their screen readers just say \"image\".",
+ mission:"Add an `alt` description to the image (any words that describe it).",
+ starter:"<h2>Meet Leo</h2>\n<img src=\"lion.png\">",
+ hints:["Images describe themselves with an attribute.","That attribute is `alt`.","`<img src=\"lion.png\" alt=\"A lion called Leo\">`"],
+ answer:"<h2>Meet Leo</h2>\n<img src=\"lion.png\" alt=\"A lion called Leo\">",
+ tip:"Good alt text describes what's IN the picture, like you're telling a friend on the phone.",
+ outro:"Now everyone can meet Leo. That's what good developers do.",
+ checks:[has('img',"Keep the `<img>`."),[a=>(a.$('img').getAttribute('alt')||'').trim().length>2,"Your image needs `alt=\"...\"` with a few words describing it."]]},
+{id:'b5',ch:'HTML Mysteries',title:'The Runaway List',
+ story:"The shopping list items escaped from their list box! They're wandering around the page with no home.",
+ mission:"Put all 3 items back INSIDE the `<ul>` list.",
+ starter:"<ul>\n</ul>\n<li>Milk</li>\n<li>Eggs</li>\n<li>Bread</li>",
+ hints:["`<li>` items must live between `<ul>` and `</ul>`.","Move the `</ul>` line to the very bottom."],
+ answer:"<ul>\n  <li>Milk</li>\n  <li>Eggs</li>\n  <li>Bread</li>\n</ul>",
+ tip:"Indenting the `<li>` lines makes it obvious they belong inside the list.",
+ outro:"All items safely home. HTML Mysteries chapter complete!",
+ checks:[[a=>a.$$('ul > li').length>=3,"All 3 `<li>` items must be inside `<ul>` ... `</ul>`."]]},
+{id:'b6',ch:'CSS Crimes',title:'The Missing Semicolon',
+ story:"The town hall title should be red on yellow, but it's plain black. Witnesses say one tiny mark went missing.",
+ mission:"Fix the CSS so the title is **red** with a **yellow** background.",
+ starter:"<h1>Town Hall</h1>"+SS+"  h1 { color: red background-color: yellow; }\n</style>",
+ hints:["Every CSS property needs to end with a semicolon `;`","Look between `red` and `background-color`."],
+ answer:"<h1>Town Hall</h1>"+SS+"  h1 { color: red; background-color: yellow; }\n</style>",
+ tip:"One missing semicolon can break BOTH properties next to it. When CSS 'does nothing', check your semicolons first.",
+ outro:"The town hall shines again. One semicolon — big difference!",
+ checks:[cssIs('h1','color',RED,"The title isn't red yet."),cssIs('h1','backgroundColor',YELLOW,"The yellow background isn't working yet.")]},
+{id:'b7',ch:'CSS Crimes',title:'The British Spelling',
+ story:"The police box should be blue. The code looks perfect to a human... but CSS refuses to listen.",
+ mission:"Make the paragraph text **blue**.",
+ starter:"<p>Police box</p>"+SS+"  p { colour: blue; }\n</style>",
+ hints:["CSS was written in America.","Check the spelling of the property name.","`colour` → `color`"],
+ answer:"<p>Police box</p>"+SS+"  p { color: blue; }\n</style>",
+ tip:"Aussies and Brits get caught by this all the time: CSS only accepts `color`, never `colour`.",
+ outro:"Blue as the sky. Spelling crime solved.",
+ checks:[cssIs('p','color',BLUE,"Still not blue. CSS only understands the American spelling.")]},
+{id:'b8',ch:'CSS Crimes',title:'The Forgotten Dot',
+ story:"The cinema's title should glow green. The HTML has the class... but the style never arrives.",
+ mission:"Make the **Now Showing** heading green.",
+ starter:"<h2 class=\"title\">Now Showing</h2>"+SS+"  title { color: green; }\n</style>",
+ hints:["The HTML uses `class=\"title\"`.","How do you target a CLASS in CSS?","Classes start with a dot: `.title { }`"],
+ answer:"<h2 class=\"title\">Now Showing</h2>"+SS+"  .title { color: green; }\n</style>",
+ tip:"Without the dot, CSS looks for a `<title>` TAG instead of the class. Tiny dot, big meaning.",
+ outro:"The movie can start. Popcorn time 🍿",
+ checks:[cssIs('h2','color',GREEN,"Still not green. How do you target a CLASS in CSS?")]},
+{id:'b9',ch:'CSS Crimes',title:'The Open Door',
+ story:"One forgotten curly brace broke the whole café menu. The heading AND the prices lost their style.",
+ mission:"Fix it so the **h1 is red** and the **p is 20px**.",
+ starter:"<h1>Menu</h1>\n<p>Coffee $4</p>"+SS+"  h1 { color: red;\n  p { font-size: 20px; }\n</style>",
+ hints:["Every `{` needs a matching `}`.","The h1 rule never closes.","Add `}` at the end of the h1 line."],
+ answer:"<h1>Menu</h1>\n<p>Coffee $4</p>"+SS+"  h1 { color: red; }\n  p { font-size: 20px; }\n</style>",
+ tip:"Count your braces: every rule = one `{` and one `}`. An open door lets the next rule fall in.",
+ outro:"Menu fixed. The coffee is on the house!",
+ checks:[cssIs('h1','color',RED,"The h1 isn't red. Is every `{` closed with a `}` ?"),cssPx('p','fontSize',20,"The paragraph isn't 20px yet. Make sure the h1 rule is closed first.")]},
+{id:'b10',ch:'CSS Crimes',title:'The Space Invader',
+ story:"The gym's OPEN sign should be huge. A sneaky invisible criminal made it tiny.",
+ mission:"Make the sign **40px** big.",
+ starter:"<p>OPEN 24/7</p>"+SS+"  p { font-size: 40 px; }\n</style>",
+ hints:["Look very closely at `40 px`.","Numbers and units must touch."],
+ answer:"<p>OPEN 24/7</p>"+SS+"  p { font-size: 40px; }\n</style>",
+ tip:"`40px` ✅  `40 px` ❌ — a space breaks the value and CSS throws the whole line away.",
+ outro:"The space invader has been defeated. CSS Crimes chapter complete!",
+ checks:[cssPx('p','fontSize',40,"Still small. Look closely at the number and its unit.")]},
+{id:'b11',ch:'The Big Cases',title:'The Wrong Badge',
+ story:"The museum logo uses an id, but whoever styled it treated it like a class. It's still boring black.",
+ mission:"Make the museum logo **purple**.",
+ starter:"<h1 id=\"logo\">Museum</h1>"+SS+"  .logo { color: purple; }\n</style>",
+ hints:["Look at the HTML: is it a class or an id?","ids use a different symbol than classes.","`.logo` → `#logo`"],
+ answer:"<h1 id=\"logo\">Museum</h1>"+SS+"  #logo { color: purple; }\n</style>",
+ tip:"Dot = class. Hash = id. Match the symbol to what the HTML uses.",
+ outro:"The museum looks royal again. 👑",
+ checks:[cssIs('#logo','color',PURPLE,"Still not purple. An id uses a different symbol than a class.")]},
+{id:'b12',ch:'The Big Cases',title:'The Stubborn Row',
+ story:"The fruit stand should show its fruit side by side. Someone put flexbox in the wrong place and they keep stacking.",
+ mission:"Make the fruits sit **side by side**.",
+ starter:"<div class=\"row\">\n  <div class=\"item\">🍎</div>\n  <div class=\"item\">🍌</div>\n  <div class=\"item\">🍇</div>\n</div>"+SS+"  .item { display: flex; font-size: 30px; }\n</style>",
+ hints:["Flex goes on the PARENT, not the children.","Which div is holding the others?","Put `display: flex;` on `.row`."],
+ answer:"<div class=\"row\">\n  <div class=\"item\">🍎</div>\n  <div class=\"item\">🍌</div>\n  <div class=\"item\">🍇</div>\n</div>"+SS+"  .row { display: flex; }\n  .item { font-size: 30px; }\n</style>",
+ tip:"Parent = the box. Children = what's inside. Flex always goes on the box.",
+ outro:"Fruit in a perfect row. Fresh case closed! 🍎🍌🍇",
+ checks:[cssIs('.row','display','flex',"The fruits still stack. Which box should be the flex container?")]},
+{id:'b13',ch:'The Big Cases',title:'Double Trouble',
+ story:"The arcade page has TWO bugs hiding at once. One in the HTML, one in the CSS. Find them both!",
+ mission:"Fix both bugs: there should be **one** heading, and the score should be **30px** and orange.",
+ starter:"<h1>Arcade<h1>\n<p class=\"score\">High score: 9000</p>"+SS+"  .score { color: orange; }\n  score { font-size: 30px; }\n</style>",
+ hints:["HTML bug: look at how the `<h1>` is closed.","CSS bug: the second rule is missing something at the start.","`<h1>` → `</h1>` at the end, and `score` → `.score`"],
+ answer:"<h1>Arcade</h1>\n<p class=\"score\">High score: 9000</p>"+SS+"  .score { color: orange; }\n  .score { font-size: 30px; }\n</style>",
+ tip:"When there are several bugs, fix one at a time and watch the preview after each fix.",
+ outro:"Two bugs, one detective. High score: YOU.",
+ checks:[[a=>a.$$('h1').length===1,"There are still TWO headings on the page. Check how the `<h1>` is closed."],hasText('h1','arcade',"The heading should say Arcade."),cssIs('.score','color',ORANGE,"The score should stay orange."),cssPx('.score','fontSize',30,"The score isn't 30px yet. Check the second CSS rule's selector.")]},
+{id:'b14',ch:'The Big Cases',title:'The Final Boss Bug',
+ story:"The hero card is a total disaster. THREE bugs. Even the CSS is leaking onto the page as plain text. This is your hardest case, Detective.",
+ mission:"Fix all 3 bugs so the card has its **border**, the name is **crimson**, and the level is **bold**.",
+ starter:"<div class=\"card\">\n  <h2>Hero</h2>\n  <p>Level 99</p>\n</div"+SS+"  .card { border: 2px solid black; padding: 16px; }\n  .card h2 { colr: crimson; }\n  card p { font-weight: bold; }\n</style>",
+ hints:["Bug 1 is why the CSS shows up as text: look at the closing `</div`.","Bug 2: read the property names slowly.","Bug 3: one selector is missing its dot."],
+ answer:"<div class=\"card\">\n  <h2>Hero</h2>\n  <p>Level 99</p>\n</div>"+SS+"  .card { border: 2px solid black; padding: 16px; }\n  .card h2 { color: crimson; }\n  .card p { font-weight: bold; }\n</style>",
+ tip:"A missing `>` can swallow everything after it. If code shows up as text on the page, look for a tag that never finished.",
+ outro:"Bugtown is saved! You're officially a Master Code Detective. 🕵️",
+ checks:[[a=>!(a.doc.body.innerText||'').includes('{'),"Some of your CSS is showing on the page as text. A tag isn't finished properly — check `</div`."],cssNot('.card','borderTopStyle','none',"The card still has no border."),cssIs('.card h2','color','rgb(220, 20, 60)',"The name isn't crimson yet. Check the spelling of the property."),[a=>px(a.css(a.$('.card p'),'fontWeight'))>=700,"The level isn't bold yet. Check that selector."]]}
+];
+let bench=null;
+const G=Game({id:'bug',emoji:'🐞',title:'Bug Hunter',unit:'Case',winWord:'Case closed!',levels:BUGS,
+ intro:`<h2>🕵️ Detective Dot and the Broken Web</h2><p class="lesson">Bugtown's websites are falling apart! Signs are broken, buttons have vanished and colours have gone missing. You're the town's new <b>Code Detective</b>.</p><p class="lesson">Each case gives you broken code. Find the bug, fix it, and close the case. Real developers spend most of their day doing exactly this — you're training for the real thing.</p>`,
+ finale:"You solved every case in Bugtown. Fixing bugs is the #1 skill real developers use every day — and you've got it.",
+ play(L,el,done){bench=Bench(el,{checkLabel:'🔍 Test my fix',resetLabel:'Reset to broken code',winText:'Bug fixed! The page works.',onPass:s=>done(s)});
+   L.storyHTML=storyHTML('Case file',L.story)+`<div class="mission">🎯 ${md(L.mission)}</div>`;bench.load(L);}});
+window.__BUG=BUGS;
+})();
+</script>
+
+<!-- =====================================================================
+     GAME 3: COPY THE PICTURE
+     ===================================================================== -->
+<script>
+(()=>{
+const ART_BASE='html,body{margin:0}body{font-family:system-ui,sans-serif;color:#222;background:#fff;padding:20px;box-sizing:border-box;height:200px;overflow:hidden}';
+const PL={width:'width',height:'height',backgroundColor:'colour',borderTopLeftRadius:'roundness',x:'left-right position',y:'up-down position',color:'text colour',fontSize:'text size',paddingTop:'top/bottom padding',paddingLeft:'left/right padding'};
+const ART=[
+{id:'a1',ch:'Gallery 1: Shapes',title:'The Lonely Sun',
+ story:"Welcome, Restorer! The museum's oldest painting, **The Lonely Sun**, has faded to nothing. Repaint it with CSS so it matches the original exactly.",
+ learn:"A plain `<div>` is invisible until you give it a size and a colour. `border-radius: 50%` turns a square into a circle.",
+ starter:"<div class=\"sun\"></div>\n\n<style>\n  .sun {\n    \n  }\n</style>",
+ target:"<div class=\"sun\"></div><style>.sun{width:100px;height:100px;background:gold;border-radius:50%}</style>",
+ answer:"<div class=\"sun\"></div>\n\n<style>\n  .sun {\n    width: 100px;\n    height: 100px;\n    background: gold;\n    border-radius: 50%;\n  }\n</style>",
+ hints:["Size first: `width: 100px;` and `height: 100px;`","Colour: `background: gold;`","Make it round: `border-radius: 50%;`"],
+ tip:"`background` is a shortcut for `background-color`. Both work!",
+ match:[['.sun','The sun',['width','height','backgroundColor','borderTopLeftRadius']]]},
+{id:'a2',ch:'Gallery 1: Shapes',title:'Cloudy Day',
+ story:"Next: **Cloudy Day**. A soft white cloud on a sky-blue background, floating a little away from the corner.",
+ learn:"`margin` is space OUTSIDE a box — it pushes the box away from its neighbours. Here it pushes the cloud away from the corner.",
+ starter:"<div class=\"cloud\"></div>\n\n<style>\n  body {  }\n  .cloud {  }\n</style>",
+ target:"<div class=\"cloud\"></div><style>body{background:skyblue}.cloud{width:160px;height:60px;background:white;border-radius:30px;margin:30px}</style>",
+ answer:"<div class=\"cloud\"></div>\n\n<style>\n  body { background: skyblue; }\n  .cloud { width: 160px; height: 60px; background: white; border-radius: 30px; margin: 30px; }\n</style>",
+ hints:["The sky is `body { background: skyblue; }`","The cloud is 160px wide, 60px tall, white, with `border-radius: 30px;`","Push it away from the corner with `margin: 30px;`"],
+ tip:"A border-radius of half the height gives perfect pill-shaped ends.",
+ match:[['body','The sky',['backgroundColor']],['.cloud','The cloud',['width','height','backgroundColor','borderTopLeftRadius','x','y']]]},
+{id:'a3',ch:'Gallery 1: Shapes',title:'Traffic Light',
+ story:"The **Traffic Light** painting lost its lights! The black frame survived, but the red, yellow and green lamps are gone.",
+ learn:"An element can wear TWO classes: `class=\"lamp red\"`. Put shared styles (size, shape) on `.lamp`, and each colour on its own class.",
+ starter:"<div class=\"light\">\n  <div class=\"lamp red\"></div>\n  <div class=\"lamp yellow\"></div>\n  <div class=\"lamp green\"></div>\n</div>\n\n<style>\n  .light { background: #333; width: 50px; padding: 10px; border-radius: 12px; }\n  \n</style>",
+ target:"<div class=\"light\"><div class=\"lamp red\"></div><div class=\"lamp yellow\"></div><div class=\"lamp green\"></div></div><style>.light{background:#333;width:50px;padding:10px;border-radius:12px}.lamp{width:50px;height:50px;border-radius:50%}.red{background:red}.yellow{background:yellow}.green{background:lime}</style>",
+ answer:"<div class=\"light\">\n  <div class=\"lamp red\"></div>\n  <div class=\"lamp yellow\"></div>\n  <div class=\"lamp green\"></div>\n</div>\n\n<style>\n  .light { background: #333; width: 50px; padding: 10px; border-radius: 12px; }\n  .lamp { width: 50px; height: 50px; border-radius: 50%; }\n  .red { background: red; }\n  .yellow { background: yellow; }\n  .green { background: lime; }\n</style>",
+ hints:["Each lamp is 50px by 50px and round: style `.lamp`","Then one rule per colour: `.red { background: red; }`","The green is the bright colour name `lime`."],
+ tip:"Shared styles in one class + small extra classes = less code. Pros call this 'don't repeat yourself'.",
+ match:[['.red','The red lamp',['width','height','borderTopLeftRadius','backgroundColor','y']],['.yellow','The yellow lamp',['backgroundColor','y']],['.green','The green lamp',['backgroundColor','y']]]},
+{id:'a4',ch:'Gallery 2: Layouts',title:'Three Stripes',
+ story:"The **Three Stripes** flag fell apart — the stripes are piled on top of each other and lost their colours.",
+ learn:"`display: flex` on the parent puts its children side by side. Perfect for flag stripes.",
+ starter:"<div class=\"flag\">\n  <div class=\"stripe a\"></div>\n  <div class=\"stripe b\"></div>\n  <div class=\"stripe c\"></div>\n</div>\n\n<style>\n  .flag { border: 3px solid #222; width: 240px; }\n  .stripe { width: 80px; height: 140px; }\n  \n</style>",
+ target:"<div class=\"flag\"><div class=\"stripe a\"></div><div class=\"stripe b\"></div><div class=\"stripe c\"></div></div><style>.flag{border:3px solid #222;width:240px;display:flex}.stripe{width:80px;height:140px}.a{background:green}.b{background:white}.c{background:red}</style>",
+ answer:"<div class=\"flag\">\n  <div class=\"stripe a\"></div>\n  <div class=\"stripe b\"></div>\n  <div class=\"stripe c\"></div>\n</div>\n\n<style>\n  .flag { border: 3px solid #222; width: 240px; display: flex; }\n  .stripe { width: 80px; height: 140px; }\n  .a { background: green; }\n  .b { background: white; }\n  .c { background: red; }\n</style>",
+ hints:["Put the stripes side by side: add `display: flex;` to `.flag`","Colours from left to right: green, white, red.","`.a { background: green; }` and so on."],
+ tip:"Flex goes on the parent (the flag), never on the children (the stripes).",
+ match:[['.a','The left stripe',['backgroundColor','x','y']],['.b','The middle stripe',['backgroundColor','x','y']],['.c','The right stripe',['backgroundColor','x','y']]]},
+{id:'a5',ch:'Gallery 2: Layouts',title:'Moonrise',
+ story:"**Moonrise** shows a white moon perfectly centered in a navy night sky. Right now it's just an empty box.",
+ learn:"The famous centering combo on the PARENT: `display: flex; justify-content: center; align-items: center;`",
+ starter:"<div class=\"sky\">\n  <div class=\"moon\"></div>\n</div>\n\n<style>\n  .sky { width: 260px; height: 160px; }\n  .moon {  }\n</style>",
+ target:"<div class=\"sky\"><div class=\"moon\"></div></div><style>.sky{width:260px;height:160px;background:navy;display:flex;justify-content:center;align-items:center}.moon{width:70px;height:70px;border-radius:50%;background:white}</style>",
+ answer:"<div class=\"sky\">\n  <div class=\"moon\"></div>\n</div>\n\n<style>\n  .sky { width: 260px; height: 160px; background: navy; display: flex; justify-content: center; align-items: center; }\n  .moon { width: 70px; height: 70px; border-radius: 50%; background: white; }\n</style>",
+ hints:["The sky is `navy`.","The moon: 70px by 70px, white, round.","Center it with flex on `.sky`: display, justify-content AND align-items."],
+ tip:"This 3-line centering trick is used on almost every website in the world.",
+ match:[['.sky','The sky',['backgroundColor']],['.moon','The moon',['width','height','backgroundColor','borderTopLeftRadius','x','y']]]},
+{id:'a6',ch:'Gallery 2: Layouts',title:'The Shop Button',
+ story:"A modern art piece: **The Shop Button**. Tomato red, white text, rounded corners, comfy padding.",
+ learn:"`padding: 12px 24px;` — with TWO numbers, the first is top & bottom, the second is left & right.",
+ starter:"<button class=\"btn\">Buy now</button>\n\n<style>\n  .btn { border: none; font-family: sans-serif; }\n  \n</style>",
+ target:"<button class=\"btn\">Buy now</button><style>.btn{border:none;font-family:sans-serif;background:tomato;color:white;padding:12px 24px;border-radius:8px;font-size:20px}</style>",
+ answer:"<button class=\"btn\">Buy now</button>\n\n<style>\n  .btn { border: none; font-family: sans-serif; background: tomato; color: white; padding: 12px 24px; border-radius: 8px; font-size: 20px; }\n</style>",
+ hints:["Colours: `background: tomato;` and `color: white;`","Space inside: `padding: 12px 24px;`","Corners `border-radius: 8px;` and text `font-size: 20px;`"],
+ tip:"Buttons with generous padding are easier to tap on phones. Small buttons = angry users.",
+ match:[['.btn','The button',['backgroundColor','color','paddingTop','paddingLeft','borderTopLeftRadius','fontSize']]]},
+{id:'a7',ch:'Gallery 3: Masterpieces',title:'Gallery Wall',
+ story:"The **Gallery Wall** shows three framed pictures in a neat row on a warm wall, evenly spaced.",
+ learn:"`gap` adds equal space between flex children. `padding` on the wall keeps the frames off its edges.",
+ starter:"<div class=\"wall\">\n  <div class=\"frame\">🌄</div>\n  <div class=\"frame\">🌊</div>\n  <div class=\"frame\">🌸</div>\n</div>\n\n<style>\n  .frame { width: 60px; height: 60px; border: 4px solid goldenrod; font-size: 36px; text-align: center; }\n  \n</style>",
+ target:"<div class=\"wall\"><div class=\"frame\">🌄</div><div class=\"frame\">🌊</div><div class=\"frame\">🌸</div></div><style>.frame{width:60px;height:60px;border:4px solid goldenrod;font-size:36px;text-align:center}.wall{display:flex;gap:16px;padding:12px;background:bisque}</style>",
+ answer:"<div class=\"wall\">\n  <div class=\"frame\">🌄</div>\n  <div class=\"frame\">🌊</div>\n  <div class=\"frame\">🌸</div>\n</div>\n\n<style>\n  .frame { width: 60px; height: 60px; border: 4px solid goldenrod; font-size: 36px; text-align: center; }\n  .wall { display: flex; gap: 16px; padding: 12px; background: bisque; }\n</style>",
+ hints:["Style `.wall`: put the frames in a row with flex.","Space between frames: `gap: 16px;`","Wall edges `padding: 12px;` and colour `background: bisque;`"],
+ tip:"Try changing gap to 40px and watch. Spacing is half of good design.",
+ match:[['.wall','The wall',['backgroundColor','paddingTop']],['.frame:nth-child(1)','The 1st frame',['x','y']],['.frame:nth-child(2)','The 2nd frame',['x','y']],['.frame:nth-child(3)','The 3rd frame',['x','y']]]},
+{id:'a8',ch:'Gallery 3: Masterpieces',title:'Bullseye',
+ story:"The museum's masterpiece: **Bullseye**. Three perfect circles, one inside the other, all perfectly centered. Restore this and you're a Master Restorer.",
+ learn:"Circles inside circles: each `.ring` is round and centers whatever is inside it using flexbox. Then each size gets its own class.",
+ starter:"<div class=\"ring outer\">\n  <div class=\"ring mid\">\n    <div class=\"ring inner\"></div>\n  </div>\n</div>\n\n<style>\n  \n</style>",
+ target:"<div class=\"ring outer\"><div class=\"ring mid\"><div class=\"ring inner\"></div></div></div><style>.ring{display:flex;justify-content:center;align-items:center;border-radius:50%}.outer{width:150px;height:150px;background:red}.mid{width:100px;height:100px;background:white}.inner{width:50px;height:50px;background:red}</style>",
+ answer:"<div class=\"ring outer\">\n  <div class=\"ring mid\">\n    <div class=\"ring inner\"></div>\n  </div>\n</div>\n\n<style>\n  .ring { display: flex; justify-content: center; align-items: center; border-radius: 50%; }\n  .outer { width: 150px; height: 150px; background: red; }\n  .mid { width: 100px; height: 100px; background: white; }\n  .inner { width: 50px; height: 50px; background: red; }\n</style>",
+ hints:["`.ring` is round AND centers its child: flex + justify-content + align-items + border-radius 50%.","Sizes: outer 150px, mid 100px, inner 50px.","Colours: red, white, red."],
+ tip:"You just combined classes, sizing, colour, shapes and flexbox. That's real front-end skill.",
+ match:[['.outer','The outer ring',['width','height','backgroundColor','borderTopLeftRadius']],['.mid','The middle ring',['width','height','backgroundColor','x','y']],['.inner','The inner ring',['width','height','backgroundColor','x','y']]]}
+];
+function val(a,el,p){if(p==='x'||p==='y'){const r=el.getBoundingClientRect();return p==='x'?r.left:r.top;}return a.css(el,p);}
+function same(a,b){if(a===b)return true;const na=parseFloat(a),nb=parseFloat(b);if(!isNaN(na)&&!isNaN(nb)&&/^-?[\d.]+(px|%)?$/.test(String(a).trim())&&/^-?[\d.]+(px|%)?$/.test(String(b).trim())){const ua=String(a).replace(/[\d.\-]/g,''),ub=String(b).replace(/[\d.\-]/g,'');return ua===ub&&Math.abs(na-nb)<=3;}return false;}
+async function compare(task,code,fr,tg){
+  const u=await renderInto(fr,code,ART_BASE),t=makeApi(tg.contentDocument,tg.contentWindow);
+  let total=0,ok=0;const miss=[];
+  for(const[sel,label,props]of task.match){const ue=u.$(sel),te=t.$(sel);
+    for(const p of props){total++;if(!ue){miss.push(`${label} is missing`);continue;}
+      if(te&&same(String(val(u,ue,p)),String(val(t,te,p))))ok++;else miss.push(`${label}: the ${PL[p]} doesn't match yet`);}}
+  const pct=Math.round(ok/total*100);
+  return{ok:ok===total,pct,msg:`Match: **${pct}%** — ${[...new Set(miss)].slice(0,3).join(' · ')}`,extra:ok===total?`<b>Match: 100%</b>`:''};
+}
+let bench=null;
+Game({id:'art',emoji:'🎨',title:'Copy the Picture',unit:'Painting',winWord:'Painting restored!',levels:ART,
+ intro:`<h2>🖼️ The Faded Museum</h2><p class="lesson">Disaster at the Pixel Museum! A strange fog drained the colour from every painting. Luckily, every painting was made with CSS — and you're the new <b>Restorer</b>.</p><p class="lesson">Each level shows you the <b>original</b>. Write CSS until <b>your version</b> matches it. The game measures sizes, colours and positions, and tells you what's still off.</p>`,
+ finale:"Every painting is back. You can now look at a design and BUILD it with CSS — that's exactly what front-end developers are paid to do.",
+ play(L,el,done){bench=Bench(el,{target:true,base:ART_BASE,checkLabel:'🖌️ Compare with original',winText:'Perfect match!',
+   checker:(t,code,{fr,tg})=>compare(t,code,fr,tg),onPass:s=>done(s)});
+   L.storyHTML=storyHTML('Museum curator',L.story)+`<div class="lesson">📖 ${md(L.learn)}</div>`;bench.load(L);}});
+window.__ART={ART,compare,ART_BASE};
+})();
+</script>
+
+<!-- =====================================================================
+     GAME 4: DUNGEON ESCAPE
+     ===================================================================== -->
+<script>
+(()=>{
+const ROOM_CSS=`html,body{margin:0}body{font-family:system-ui,sans-serif;background:#efe6d3}
+.room{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:center;padding:26px 10px 30px;min-height:224px;box-sizing:border-box;background:linear-gradient(#f3ead8,#e3d3b2)}
+.room *{display:inline-flex;align-items:center;justify-content:center;position:relative;font-size:34px;line-height:1;padding:4px 4px 18px;border-radius:10px;transition:transform .2s}
+.room chest::before{content:"🧰"}.room key::before{content:"🗝️"}.room potion::before{content:"🧪"}.room skull::before{content:"💀"}.room gem::before{content:"💎"}
+.room box{border:3px dashed #a47b4f;padding:20px 8px 20px;gap:6px;background:rgba(255,255,255,.45)}
+.room box::before{content:"box";position:absolute;top:3px;font-size:10px;color:#7a5a37;font-weight:800}
+.room [class]::after,.room [id]::after,.room [locked]::after{position:absolute;bottom:2px;font-size:10px;color:#6b4c2a;font-weight:800;white-space:nowrap}
+.room [class]::after{content:"." attr(class)}.room [id]::after{content:"#" attr(id)}.room [locked]::after{content:"locked"}
+.room .gold{filter:drop-shadow(0 0 5px #f5b301)}
+.room [data-tgt]{animation:wig .9s ease-in-out infinite}
+@keyframes wig{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+.room [data-hit]{outline:3px solid #22a06b;outline-offset:2px;background:rgba(34,160,107,.14)}
+.room [data-hit="bad"]{outline-color:#e5484d;background:rgba(229,72,77,.14)}`;
+const ROOMS=[
+{id:'r1',ch:'Floor 1: The Basics',title:'The First Door',target:'chest',markup:"<chest></chest>\n<chest></chest>",
+ story:"You wake up in a stone room. A voice echoes: \"Only those who speak SELECTOR may pass.\" The wiggling things are what the door wants you to select.",
+ learn:"A **type selector** is just the tag name. `chest` selects every `<chest>` in the room.",
+ hints:["The items are `<chest>` tags.","Type the tag name with no symbols: `chest`"],tip:"In real CSS, `p { }` uses a type selector to style every paragraph."},
+{id:'r2',ch:'Floor 1: The Basics',title:'Potion Shelf',target:'potion',markup:"<chest></chest>\n<potion></potion>\n<chest></chest>\n<potion></potion>",
+ story:"A dusty shelf of chests and potions. The door only wants the potions.",
+ learn:"Type selectors only grab tags with THAT name — the chests are ignored.",
+ hints:["Which tag is wiggling?","`potion`"],tip:"Watch the green outlines as you type — they show what your selector grabs."},
+{id:'r3',ch:'Floor 1: The Basics',title:'The Golden Glow',target:'.gold',markup:"<chest></chest>\n<chest class=\"gold\"></chest>\n<potion class=\"gold\"></potion>\n<chest></chest>",
+ story:"Some items glow gold. The door hums: \"Bring me everything golden.\"",
+ learn:"A **class selector** starts with a dot. `.gold` selects anything with `class=\"gold\"` — no matter what tag it is.",
+ hints:["Look at the labels under the items.","Classes start with a dot: `.gold`"],tip:"Classes are the most used selector in real websites."},
+{id:'r4',ch:'Floor 1: The Basics',title:'The Master Key',target:'#master',markup:"<key></key>\n<key id=\"master\"></key>\n<key></key>",
+ story:"Three keys. Only ONE opens the door — the master key.",
+ learn:"An **id selector** starts with a hash. `#master` selects the ONE element with `id=\"master\"`.",
+ hints:["Look for a `#` label.","`#master`"],tip:"ids must be unique — only one per page. Classes can be shared."},
+{id:'r5',ch:'Floor 1: The Basics',title:'Golden Chests Only',target:'chest.gold',markup:"<chest class=\"gold\"></chest>\n<potion class=\"gold\"></potion>\n<chest></chest>\n<chest class=\"gold\"></chest>",
+ story:"The door is picky: gold chests only. Not gold potions. Not plain chests.",
+ learn:"Join a tag and a class with NO space: `chest.gold` means \"a chest that also has class gold\".",
+ hints:["You need the tag AND the class together.","No space between them: `chest.gold`"],tip:"No space = same element. A space means something else — you'll see next floor!"},
+{id:'r6',ch:'Floor 2: Families',title:'Boxed In',target:'box chest',markup:"<chest></chest>\n<box>\n  <chest></chest>\n</box>\n<box>\n  <chest></chest>\n  <potion></potion>\n</box>",
+ story:"Floor 2. Some chests are hidden INSIDE boxes. Select only the chests inside boxes.",
+ learn:"A **space** between selectors means \"inside\". `box chest` = any chest inside a box. This is called a descendant selector.",
+ hints:["You want chests that live inside boxes.","Parent first, then a space, then the child: `box chest`"],tip:"`.menu a` styles only links inside your menu — super common in real sites."},
+{id:'r7',ch:'Floor 2: Families',title:'Hidden Treasure',target:'box .gold',markup:"<potion class=\"gold\"></potion>\n<box>\n  <gem class=\"gold\"></gem>\n  <gem></gem>\n</box>\n<box>\n  <chest class=\"gold\"></chest>\n</box>",
+ story:"Gold is everywhere, but the door only wants gold that's hidden inside boxes.",
+ learn:"Mix it up: `box .gold` = anything with class gold, inside a box.",
+ hints:["Inside a box... with class gold.","`box .gold`"],tip:"You can mix tags, classes and ids in any order of nesting."},
+{id:'r8',ch:'Floor 2: Families',title:'Skulls and Keys',target:'skull, key',markup:"<skull></skull>\n<chest></chest>\n<key></key>\n<potion></potion>\n<skull></skull>",
+ story:"A spooky room. The door wants every skull AND every key.",
+ learn:"A **comma** groups selectors: `skull, key` selects skulls and keys together.",
+ hints:["Two different tags at once.","Separate them with a comma: `skull, key`"],tip:"`h1, h2, h3 { }` styles all three headings with one rule."},
+{id:'r9',ch:'Floor 2: Families',title:'Grab Everything',target:'*',markup:"<gem></gem>\n<box>\n  <key></key>\n</box>\n<potion></potion>",
+ story:"A greedy door. It wants EVERYTHING in the room.",
+ learn:"The **universal selector** `*` selects every element.",
+ hints:["One symbol selects everything.","`*`"],tip:"Pros use `* { box-sizing: border-box; }` at the top of almost every stylesheet."},
+{id:'r10',ch:'Floor 2: Families',title:'Direct Children',target:'box > gem',markup:"<gem></gem>\n<box>\n  <gem></gem>\n  <chest>\n    <gem></gem>\n  </chest>\n</box>",
+ story:"Tricky! Only the gem sitting DIRECTLY in the box counts — not the one inside the chest.",
+ learn:"`>` means **direct child**: `box > gem` = gems whose parent is the box itself. A space would also grab the gem inside the chest.",
+ hints:["`box gem` grabs too many. You need direct children only.","Use `>` between them: `box > gem`"],tip:"Space = anywhere inside. `>` = one level down only."},
+{id:'r11',ch:'Floor 3: Positions',title:'First in Line',target:'potion:first-child',markup:"<potion></potion>\n<potion></potion>\n<potion></potion>",
+ story:"Floor 3. Three identical potions. The door wants only the FIRST one.",
+ learn:"`:first-child` selects an element only if it's the first child of its parent. `potion:first-child`.",
+ hints:["It's about position, not class.","`potion:first-child`"],tip:"Things starting with `:` are called pseudo-classes. `:hover` is one too!"},
+{id:'r12',ch:'Floor 3: Positions',title:'Last in Line',target:'chest:last-child',markup:"<chest></chest>\n<chest></chest>\n<chest></chest>\n<chest></chest>",
+ story:"Four chests. This door wants the LAST one.",
+ learn:"`:last-child` is the opposite of `:first-child`.",
+ hints:["Opposite of first-child.","`chest:last-child`"],tip:"Common use: remove the border under the last item in a list."},
+{id:'r13',ch:'Floor 3: Positions',title:'Number Three',target:'skull:nth-child(3)',markup:"<skull></skull>\n<skull></skull>\n<skull></skull>\n<skull></skull>\n<skull></skull>",
+ story:"Five skulls stare at you. Only the THIRD one is the real lever.",
+ learn:"`:nth-child(3)` selects the 3rd child. You can put any number in the brackets.",
+ hints:["Count from the left: 1, 2, 3.","`skull:nth-child(3)`"],tip:"`:nth-child(odd)` and `:nth-child(even)` make striped tables!"},
+{id:'r14',ch:'Floor 3: Positions',title:'The Locked Things',target:'[locked]',markup:"<chest></chest>\n<chest locked></chest>\n<chest></chest>\n<key locked></key>",
+ story:"Some items are LOCKED. The door wants all the locked things, whatever they are.",
+ learn:"An **attribute selector** uses square brackets: `[locked]` selects anything that has a locked attribute.",
+ hints:["Look at the labels: what do the wiggling items share?","Square brackets: `[locked]`"],tip:"Real example: `input[type=\"email\"]` styles only email boxes."},
+{id:'r15',ch:'Floor 3: Positions',title:'The Final Door',target:'chest:not(.gold)',markup:"<chest class=\"gold\"></chest>\n<chest></chest>\n<chest class=\"gold\"></chest>\n<chest></chest>\n<potion></potion>",
+ story:"The last door. Daylight shines through the cracks! It wants every chest that is NOT gold. Get this, and you're free.",
+ learn:"`:not( )` flips a selector: `chest:not(.gold)` = chests that do NOT have class gold.",
+ hints:["Chests... but not the gold ones.","`chest:not(.gold)`"],tip:"You now know more selectors than many junior developers. Seriously."}
+];
+function matchSet(doc,sel){const room=doc.querySelector('.room');let list;try{list=[...doc.querySelectorAll(sel)];}catch(e){return null;}return list.filter(e=>room.contains(e)&&e!==room);}
+let cur=null,api=null;
+function play(L,el,done){
+  let hints=0,used=false;cur=L;
+  el.innerHTML=`<div class="work">
+   <div class="box"><div class="bstory">${storyHTML('Sir Select, trapped knight',L.story)}<div class="lesson">📖 ${md(L.learn)}</div></div>
+     <div class="edhead">🏰 The room <small>wiggling = what the door wants</small></div>
+     <iframe class="droom" sandbox="allow-same-origin" title="Dungeon room"></iframe>
+     <div class="exl">The room's HTML</div><pre class="ex">${esc(L.markup)}</pre></div>
+   <div class="box"><div class="mission">🎯 Write a CSS selector that grabs <b>exactly</b> the wiggling items.</div>
+     <div class="edhead">🪄 Your selector</div>
+     <div class="selrow"><input class="code1 selin" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" placeholder="type a selector…" aria-label="Selector"><span class="brace">{ open: door; }</span></div>
+     <div class="snips"></div>
+     <div class="count"></div>
+     <div class="actions"><button class="btn primary big wide" data-a="go">🔓 Open the door</button><button class="btn" data-a="hint">💡 Hint</button><button class="btn" data-a="tip">✨ Tip</button><button class="btn" data-a="ans">👁 Answer</button></div>
+     <div class="feedback"></div><div class="hintbox"></div></div></div>`;
+  const fr=$('.droom',el),inp=$('.selin',el),cnt=$('.count',el),fbEl=$('.feedback',el),hb=$('.hintbox',el);
+  const fb=(t,h)=>{fbEl.className='feedback '+(t||'');fbEl.innerHTML=h||'';};
+  renderInto(fr,`<div class="room">${L.markup}</div>`,ROOM_CSS).then(a=>{api=a;matchSet(a.doc,L.target).forEach(e=>e.setAttribute('data-tgt',''));live();});
+  function live(){if(!api)return;const doc=api.doc;doc.querySelectorAll('[data-hit]').forEach(e=>e.removeAttribute('data-hit'));
+    const s=inp.value.trim();if(!s){cnt.textContent='Targets: '+matchSet(doc,L.target).length;return null;}
+    const m=matchSet(doc,s);if(!m){cnt.textContent='⚠️ That selector has a typo — the magic fizzles.';return null;}
+    m.forEach(e=>e.setAttribute('data-hit',e.hasAttribute('data-tgt')?'good':'bad'));
+    cnt.textContent=`You're grabbing ${m.length} · The door wants ${matchSet(doc,L.target).length}`;return m;}
+  inp.addEventListener('input',live);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go();}});
+  addSnips($('.snips',el),inp,live,['.','#',' ','>',',','*','[',']',':','(',')']);
+  $('.snips',el).lastChild.remove();
+  [...$('.snips',el).children].find(b=>b.textContent===' ').textContent='␣ space';
+  function go(){if(!api)return;const s=inp.value.trim();if(!s){fb('bad','Type a selector first!');return;}
+    const m=live();if(!m){fb('bad','❌ That selector isn\'t valid CSS. Check your symbols.');return;}
+    const t=matchSet(api.doc,L.target);const okSet=m.length===t.length&&m.every(e=>t.includes(e));
+    if(okSet){fb('good','✅ The door rumbles open!');done(used?1:hints?2:3);}
+    else{const extra=m.filter(e=>!t.includes(e)).length,missing=t.filter(e=>!m.includes(e)).length;
+      fb('bad',`❌ The door stays shut. ${missing?`You missed ${missing} wiggling item${missing>1?'s':''}. `:''}${extra?`You grabbed ${extra} item${extra>1?'s':''} the door doesn't want (red outline).`:''}<br><small>Stuck? Tap 💡 Hint.</small>`);}}
+  $('[data-a=go]',el).onclick=go;
+  $('[data-a=hint]',el).onclick=()=>{if(hints<L.hints.length)hints++;hb.innerHTML=L.hints.slice(0,hints).map((h,i)=>`<div class="h">💡 <b>Hint ${i+1}:</b> ${md(h)}</div>`).join('');};
+  $('[data-a=tip]',el).onclick=()=>hb.insertAdjacentHTML('afterbegin',`<div class="h t">✨ <b>Pro tip:</b> ${md(L.tip)}</div>`);
+  $('[data-a=ans]',el).onclick=()=>{used=true;inp.value=L.target;live();hb.innerHTML=`<div class="h a">👁 The answer is <code>${esc(L.target)}</code>. Look at how it matches the wiggling items, then open the door.</div>`;};
+}
+Game({id:'dungeon',emoji:'🏰',title:'Dungeon Escape',unit:'Room',winWord:'Door opened!',levels:ROOMS,
+ intro:`<h2>🗝️ The Selector Dungeon</h2><p class="lesson">Sir Select, a brave knight, has been trapped in a dungeon of magic doors. Each door opens only when you speak its language: <b>CSS selectors</b>.</p><p class="lesson">Selectors are how CSS chooses WHAT to style. Master them and you can style anything on any page. Write a selector that grabs exactly the wiggling items — green outline = good, red = wrong.</p>`,
+ finale:"Sir Select is free! You've mastered CSS selectors — the way CSS picks what to style on every website.",
+ play});
+window.__ROOMS={ROOMS,ROOM_CSS,matchSet};
+})();
+</script>
+
+<!-- =====================================================================
+     GAME 5: CAFÉ TYCOON
+     ===================================================================== -->
+<script>
+(()=>{
+const C=()=>PROG.cafe;
+const insertCSS=(code,css)=>code.includes('</style>')?code.replace(/<\/style>(?![\s\S]*<\/style>)/,'  '+css+'\n</style>'):code.replace(/\s*$/,'')+'\n\n<style>\n  '+css+'\n</style>';
+const insertHTML=(code,html)=>{const i=code.indexOf('<style');return i>=0?code.slice(0,i).replace(/\s*$/,'')+'\n'+html+'\n\n'+code.slice(i):(code.replace(/\s*$/,'')+(code.trim()?'\n':'')+html);};
+const DAYS=[
+{id:'d1',ch:'Week 1: Build it',title:'Name your café',coins:20,
+ story:"Dear grandchild, I'm leaving you my little café. But it has no website, and nobody knows we exist! Let's start with a big sign. — Grandma 👵",
+ mission:"Add an `<h1>` with your café's name (any name you like!).",
+ hints:["A big heading is `<h1>`.","`<h1>Your Café Name</h1>`"],snippet:"<h1>Bean There Café</h1>",kind:'html',
+ tip:"Your café name will appear on the shop sign above. Make it fun!",
+ checks:[[a=>a.text(a.$('h1')).length>=2,"Add an `<h1>` with your café's name inside."]]},
+{id:'d2',ch:'Week 1: Build it',title:'A catchy tagline',coins:20,
+ story:"Lovely name! Now tell people why they should visit. A short, catchy line under the name.",
+ mission:"Add a `<p>` paragraph with a tagline (any words).",
+ hints:["A paragraph is `<p>`.","Put it on a new line under your `<h1>`."],snippet:"<p>The best coffee in town, made with love.</p>",kind:'html',
+ tip:"Good taglines are short. 'Coffee that hugs you back.' beats a whole paragraph.",
+ checks:[[a=>a.text(a.$('p')).length>=3,"Add a `<p>` with a tagline."]]},
+{id:'d3',ch:'Week 1: Build it',title:'The menu',coins:30,
+ story:"Customers keep asking what we sell! Let's put the menu on the website.",
+ mission:"Add an `<h2>` that says **Menu**, then a `<ul>` list with at least **3** items.",
+ hints:["Heading: `<h2>Menu</h2>`","Then `<ul>` with `<li>` items inside, and `</ul>`."],snippet:"<h2>Menu</h2>\n<ul>\n  <li>Flat white $5</li>\n  <li>Hot chocolate $4</li>\n  <li>Banana bread $6</li>\n</ul>",kind:'html',
+ tip:"Lists are perfect for menus. Later you'll make this list look amazing with CSS.",
+ checks:[hasText('h2','menu',"Add an `<h2>` that says Menu."),[a=>a.$$('ul li').length>=3,"Your `<ul>` needs at least 3 `<li>` items."]]},
+{id:'d4',ch:'Week 1: Build it',title:'A tasty photo',coins:30,
+ story:"People eat with their eyes first! Add a photo of our famous coffee.",
+ mission:"Add an `<img>` with any `src` (like coffee.png) and an `alt` description.",
+ hints:["`<img src=\"coffee.png\" alt=\"...\">`","alt describes the photo in words."],snippet:"<img src=\"coffee.png\" alt=\"A steaming cup of coffee\">",kind:'html',
+ tip:"The photo won't load here (there's no real file), so you'll see the alt text. That's normal.",
+ checks:[[a=>!!(a.$('img')&&a.$('img').getAttribute('src')),"Add an `<img>` with a `src`."],[a=>(a.$('img')?.getAttribute('alt')||'').trim().length>=3,"Your image needs an `alt` description."]]},
+{id:'d5',ch:'Week 1: Build it',title:'Order online',coins:30,
+ story:"The phone won't stop ringing! Let's add an online ordering link.",
+ mission:"Add a link (`<a>`) with any `href`, that says **Order now**.",
+ hints:["`<a href=\"#\">Order now</a>`","`#` is a placeholder address."],snippet:"<a href=\"#\">Order now</a>",kind:'html',
+ tip:"Every shop website needs a clear 'call to action' — the one thing you want visitors to click.",
+ checks:[[a=>!!(a.$('a')&&a.$('a').getAttribute('href')),"Add an `<a>` link with an `href`."],hasText('a','order',"The link should say Order now.")]},
+{id:'d6',ch:'Week 2: Make it pretty',title:'Paint the walls',coins:40,
+ story:"The website works, but it's so plain! Time for paint. Grandma always loved warm colours.",
+ mission:"Add a `<style>` section and give the `body` a `background-color` (not white).",
+ hints:["Add `<style>` and `</style>` at the bottom.","Inside: `body { background-color: linen; }`","Try colours like linen, bisque, papayawhip, wheat."],snippet:"body { background-color: linen; }",kind:'css',
+ tip:"Warm, soft colours feel cosy. Bright neon feels like a nightclub. Choose the mood!",
+ checks:[cssNot('body','backgroundColor',[CLEAR,WHITE],"Give the `body` a `background-color` that isn't white.")]},
+{id:'d7',ch:'Week 2: Make it pretty',title:'A stylish sign',coins:40,
+ story:"Let's make the café name stand out. A brand colour, and right in the middle.",
+ mission:"Give the `h1` a `color` and center it with `text-align: center`.",
+ hints:["Write a rule for `h1`.","`h1 { color: saddlebrown; text-align: center; }`"],snippet:"h1 { color: saddlebrown; text-align: center; }",kind:'css',
+ tip:"Brand colours matter. Coffee shops often use browns, creams and greens.",
+ checks:[cssNot('h1','color',INK,"Give your `h1` a `color`."),cssIs('h1','textAlign','center',"Center your `h1` with `text-align: center;`")]},
+{id:'d8',ch:'Week 2: Make it pretty',title:'A menu card',coins:50,
+ story:"The menu looks like a shopping list. Let's turn it into a pretty menu card!",
+ mission:"Add `class=\"menu\"` to your `<ul>`. Then style `.menu` with a `background-color` and at least **10px** padding.",
+ hints:["Change `<ul>` to `<ul class=\"menu\">`","Then: `.menu { background-color: white; padding: 16px; }`"],snippet:".menu { background-color: white; padding: 16px; border-radius: 12px; }",kind:'css',
+ apply:c=>insertCSS(/<ul class=/.test(c)?c:c.replace('<ul','<ul class="menu"'),".menu { background-color: white; padding: 16px; border-radius: 12px; }"),
+ tip:"Adding a class to existing HTML is how you 'hook' CSS onto it.",
+ checks:[has('ul.menu',"Add `class=\"menu\"` to your `<ul>`."),cssNot('.menu','backgroundColor',CLEAR,"Give `.menu` a `background-color`."),cssMin('.menu','paddingTop',10,"Give `.menu` at least `padding: 10px;`")]},
+{id:'d9',ch:'Week 2: Make it pretty',title:'A real button',coins:50,
+ story:"Our Order link is tiny and blue. Let's make it a big, beautiful button people WANT to tap.",
+ mission:"Add `class=\"btn\"` to your link. Style `.btn` with a `background-color`, `padding`, `border-radius` and `text-decoration: none`.",
+ hints:["`<a class=\"btn\" href=\"#\">Order now</a>`","`.btn { background-color: tomato; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }`"],
+ snippet:".btn { background-color: tomato; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }",kind:'css',
+ apply:c=>insertCSS(/<a class=/.test(c)?c:c.replace('<a ','<a class="btn" '),".btn { background-color: tomato; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }"),
+ tip:"`text-decoration: none;` removes the underline that links have by default.",
+ checks:[has('a.btn',"Add `class=\"btn\"` to your `<a>` link."),cssNot('.btn','backgroundColor',CLEAR,"Give `.btn` a `background-color`."),cssMin('.btn','paddingTop',4,"Give `.btn` some `padding`."),cssMin('.btn','borderTopLeftRadius',1,"Give `.btn` a `border-radius`."),cssIs('.btn','textDecorationLine','none',"Remove the underline with `text-decoration: none;`")]},
+{id:'d10',ch:'Week 3: Grand opening',title:'Button glow',coins:60,
+ story:"Fancy websites have buttons that light up when you point at them. Let's add that magic.",
+ mission:"Add a `.btn:hover` rule that changes the `background-color`.",
+ hints:["New rule: `.btn:hover { }`","`.btn:hover { background-color: darkred; }`"],snippet:".btn:hover { background-color: darkred; }",kind:'css',
+ tip:"Hover your mouse on the button in the preview to test it!",
+ checks:[hoverRule('.btn:hover',"Add a rule like `.btn:hover { background-color: darkred; }`")]},
+{id:'d11',ch:'Week 3: Grand opening',title:'Opening hours',coins:60,
+ story:"People keep turning up when we're closed! Let's add our opening hours at the very bottom of the page.",
+ mission:"Add a `<footer>` containing a `<p>` with your opening hours.",
+ hints:["`<footer>` is a tag for the bottom of a page.","`<footer>\n  <p>Open 7am – 3pm daily</p>\n</footer>`"],snippet:"<footer>\n  <p>Open 7am – 3pm, every day</p>\n</footer>",kind:'html',
+ tip:"`<footer>` works like a `<div>`, but tells browsers and Google 'this is the bottom of the page'.",
+ checks:[has('footer p',"Add a `<footer>` with a `<p>` inside it.")]},
+{id:'d12',ch:'Week 3: Grand opening',title:'Grand opening!',coins:100,
+ story:"Tomorrow is the GRAND OPENING! One last touch: show the menu items side by side like a real café board. I'm so proud of you. — Grandma 👵❤️",
+ mission:"Make `.menu` `display: flex` with a `gap` of at least **5px**.",
+ hints:["Add to your `.menu` rule (or a new one).","`.menu { display: flex; gap: 16px; }`"],snippet:".menu { display: flex; gap: 16px; }",kind:'css',
+ tip:"Add `list-style: none;` to `.menu` to remove the bullet dots — looks much cleaner!",
+ checks:[cssIs('.menu','display','flex',"Make `.menu` `display: flex;`"),[a=>{const e=a.$('.menu');return !!e&&(px(a.css(e,'columnGap'))>=5);},"Give `.menu` a `gap` of at least 5px."]]}
+];
+DAYS.forEach(d=>{d.answer=d.snippet;d.apply=d.apply||(c=>d.kind==='css'?insertCSS(c,d.snippet):insertHTML(c,d.snippet));});
+const DECOR=[{e:'🪴',n:'Plant',c:20},{e:'🧁',n:'Cake stand',c:40},{e:'🖼️',n:'Painting',c:60},{e:'💡',n:'Neon sign',c:80},{e:'🎵',n:'Jukebox',c:100},{e:'🐈',n:'Café cat',c:150}];
+const doneDays=()=>DAYS.filter(d=>C().stars[d.id]).length;
+const customers=()=>5+doneDays()*9+C().decor.length*6;
+function cafeName(){const m=/<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(C().code||'');return m?m[1].replace(/<[^>]+>/g,'').trim().slice(0,30):'';}
+function header(el,g){
+  const n=customers();
+  el.innerHTML=`<div class="cafe"><div class="awning"></div><div class="front"><span class="sign">☕ ${esc(cafeName()||'Grandma\'s Café')}</span><span class="decor">${C().decor.map(i=>DECOR[i].e).join('')}</span>
+    <span class="stats2"><span class="chip">🪙 ${C().coins} coins</span><span class="chip">👥 ${n} customers/day</span></span></div>
+    <div class="crowd">${'🧑'.repeat(Math.min(n,30))}</div></div>
+    <div class="box" style="margin-bottom:6px"><b>🛍️ Decoration shop</b> <span class="muted">— earn coins by finishing days, then decorate. Decor brings more customers!</span>
+    <div class="shop" style="margin-top:10px">${DECOR.map((d,i)=>{const own=C().decor.includes(i);return `<button data-i="${i}" class="${own?'own':''}" ${own?'disabled':''}><span class="e">${d.e}</span>${d.n}<br><small>${own?'✓ Owned':'🪙 '+d.c}</small></button>`;}).join('')}</div></div>`;
+  $$('.shop button',el).forEach(b=>b.onclick=()=>{const d=DECOR[+b.dataset.i];if(C().coins<d.c){modal(`<h3>Not enough coins</h3><p>You need 🪙 ${d.c}. Finish more days to earn coins!</p>`);return;}
+    C().coins-=d.c;C().decor.push(+b.dataset.i);saveProg();header(el,g);});
+}
+let bench=null;
+function play(L,el,done,g){
+  const i=DAYS.indexOf(L);const already=!!C().stars[L.id];
+  if(!already&&C().day!==L.id){C().start=C().code||'';C().day=L.id;saveProg();}
+  bench=Bench(el,{checkLabel:'☕ Open for the day',resetLabel:'Undo today\'s changes',winText:'The customers love it!',
+    onInput:v=>{C().code=v;saveProg();},
+    answer:(T,ed,hb,onInput)=>{hb.innerHTML=`<div class="h a">👁 <b>Here's what to add:</b><pre class="ex">${esc(T.snippet)}</pre>${T.kind==='css'?'This goes inside your <code>&lt;style&gt;</code> section.':'This goes in your HTML, above the <code>&lt;style&gt;</code> section.'}<div style="margin-top:8px"><button class="btn sm primary" data-add>✨ Add it for me</button></div></div>`;
+      $('[data-add]',hb).onclick=()=>{ed.value=T.apply(ed.value);onInput();};},
+    onPass:s=>{if(!C().stars[L.id]){C().coins+=L.coins;}C().day=null;saveProg();done(s);}});
+  L.storyHTML=storyHTML(`Day ${i+1} · Grandma's note`,L.story)+`<div class="mission">🎯 ${md(L.mission)}</div><p class="muted" style="font-size:14px;margin-bottom:0">Your café's code carries over day by day — it's YOUR website. Reward: 🪙 ${L.coins}</p>`;
+  bench.load(L,C().code||'');bench.setReset(already?(C().code||''):(C().start||''));
+}
+Game({id:'cafe',emoji:'☕',title:'Café Tycoon',unit:'Day',winWord:'Great day at the café!',levels:DAYS,starStore:()=>C().stars,header,play,
+ intro:`<h2>👵 Grandma's Café</h2><p class="lesson">Your grandma has handed you her little café — but it has no website, and customers can't find it! Each day she leaves you a note with one job.</p><p class="lesson">Unlike the other games, <b>your code carries over</b>: day by day you build ONE real website from scratch. Earn coins, buy decorations, and watch your customers grow.</p>`,
+ finale:"Grand opening success! You built a complete, styled website from a blank page — HTML structure, CSS styling and a flexbox layout. That's a real portfolio piece."});
+window.__CAFE={DAYS,insertCSS,insertHTML};
+})();
+</script>
+
+<!-- =====================================================================
+     GAME 6: TAG RACER
+     ===================================================================== -->
+<script>
+(()=>{
+const h=(q,ans,checks)=>({q,ans,checks});
+const c=(q,html,ans,checks)=>({q,html,ans,checks,css:true});
+const GRID='<div class="grid"><div>A</div><div>B</div><div>C</div></div>';
+const RACES=[
+{id:'t1',ch:'Rookie League',title:'Rookie Rally',limit:110,rival:'Rusty the Rookie',
+ story:"Welcome to Turbo Tags! Your first race is against Rusty. Every correct line of code is a turbo boost. Type fast — but type right!",
+ prompts:[h("Make an `<h1>` that says **Go**","<h1>Go</h1>",[hasText('h1','go',"Need an `<h1>` that says Go.")]),
+  h("Make a `<p>` that says **Vroom**","<p>Vroom</p>",[hasText('p','vroom',"Need a `<p>` that says Vroom.")]),
+  h("Make an `<h2>` that says **Lap 2**","<h2>Lap 2</h2>",[hasText('h2','lap 2',"Need an `<h2>` that says Lap 2.")]),
+  h("Make a `<button>` that says **Start**","<button>Start</button>",[hasText('button','start',"Need a `<button>` that says Start.")]),
+  h("Make an `<h3>` that says **Pit stop**","<h3>Pit stop</h3>",[hasText('h3','pit stop',"Need an `<h3>` that says Pit stop.")]),
+  h("Make a `<p>` with the word **fast** inside `<strong>`","<p><strong>fast</strong></p>",[[a=>a.text(a.$('p strong'))==='fast',"Need `<strong>fast</strong>` inside a `<p>`."]])]},
+{id:'t2',ch:'Rookie League',title:'Attribute Avenue',limit:130,rival:'Penny Placeholder',
+ story:"Attribute Avenue! Penny knows every attribute by heart. Remember: attributes go inside the opening tag, like `name=\"value\"`.",
+ prompts:[h("Link to **https://race.com** that says **Track**","<a href=\"https://race.com\">Track</a>",[[a=>(a.$('a')?.getAttribute('href')||'').includes('race.com'),"The link needs `href=\"https://race.com\"`."],hasText('a','track',"The link should say Track.")]),
+  h("Image with src **car.png** and alt **Red car**","<img src=\"car.png\" alt=\"Red car\">",[[a=>(a.$('img')?.getAttribute('src')||'').includes('car.png'),"Need `src=\"car.png\"`."],[a=>(a.$('img')?.getAttribute('alt')||'').toLowerCase().includes('red car'),"Need `alt=\"Red car\"`."]]),
+  h("An `<input>` with placeholder **Driver**","<input placeholder=\"Driver\">",[[a=>(a.$('input')?.getAttribute('placeholder')||'').toLowerCase().includes('driver'),"Need `<input placeholder=\"Driver\">`."]]),
+  h("Link with href **#** that says **Home**","<a href=\"#\">Home</a>",[[a=>a.$('a')?.getAttribute('href')==='#',"The link needs `href=\"#\"`."],hasText('a','home',"The link should say Home.")]),
+  h("Image with src **flag.png** and alt **Flag**","<img src=\"flag.png\" alt=\"Flag\">",[[a=>(a.$('img')?.getAttribute('src')||'').includes('flag.png'),"Need `src=\"flag.png\"`."],[a=>(a.$('img')?.getAttribute('alt')||'').toLowerCase().includes('flag'),"Need `alt=\"Flag\"`."]]),
+  h("A `<p>` with id **speed** that says **200**","<p id=\"speed\">200</p>",[hasText('p#speed','200',"Need `<p id=\"speed\">200</p>`.")])]},
+{id:'t3',ch:'Pro League',title:'Nesting Highway',limit:150,rival:'Nestor the Nester',
+ story:"Nesting Highway is full of tunnels — boxes inside boxes. Open them and close them in the right order!",
+ prompts:[h("A `<ul>` with **2** `<li>` items (any words)","<ul><li>Tyres</li><li>Fuel</li></ul>",[[a=>a.$$('ul li').length>=2,"Need a `<ul>` with 2 `<li>` inside."]]),
+  h("An `<ol>` with **3** `<li>` items","<ol><li>1st</li><li>2nd</li><li>3rd</li></ol>",[[a=>a.$$('ol li').length>=3,"Need an `<ol>` with 3 `<li>` inside."]]),
+  h("A `<div>` with an `<h2>` inside (any words)","<div><h2>Garage</h2></div>",[has('div h2',"Need an `<h2>` INSIDE a `<div>`.")]),
+  h("A `<p>` with the word **zoom** inside `<em>`","<p><em>zoom</em></p>",[[a=>a.text(a.$('p em'))==='zoom',"Need `<em>zoom</em>` inside a `<p>`."]]),
+  h("A `<div>` with a `<button>` inside (any words)","<div><button>Boost</button></div>",[has('div button',"Need a `<button>` INSIDE a `<div>`.")]),
+  h("A `<ul>` with one `<li>` containing a link `<a href=\"#\">`","<ul><li><a href=\"#\">Home</a></li></ul>",[has('ul li a',"Need `<ul><li><a href=\"#\">…</a></li></ul>`.")])]},
+{id:'t4',ch:'Pro League',title:'CSS Canyon',limit:120,rival:'Stella Stylesheet',
+ story:"CSS Canyon! The HTML is already built. You just type the CSS rule — no `<style>` tags needed, the pit crew adds them.",
+ prompts:[c("Make the h1 **red**","<h1>Canyon</h1>","h1 { color: red; }",[cssIs('h1','color',RED,"Pattern: `h1 { color: red; }`")]),
+  c("Make the p **blue**","<p>Dust</p>","p { color: blue; }",[cssIs('p','color',BLUE,"Pattern: `p { color: blue; }`")]),
+  c("Give the body a **yellow** background","<h1>Sun</h1>","body { background-color: yellow; }",[cssIs('body','backgroundColor',YELLOW,"Pattern: `body { background-color: yellow; }`")]),
+  c("Make the h1 **40px** big","<h1>Big</h1>","h1 { font-size: 40px; }",[cssPx('h1','fontSize',40,"Pattern: `h1 { font-size: 40px; }`")]),
+  c("**Center** the p text","<p>Middle</p>","p { text-align: center; }",[cssIs('p','textAlign','center',"Pattern: `p { text-align: center; }`")]),
+  c("Give the div a **2px solid black** border","<div>Crate</div>","div { border: 2px solid black; }",[cssPx('div','borderTopWidth',2,"Need a 2px border."),cssIs('div','borderTopStyle','solid',"The border should be solid.")])]},
+{id:'t5',ch:'Champion League',title:'Neon Selectors',limit:120,rival:'Dot & Hash',
+ story:"Night race in Neon City! The twins Dot and Hash race as one. Classes use `.` and ids use `#` — mix them up and you'll spin out.",
+ prompts:[c("Make **.fast** green","<p class=\"fast\">Zoom</p>",".fast { color: green; }",[cssIs('.fast','color',GREEN,"Pattern: `.fast { color: green; }`")]),
+  c("Make **#car** purple","<h1 id=\"car\">Car</h1>","#car { color: purple; }",[cssIs('#car','color',PURPLE,"Pattern: `#car { color: purple; }`")]),
+  c("Give **.box** 10px padding","<div class=\"box\">Box</div>",".box { padding: 10px; }",[cssPx('.box','paddingTop',10,"Pattern: `.box { padding: 10px; }`")]),
+  c("Make **.tire** round (border-radius 50%)","<div class=\"tire\" style=\"width:40px;height:40px;background:#333\"></div>",".tire { border-radius: 50%; }",[[a=>{const v=a.css(a.$('.tire'),'borderTopLeftRadius');return v==='50%'||px(v)>=19;},"Pattern: `.tire { border-radius: 50%; }`"]]),
+  c("Give **.hot** an orange background","<p class=\"hot\">Hot</p>",".hot { background-color: orange; }",[cssIs('.hot','backgroundColor',ORANGE,"Pattern: `.hot { background-color: orange; }`")]),
+  c("Make **#flag** 30px big","<h2 id=\"flag\">Flag</h2>","#flag { font-size: 30px; }",[cssPx('#flag','fontSize',30,"Pattern: `#flag { font-size: 30px; }`")])]},
+{id:'t6',ch:'Champion League',title:'Flex Grand Prix',limit:150,rival:'Felix Flexbox',
+ story:"The Grand Prix! Felix Flexbox is the reigning champion. Every prompt styles the same `.grid` box. Win this and you're the Turbo Tags champion!",
+ prompts:[c("Make **.grid** a flex box",GRID,".grid { display: flex; }",[cssIs('.grid','display','flex',"Pattern: `.grid { display: flex; }`")]),
+  c("**.grid**: flex + justify-content center",GRID,".grid { display: flex; justify-content: center; }",[cssIs('.grid','display','flex',"Need `display: flex;`"),cssIs('.grid','justifyContent','center',"Need `justify-content: center;`")]),
+  c("**.grid**: flex + gap 10px",GRID,".grid { display: flex; gap: 10px; }",[cssIs('.grid','display','flex',"Need `display: flex;`"),gapPx('.grid',10,"Need `gap: 10px;`")]),
+  c("**.grid**: flex + flex-direction column",GRID,".grid { display: flex; flex-direction: column; }",[cssIs('.grid','display','flex',"Need `display: flex;`"),cssIs('.grid','flexDirection','column',"Need `flex-direction: column;`")]),
+  c("**.grid**: flex + align-items center",GRID,".grid { display: flex; align-items: center; }",[cssIs('.grid','display','flex',"Need `display: flex;`"),cssIs('.grid','alignItems','center',"Need `align-items: center;`")]),
+  c("**.grid**: flex + flex-wrap wrap",GRID,".grid { display: flex; flex-wrap: wrap; }",[cssIs('.grid','display','flex',"Need `display: flex;`"),cssIs('.grid','flexWrap','wrap',"Need `flex-wrap: wrap;`")])]}
+];
+const wrap=(p,input)=>p.css?`${p.html}<style>${input}</style>`:input;
+let timer=null,raf=null,cdT=null;
+function cleanup(){clearInterval(timer);clearInterval(cdT);cancelAnimationFrame(raf);timer=null;raf=null;cdT=null;}
+function play(L,el,done){
+  cleanup();
+  const order=L.prompts.map((p,i)=>i).sort(()=>Math.random()-.5);
+  let idx=0,skips=0,running=false,t0=0,stall=0,shown=false;
+  el.innerHTML=`<div class="box"><div class="bstory">${storyHTML('Race announcer',L.story)}</div>
+   <div class="track"><div class="lane"><span class="lbl">YOU</span><span class="car me">🏎️</span></div><div class="lane"><span class="lbl">${esc(L.rival)}</span><span class="car rival">🚙</span></div><div class="finish"></div>
+     <div class="countdown">Ready?</div></div>
+   <div class="rstat"><span class="chip">⏱ <b class="time">${L.limit}</b>s left</span><span class="chip">🏁 Prompt <b class="pn">1</b>/${L.prompts.length}</span><span class="chip">🔧 Pit stops: <b class="sk">0</b></span></div>
+   <div class="mission prompt" style="font-size:18px;font-weight:800"></div>
+   <div class="rctx"></div>
+   <div class="edhead">⌨️ Type your code <small>Enter = boost</small></div>
+   <input class="code1 rin" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Your code" disabled>
+   <div class="snips"></div>
+   <div class="actions"><button class="btn primary big wide" data-a="go" disabled>🔥 Boost! (check)</button><button class="btn wide" data-a="skip" disabled>🔧 Pit stop — show me the answer</button></div>
+   <div class="feedback"></div>
+   <div class="edhead">👀 What you typed looks like:</div><iframe class="prev mini" sandbox="allow-same-origin" title="Preview"></iframe></div>`;
+  const inp=$('.rin',el),me=$('.car.me',el),riv=$('.car.rival',el),fbEl=$('.feedback',el),fr=$('iframe.prev',el),cd=$('.countdown',el);
+  const fb=(t,h)=>{fbEl.className='feedback '+(t||'');fbEl.innerHTML=h||'';};
+  const P=()=>L.prompts[order[Math.min(idx,order.length-1)]];
+  const live=debounce(()=>renderInto(fr,wrap(P(),inp.value)),200);
+  inp.addEventListener('input',live);inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go();}});
+  addSnips($('.snips',el),inp,live);
+  const pos=(car,f)=>{car.style.left=`calc(${f} * (100% - 90px))`;};
+  pos(me,0);pos(riv,0);
+  function showPrompt(){const p=P();shown=false;$('.prompt',el).innerHTML='🎯 '+md(p.q);
+    $('.rctx',el).innerHTML=p.css?`<div class="exl">The HTML (already built)</div><pre class="ex">${esc(p.html)}</pre>`:'';
+    $('.pn',el).textContent=idx+1;inp.value='';live();inp.focus();}
+  let n=3;const tick=()=>{if(n>0){cd.textContent=n;n--;}else{clearInterval(cdT);cd.textContent='GO!';setTimeout(()=>cd.remove(),500);start();}};
+  cdT=setInterval(tick,700);tick();
+  function start(){running=true;t0=performance.now();inp.disabled=false;$$('[data-a]',el).forEach(b=>b.disabled=false);showPrompt();
+    timer=setInterval(()=>{const left=Math.max(0,L.limit-(performance.now()-t0)/1000);$('.time',el).textContent=Math.ceil(left);if(left<=0)lose();},250);
+    const loop=()=>{if(!running)return;const f=Math.min(1,(performance.now()-t0)/1000/L.limit);pos(riv,f);raf=requestAnimationFrame(loop);};loop();}
+  async function go(){if(!running||performance.now()<stall)return;const v=inp.value.trim();if(!v){fb('bad','Type some code first!');return;}
+    const r=await runChecksCode(fr,wrap(P(),v),P().checks);if(!running)return;
+    if(r.ok){idx++;pos(me,idx/L.prompts.length);fb('good','🔥 BOOST! Correct!');
+      if(idx>=L.prompts.length){finish();return;}showPrompt();}
+    else{stall=performance.now()+900;me.classList.remove('spin');void me.offsetWidth;me.classList.add('spin');fb('bad',`🌀 Spin out! ${md(r.msg)}`);}}
+  function finish(){running=false;cleanup();inp.disabled=true;const left=L.limit-(performance.now()-t0)/1000;
+    const stars=skips?1:left>=L.limit*.3?3:2;fb('good',`🏁 You WON with ${Math.ceil(left)} seconds to spare!`);done(stars);}
+  function lose(){if(!running)return;running=false;cleanup();pos(riv,1);inp.disabled=true;$$('[data-a]',el).forEach(b=>b.disabled=true);
+    modal(`<div class="center"><div style="font-size:52px">🚙💨</div><h2>${esc(L.rival)} won this time!</h2><p>You finished ${idx} of ${L.prompts.length} prompts. Every race makes your fingers faster — try again!</p></div>`,[['Level list',()=>GAMES.racer.levels()],['Race again',()=>GAMES.racer.open(GAMES.racer.cur),'primary']]);}
+  $('[data-a=go]',el).onclick=go;
+  $('[data-a=skip]',el).onclick=()=>{if(!running||shown)return;skips++;shown=true;$('.sk',el).textContent=skips;stall=performance.now()+2000;
+    fb('info',`🔧 Pit crew says: <code>${esc(P().ans)}</code><br>Now type it in yourself to boost! (Pit stops cost 2 seconds.)`);};
+}
+Game({id:'racer',emoji:'🏎️',title:'Tag Racer',unit:'Race',winWord:'You won the race!',levels:RACES,play,cleanup,
+ intro:`<h2>🏁 Turbo Tags League</h2><p class="lesson">Welcome to the fastest league in Code City! Each race has 6 prompts. Every correct line of code boosts your car forward. Wrong code = spin out. Beat your rival to the finish line!</p><p class="lesson">This game trains <b>muscle memory</b> — so tags and CSS rules come out of your fingers without thinking. That's how pros code fast.</p>`,
+ finale:"You're the Turbo Tags champion! Your fingers now know HTML and CSS by heart."});
+window.__RACES={RACES,wrap};
+})();
+</script>
+
+<!-- =====================================================================
+     GAME 7: ROBOT COMMANDER (JavaScript)
+     ===================================================================== -->
+<script>
+(()=>{
+const WORKER=`onmessage=e=>{const{code,grid}=e.data;let x=0,y=0;const gems=new Set(),acts=[];const H=grid.length,W=grid[0].length;
+for(let r=0;r<H;r++)for(let c=0;c<W;c++){if(grid[r][c]==='S'){x=c;y=r;}if(grid[r][c]==='*')gems.add(c+','+r);}
+const wall=(c,r)=>r<0||c<0||r>=H||c>=W||grid[r][c]==='#';
+class Stop extends Error{}
+const push=a=>{acts.push(a);if(acts.length>500)throw new Stop('too many');};
+const mv=(dx,dy)=>{if(wall(x+dx,y+dy)){push({t:'bonk',x,y});throw new Stop('bonk');}x+=dx;y+=dy;push({t:'move',x,y});};
+const api={moveRight:()=>mv(1,0),moveLeft:()=>mv(-1,0),moveUp:()=>mv(0,-1),moveDown:()=>mv(0,1),
+ pickUp:()=>{const k=x+','+y;if(gems.has(k)){gems.delete(k);push({t:'pick',x,y});}else push({t:'miss',x,y});},
+ isWallRight:()=>wall(x+1,y),isWallLeft:()=>wall(x-1,y),isWallUp:()=>wall(x,y-1),isWallDown:()=>wall(x,y+1),
+ isGemHere:()=>gems.has(x+','+y),atGoal:()=>grid[y][x]==='G',say:t=>push({t:'say',text:String(t)})};
+let err=null,stop=null;
+try{new Function(...Object.keys(api),'"use strict";'+code)(...Object.values(api));}catch(ex){if(ex instanceof Stop)stop=ex.message;else err={name:ex.name,message:ex.message};}
+postMessage({acts,err,stop,gemsLeft:gems.size,atGoal:grid[y][x]==='G'});};`;
+let workerURL=null;
+function runRobot(code,grid,ms=2000){return new Promise(res=>{
+  if(!workerURL)workerURL=URL.createObjectURL(new Blob([WORKER],{type:'text/javascript'}));
+  const w=new Worker(workerURL);const t=setTimeout(()=>{w.terminate();res({timeout:true,acts:[]});},ms);
+  w.onmessage=e=>{clearTimeout(t);w.terminate();res(e.data);};
+  w.onerror=e=>{clearTimeout(t);w.terminate();res({err:{name:'Error',message:e.message},acts:[]});};
+  w.postMessage({code,grid});});}
+const FOR="for (let i = 0; i < 3; i++) {\n  \n}\n",IF="if (isGemHere()) {\n  pickUp();\n}\n",WHILE="while (!atGoal()) {\n  \n}\n",FN="function step() {\n  \n}\n",ELSE="if (isWallRight()) {\n  moveDown();\n} else {\n  moveRight();\n}\n";
+const LV=[
+{id:'j1',ch:'Part 1: Commands',title:'Wake Up, Bolt',grid:["S..G"],tools:[],
+ story:"Bolt the robot just woke up in a dark factory. He can't move on his own — he only does what YOUR code tells him. Get him to the green exit!",
+ learn:"In JavaScript, a command looks like `moveRight();`\n• the name → `moveRight`\n• round brackets `()` → mean \"do it now!\"\n• semicolon `;` → end of the instruction\n\nCode runs from top to bottom, one line at a time.",
+ hints:["Bolt needs to move right 3 times.","Write `moveRight();` on 3 separate lines."],answer:"moveRight();\nmoveRight();\nmoveRight();",
+ tip:"Capital letters matter! `moveRight` works. `moveright` doesn't."},
+{id:'j2',ch:'Part 1: Commands',title:'Around the Corner',grid:["S..##","##.##","##..G"],tools:[],
+ story:"A corner! Bolt needs to go right, then down, then right again.",
+ learn:"You have 4 move commands: `moveRight();` `moveLeft();` `moveUp();` `moveDown();`\nOrder matters — Bolt does them in the order you write them.",
+ hints:["Count the squares: right 2, down 2, right 2.","Use the command buttons to add lines quickly."],answer:"moveRight();\nmoveRight();\nmoveDown();\nmoveDown();\nmoveRight();\nmoveRight();",
+ tip:"If Bolt hits a wall, he stops with a BONK. Watch where he bonks — that's where your code went wrong."},
+{id:'j3',ch:'Part 1: Commands',title:'Shiny!',grid:["S.*.G"],tools:[],
+ story:"A shiny gem 💎! Bolt can only leave once he's collected every gem in the room.",
+ learn:"`pickUp();` grabs a gem — but only if Bolt is standing ON it.",
+ hints:["Move to the gem first, THEN pick it up.","right, right, pickUp, right, right."],answer:"moveRight();\nmoveRight();\npickUp();\nmoveRight();\nmoveRight();",
+ tip:"Programs are just very exact instructions. Computers never guess what you meant."},
+{id:'j4',ch:'Part 2: Loops',title:'The Long Hallway',grid:["S.........G"],tools:['for'],
+ story:"A super long hallway! You COULD write moveRight 10 times... but real programmers are lazy in a smart way.",
+ learn:"A **for loop** repeats code for you:\n`for (let i = 0; i < 10; i++) {`\n`  moveRight();`\n`}`\n\nRead it as: \"count from 0, while i is less than 10, add 1 each time → do what's inside the curly braces\". That's 10 times!",
+ hints:["Tap the `for` button to get a loop template.","Change the 3 to 10, and put `moveRight();` inside the braces."],answer:"for (let i = 0; i < 10; i++) {\n  moveRight();\n}",
+ tip:"`i++` means 'add 1 to i'. You'll see it everywhere in JavaScript."},
+{id:'j5',ch:'Part 2: Loops',title:'The Staircase',grid:["S#####","..####","#..###","##..##","###..G"],tools:['for'],
+ story:"A staircase going down! Down, right, down, right... spot the pattern.",
+ learn:"Loops can repeat MORE than one command. Everything inside the `{ }` repeats each time.",
+ hints:["The pattern is: moveDown, moveRight. It repeats 4 times.","After the loop, one more `moveRight();` reaches the exit."],answer:"for (let i = 0; i < 4; i++) {\n  moveDown();\n  moveRight();\n}\nmoveRight();",
+ tip:"Spotting patterns is the #1 programming superpower. Look for what repeats."},
+{id:'j6',ch:'Part 2: Loops',title:'Gem Collector',grid:["S*.*.*G"],tools:['for'],
+ story:"Three gems in a row, each one with a gap after it. Can your loop collect them all?",
+ learn:"Put move AND pickUp inside the loop — the loop repeats the whole pattern.",
+ hints:["Pattern: moveRight, pickUp, moveRight.","Repeat that 3 times."],answer:"for (let i = 0; i < 3; i++) {\n  moveRight();\n  pickUp();\n  moveRight();\n}",
+ tip:"Try changing the number in the loop and see what happens. Breaking things on purpose teaches a lot!"},
+{id:'j7',ch:'Part 3: Smart Bolt',title:'Make Your Own Command',grid:["S..####","##...##","####...","######G"],tools:['for','function'],
+ story:"Bolt wishes he had a 'step down the zig-zag' command. Good news: in JavaScript, you can INVENT your own commands!",
+ learn:"A **function** is your own command made of other commands:\n`function step() {`\n`  moveRight();`\n`  moveRight();`\n`  moveDown();`\n`}`\nThen use it: `step();`",
+ hints:["The pattern is right, right, down — 3 times.","Create `function step() { ... }` then call `step();` 3 times."],answer:"function step() {\n  moveRight();\n  moveRight();\n  moveDown();\n}\n\nstep();\nstep();\nstep();",
+ tip:"Functions are how big programs stay organised. Every app you use is built from thousands of them."},
+{id:'j8',ch:'Part 3: Smart Bolt',title:'Maybe a Gem?',grid:["S.**.*..*G"],tools:['for','if'],
+ story:"The gems are scattered randomly. Bolt needs to CHECK each square: 'Is there a gem here? If yes, grab it.'",
+ learn:"An **if** statement only runs code when something is true:\n`if (isGemHere()) {`\n`  pickUp();`\n`}`\n`isGemHere()` answers true or false.",
+ hints:["Loop 9 times. Each time: move right, then check for a gem.","Inside the loop: `moveRight();` then the `if` block."],answer:"for (let i = 0; i < 9; i++) {\n  moveRight();\n  if (isGemHere()) {\n    pickUp();\n  }\n}",
+ tip:"`if` is how programs make decisions. Every game, app and website is full of them."},
+{id:'j9',ch:'Part 3: Smart Bolt',title:'The Mystery Hall',grid:["S...............G"],tools:['while'],
+ story:"A hallway so long nobody knows its length! Bolt can't count it... but he CAN keep going until he reaches the exit.",
+ learn:"A **while loop** repeats as long as something is true:\n`while (!atGoal()) {`\n`  moveRight();`\n`}`\n`!` means NOT. So: \"while NOT at the goal, keep moving right\".",
+ hints:["Tap the `while` button.","Put `moveRight();` inside it."],answer:"while (!atGoal()) {\n  moveRight();\n}",
+ tip:"Careful: a while loop that never ends freezes the program. Bolt has a safety switch — real programs don't!"},
+{id:'j10',ch:'Part 3: Smart Bolt',title:'The Great Escape',grid:["S..#####","##..*.##","#####..#","######.G"],tools:['while','if','else'],
+ story:"The final room! Walls everywhere and a gem on the way. Make Bolt SMART: if there's a wall to the right, go down — otherwise, go right. Get Bolt out and he's free!",
+ learn:"**if / else** picks between two choices:\n`if (isWallRight()) {`\n`  moveDown();`\n`} else {`\n`  moveRight();`\n`}`\nPut it inside a while loop, and add a gem check too!",
+ hints:["Use `while (!atGoal()) { ... }` around everything.","Inside: first check for a gem (`if (isGemHere())`), then the if/else to move.","Tap the `while`, `if` and `if/else` buttons and combine them."],
+ answer:"while (!atGoal()) {\n  if (isGemHere()) {\n    pickUp();\n  }\n  if (isWallRight()) {\n    moveDown();\n  } else {\n    moveRight();\n  }\n}",
+ tip:"You just wrote a real algorithm — a set of smart rules that solves a problem. That's what programmers do!"}
+];
+function friendly(err){
+  if(!err)return'';const m=err.message||'';
+  let r=/([\w$]+) is not defined/.exec(m);
+  if(r)return`JavaScript doesn't know <code>${esc(r[1])}</code>. Check the spelling — capital letters matter! (e.g. <code>moveRight</code>, not <code>moveright</code>)`;
+  if(err.name==='SyntaxError')return`Something's wrong with the punctuation. Check every <code>(</code> has a <code>)</code>, every <code>{</code> has a <code>}</code>.<br><small>Browser says: ${esc(m)}</small>`;
+  if(/is not a function/.test(m))return`Something is being used like a command, but it isn't one. Did you forget the <code>()</code> or misspell a name?<br><small>${esc(m)}</small>`;
+  return esc(err.name+': '+m);
+}
+let animT=null;
+function cleanup(){clearTimeout(animT);animT=null;}
+function play(L,el,done){
+  cleanup();let hints=0,used=false,running=false;
+  const rows=L.grid.length,cols=L.grid[0].length;
+  const tb={for:['for loop',FOR],if:['if',IF],while:['while',WHILE],function:['function',FN],else:['if / else',ELSE]};
+  el.innerHTML=`<div class="work">
+   <div class="box"><div class="bstory">${storyHTML('Bolt the robot',L.story)}<div class="lesson">📖 ${md(L.learn)}</div></div>
+     <div class="rgridwrap"><div class="rgrid"></div></div>
+     <div class="count gemc"></div></div>
+   <div class="box"><div class="edhead" style="margin-top:0">✍️ Your JavaScript <small>Ctrl + Enter = run</small></div>
+     <textarea class="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="JavaScript code" style="min-height:220px"></textarea>
+     <div class="snips cmds"></div><div class="snips"></div>
+     <div class="actions"><button class="btn primary big wide" data-a="run">▶ Run my code</button><button class="btn" data-a="hint">💡 Hint</button><button class="btn" data-a="tip">✨ Tip</button><button class="btn" data-a="ans">👁 Answer</button><button class="btn ghost wide" data-a="clear">🗑 Clear code</button></div>
+     <div class="feedback"></div><div class="hintbox"></div></div></div>`;
+  const ed=$('textarea.code',el),grid=$('.rgrid',el),fbEl=$('.feedback',el),hb=$('.hintbox',el);
+  const fb=(t,h)=>{fbEl.className='feedback '+(t||'');fbEl.innerHTML=h||'';};
+  const cell=Math.max(26,Math.min(48,Math.floor((Math.min(window.innerWidth,560)-70)/cols)));
+  grid.style.setProperty('--cell',cell+'px');grid.style.gridTemplateColumns=`repeat(${cols},var(--cell))`;
+  const key='code_'+L.id;ed.value=PROG.robot[key]||'';
+  ed.addEventListener('input',()=>{PROG.robot[key]=ed.value;saveProg();});
+  wireEditor(ed,()=>{},()=>run());
+  const cmds=$('.cmds',el);
+  ['moveRight();','moveLeft();','moveUp();','moveDown();','pickUp();'].forEach(cm=>{const b=document.createElement('button');b.className='cmd';b.type='button';b.textContent=cm;b.onmousedown=e=>e.preventDefault();b.onclick=()=>{insertAt(ed,cm+'\n');PROG.robot[key]=ed.value;saveProg();};cmds.appendChild(b);});
+  L.tools.forEach(t=>{const b=document.createElement('button');b.className='cmd';b.type='button';b.textContent='+ '+tb[t][0];b.onmousedown=e=>e.preventDefault();b.onclick=()=>{insertAt(ed,tb[t][1]);PROG.robot[key]=ed.value;saveProg();};cmds.appendChild(b);});
+  addSnips($('.snips:not(.cmds)',el),ed,()=>{},['(',')','{','}',';','!','<','=','+']);
+  let start=[0,0];const gemCells={};
+  function draw(){grid.innerHTML='';L.grid.forEach((r,y)=>[...r].forEach((ch,x)=>{const d=document.createElement('div');d.className='rcell'+(ch==='#'?' wall':ch==='G'?' goal':'');d.textContent=ch==='G'?'🚪':ch==='*'?'💎':'';if(ch==='*')gemCells[x+','+y]=d;if(ch==='S')start=[x,y];grid.appendChild(d);}));
+    const bot=document.createElement('div');bot.className='bot';bot.textContent='🤖';grid.appendChild(bot);place(bot,start[0],start[1]);
+    $('.gemc',el).textContent=Object.keys(gemCells).length?`💎 Gems to collect: ${Object.keys(gemCells).length}`:'';}
+  const place=(b,x,y)=>{b.style.left=(3+x*(cell+3))+'px';b.style.top=(3+y*(cell+3))+'px';};
+  draw();
+  async function run(){if(running)return;if(!ed.value.trim()){fb('bad','Write some commands first! Tap the buttons below the editor to add them.');return;}
+    running=true;cleanup();draw();fb('info','🤖 Bolt is following your code…');
+    const r=await runRobot(ed.value,L.grid);
+    if(r.timeout){running=false;fb('bad','⏳ Your loop never ended! (That\'s called an infinite loop.) Check the condition in your <code>while</code> or <code>for</code>.');return;}
+    if(r.err&&!r.acts.length){running=false;fb('bad','❌ '+friendly(r.err));return;}
+    const bot=$('.bot',grid);let i=0;let total=Object.keys(gemCells).length,got=0;
+    const stepA=()=>{if(i>=r.acts.length){end();return;}const a=r.acts[i++];
+      if(a.t==='move')place(bot,a.x,a.y);
+      else if(a.t==='pick'){const c=gemCells[a.x+','+a.y];if(c)c.textContent='✨';got++;$('.gemc',el).textContent=`💎 Gems: ${got}/${total}`;}
+      else if(a.t==='miss'){bot.innerHTML='🤖<span class="bubble">No gem here!</span>';setTimeout(()=>{bot.textContent='🤖';},500);}
+      else if(a.t==='say'){bot.innerHTML=`🤖<span class="bubble">${esc(a.text)}</span>`;setTimeout(()=>{bot.textContent='🤖';},800);}
+      else if(a.t==='bonk'){bot.classList.remove('bonk');void bot.offsetWidth;bot.classList.add('bonk');}
+      animT=setTimeout(stepA,a.t==='say'?800:230);};
+    const end=()=>{running=false;
+      if(r.err){fb('bad','❌ '+friendly(r.err));return;}
+      if(r.stop==='bonk'){fb('bad','💥 BONK! Bolt walked into a wall. Look where he stopped — which command sent him the wrong way?');return;}
+      if(r.stop==='too many'){fb('bad','😵 Bolt took way too many steps. Is a loop running more times than you meant?');return;}
+      if(!r.atGoal){fb('bad','🤖 Bolt stopped, but he isn\'t at the exit 🚪 yet. Add more commands!');return;}
+      if(r.gemsLeft){fb('bad',`💎 Bolt reached the exit, but left ${r.gemsLeft} gem${r.gemsLeft>1?'s':''} behind! Use <code>pickUp();</code> while standing on a gem.`);return;}
+      fb('good','✅ Bolt escaped! Your code works.');done(used?1:hints?2:3);};
+    stepA();}
+  $('[data-a=run]',el).onclick=run;
+  $('[data-a=clear]',el).onclick=()=>{ed.value='';PROG.robot[key]='';saveProg();cleanup();running=false;draw();fb();};
+  $('[data-a=hint]',el).onclick=()=>{if(hints<L.hints.length)hints++;hb.innerHTML=L.hints.slice(0,hints).map((h,i)=>`<div class="h">💡 <b>Hint ${i+1}:</b> ${md(h)}</div>`).join('');};
+  $('[data-a=tip]',el).onclick=()=>hb.insertAdjacentHTML('afterbegin',`<div class="h t">✨ <b>Pro tip:</b> ${md(L.tip)}</div>`);
+  $('[data-a=ans]',el).onclick=()=>{used=true;ed.value=L.answer;PROG.robot[key]=ed.value;saveProg();hb.innerHTML=`<div class="h a">👁 <b>Here's one answer.</b> Read it line by line and imagine Bolt doing each step. Then press ▶ Run.</div>`;};
+}
+Game({id:'robot',emoji:'🤖',title:'Robot Commander',levels:LV,play,cleanup,
+ intro:`<h2>🏭 Bolt's Big Escape</h2><p class="lesson">Bolt is a tiny robot lost in a giant factory. He can't think for himself — he only does exactly what your code says. Guide him to the exit 🚪 and collect every gem 💎.</p><p class="lesson">This game teaches <b>JavaScript</b> — the language that makes websites DO things. You'll learn commands, loops, functions and if-statements. Best played after the HTML &amp; CSS games.</p>`,
+ finale:"Bolt is free! You learned commands, loops, functions, if/else and while loops — the core building blocks of every program ever written."});
+window.__ROBOT={LV,runRobot};
+})();
+</script>
+
+<!-- =====================================================================
+     HUB
+     ===================================================================== -->
+<script>
+const CARDS=[
+ {id:'quest',em:'🌿',t:'Codeling Quest',d:'Your main adventure! Explore a world and tame wild creatures by writing code.',tags:['html','css'],ribbon:'START HERE'},
+ {id:'bug',em:'🐞',t:'Bug Hunter',d:'Be a detective. Solve cases by fixing broken websites.',tags:['html','css']},
+ {id:'dungeon',em:'🏰',t:'Dungeon Escape',d:'Open magic doors with CSS selectors. Free the trapped knight.',tags:['css']},
+ {id:'art',em:'🎨',t:'Copy the Picture',d:'Restore faded museum paintings by recreating them with CSS.',tags:['css']},
+ {id:'cafe',em:'☕',t:'Café Tycoon',d:'Build Grandma\'s café website day by day. Earn coins, decorate, grow.',tags:['html','css']},
+ {id:'racer',em:'🏎️',t:'Tag Racer',d:'Type code fast and right to beat your rivals to the finish line.',tags:['html','css']},
+ {id:'robot',em:'🤖',t:'Robot Commander',d:'Program Bolt the robot with real JavaScript. After HTML & CSS.',tags:['js']}
+];
+function renderHub(){
+  $('#hubGrid').innerHTML=CARDS.map(c=>{
+    let p,label;
+    if(c.id==='quest'){const q=QUEST.progress();p=q.done/q.total;label=`${q.done}/${q.total} Codelings · ${q.badges}/4 badges`;}
+    else{const g=GAMES[c.id].progress();p=g.done/g.total;label=`${g.done}/${g.total} ${GAMES[c.id].def.unit||'Level'}s · ⭐ ${g.stars}/${g.max}`;}
+    return `<div class="gcard" data-id="${c.id}" role="button" tabindex="0">${c.ribbon?`<span class="ribbon">${c.ribbon}</span>`:''}<div class="em">${c.em}</div><h3>${c.t}</h3><p>${c.d}</p>
+      <div class="tags">${c.tags.map(t=>`<span class="tag ${t}">${t.toUpperCase()}</span>`).join('')}</div>
+      <div class="pbar"><i style="width:${Math.round(p*100)}%"></i></div><small class="muted">${label}</small></div>`;}).join('');
+  $$('.gcard').forEach(el=>{const go=()=>APP.show(el.dataset.id);el.onclick=go;el.onkeydown=e=>{if(e.key==='Enter')go();};});
+}
+$('#resetAll').onclick=()=>modal('<h3>Reset ALL progress?</h3><p>This wipes every game\'s progress on this device, including Codeling Quest. This can\'t be undone.</p>',[['Cancel',null],['Yes, reset everything',()=>{try{localStorage.removeItem(AKEY);localStorage.removeItem(QKEY);}catch(e){}location.reload();},'primary']]);
+APP.show('hub');
+</script>
+</body>
+</html>
