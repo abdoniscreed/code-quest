@@ -19,6 +19,10 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,syst
 button{font-family:inherit;color:inherit}
 .pix{font-family:"Press Start 2P",monospace;letter-spacing:.5px}
 code,pre,textarea,.code1{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+/* show every symbol exactly as typed: no merged "ligature" shapes like </ or => */
+code,pre,textarea,input,.code1,.crystal,.snips button,.opt,.ex{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0,"dlig" 0}
+.backup{max-width:620px;margin:6px auto 14px;text-align:left}
+.backup .row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .hidden{display:none!important}
 h2,h3{margin:.2em 0 .5em}
 .center{text-align:center}
@@ -44,7 +48,8 @@ button.chip:hover{border-color:var(--ink)}
 .work{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
 @media(max-width:860px){.work{grid-template-columns:1fr}}
 .lesson,.mission,.bstory{font-size:16px;line-height:1.55}
-.lesson code,.mission code,.feedback code,.hintbox code,.codex code,.bstory code,.intro code{background:var(--code);padding:1px 6px;border-radius:6px;font-size:.9em;color:var(--codeInk);font-weight:700;white-space:nowrap}
+.lesson code,.mission code,.feedback code,.hintbox code,.codex code,.bstory code,.intro code{background:var(--code);padding:1px 6px;border-radius:6px;font-size:.9em;color:var(--codeInk);font-weight:700;white-space:normal;overflow-wrap:anywhere;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.box,.bstory,.hintbox,.feedback,.lesson,.mission{min-width:0;overflow-wrap:anywhere}
 .bstory .story{background:#fff8ec;border-left:5px solid var(--accent);border-radius:10px;padding:10px 12px;margin-bottom:10px}
 .bstory .story b.who{display:block;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
 .exl{font-weight:900;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:12px 0 4px}
@@ -229,7 +234,7 @@ iframe.mini{height:110px!important}
 .opt.wrong{background:#fdecec;border-color:var(--bad);box-shadow:0 3px 0 var(--bad)}
 .opt.gone{opacity:.25}
 /* ---------- robot ---------- */
-.rgridwrap{display:flex;justify-content:center;margin:10px 0}
+.rgridwrap{display:flex;justify-content:center;margin:10px 0;max-width:100%;overflow-x:auto}
 .rgrid{position:relative;display:grid;gap:3px;background:#2a2840;padding:3px;border-radius:12px}
 .rcell{width:var(--cell);height:var(--cell);border-radius:6px;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:calc(var(--cell)*.55)}
 .rcell.wall{background:#8a8fa8}
@@ -250,7 +255,13 @@ iframe.mini{height:110px!important}
   <div class="hubgrid" id="hubGrid"></div>
   <div class="hubfoot">
     <p><b>Suggested order:</b> 🌿 Codeling Quest → 🐞 Bug Hunter → 📝 Form Forge → 🏰 Dungeon → 🎨 Copy the Picture → 🌻 Grid Farm → ☕ Café → 🏎️ Racer → 🧠 Brain Battle → 🧙 Spell Academy → 🤖 Robot</p>
-    <p>Your progress saves automatically on this device. <button class="btn ghost sm" id="resetAll">Reset all progress</button></p>
+    <div class="box backup">
+      <b>💾 Your progress</b>
+      <p class="muted" style="margin:6px 0 0;font-size:14px">Progress saves automatically, but only on this device and browser. Download a backup file now and then — if you clear your browser or switch phones, load it back in.</p>
+      <div class="row2"><button class="btn primary sm" id="exportProg">⬇️ Download my progress</button><button class="btn sm" id="importProg">⬆️ Load progress from file</button><input type="file" id="importFile" accept=".json,application/json" hidden></div>
+      <p class="muted" style="margin:8px 0 0;font-size:13px" id="lastBackup"></p>
+    </div>
+    <p><button class="btn ghost sm" id="resetAll">Reset all progress</button></p>
   </div>
 </section>
 
@@ -338,7 +349,8 @@ const debounce=(fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>f
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
 const AKEY='code-arcade-v1', QKEY='codeling-quest-v1';
 const freshProg=()=>({bug:{},art:{},dungeon:{},cafe:{code:'',start:'',coins:0,decor:[],stars:{}},racer:{},robot:{},form:{},grid:{},spell:{},quiz:{}});
-let PROG=Object.assign(freshProg(),store.get(AKEY,{}));
+function cleanProg(raw){const f=freshProg(),o=Object.assign({},f,raw&&typeof raw==='object'?raw:{});for(const k in f)if(!o[k]||typeof o[k]!=='object'||Array.isArray(o[k]))o[k]=f[k];o.cafe=Object.assign(f.cafe,o.cafe);if(!o.cafe.stars||typeof o.cafe.stars!=='object')o.cafe.stars={};if(!Array.isArray(o.cafe.decor))o.cafe.decor=[];o.cafe.coins=+o.cafe.coins||0;return o;}
+let PROG=cleanProg(store.get(AKEY,{}));
 const saveProg=()=>store.set(AKEY,PROG);
 
 /* ---- colours as browsers report them ---- */
@@ -2200,7 +2212,7 @@ function play(L,el,done){
      <div class="feedback"></div><div class="hintbox"></div></div></div>`;
   const ed=$('textarea.code',el),grid=$('.rgrid',el),fbEl=$('.feedback',el),hb=$('.hintbox',el);
   const fb=(t,h)=>{fbEl.className='feedback '+(t||'');fbEl.innerHTML=h||'';};
-  const cell=Math.max(26,Math.min(48,Math.floor((Math.min(window.innerWidth,560)-70)/cols)));
+  const cell=Math.max(15,Math.min(48,Math.floor((Math.min(window.innerWidth,560)-60)/cols)-3));
   grid.style.setProperty('--cell',cell+'px');grid.style.gridTemplateColumns=`repeat(${cols},var(--cell))`;
   const key='code_'+L.id;ed.value=PROG.robot[key]||'';
   ed.addEventListener('input',()=>{PROG.robot[key]=ed.value;saveProg();});
@@ -2894,6 +2906,35 @@ function renderHub(){
       <div class="pbar"><i style="width:${Math.round(p*100)}%"></i></div><small class="muted">${label}</small></div>`;}).join('');
   $$('.gcard').forEach(el=>{const go=()=>APP.show(el.dataset.id);el.onclick=go;el.onkeydown=e=>{if(e.key==='Enter')go();};});
 }
+const BKEY='code-arcade-last-backup';
+function totalStars(arc){let n=0;for(const k in arc){const o=k==='cafe'?(arc.cafe&&arc.cafe.stars)||{}:arc[k];if(o&&typeof o==='object')for(const v of Object.values(o))if(typeof v==='number'&&v>=0&&v<=3)n+=v;}return n;}
+function showLastBackup(){const d=store.get(BKEY,null);$('#lastBackup').textContent=d?'Last backup: '+new Date(d).toLocaleString():'No backup downloaded yet.';}
+$('#exportProg').onclick=()=>{
+  const data={app:'code-arcade',version:2,exportedAt:new Date().toISOString(),arcade:PROG,quest:store.get(QKEY,null)};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='code-arcade-progress-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+  store.set(BKEY,Date.now());showLastBackup();
+  modal('<div class="center"><div style="font-size:48px">💾</div><h3>Backup downloaded!</h3></div><p>Keep the file somewhere safe, like Google Drive, or email it to yourself. If you ever lose your progress, tap <b>Load progress from file</b> and pick it.</p>');
+};
+$('#importProg').onclick=()=>$('#importFile').click();
+$('#importFile').onchange=e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  const bad=()=>modal('<h3>That file doesn\'t look right 🤔</h3><p>Please pick a progress file you downloaded from Code Arcade. It ends in <b>.json</b> and starts with <b>code-arcade-progress</b>.</p>');
+  if(f.size>2e6)return bad();
+  const r=new FileReader();
+  r.onload=()=>{let d;try{d=JSON.parse(r.result);}catch(_){return bad();}
+    if(!d||d.app!=='code-arcade'||!d.arcade||typeof d.arcade!=='object')return bad();
+    const when=d.exportedAt?new Date(d.exportedAt).toLocaleString():'an unknown date';
+    const q=d.quest&&d.quest.started?`<li>Codeling Quest: <b>${esc(d.quest.name||'trainer')}</b>, ${Object.keys(d.quest.caught||{}).length} Codelings, ${Object.keys(d.quest.badges||{}).length} badges</li>`:'';
+    modal(`<h3>Load this backup?</h3><ul style="line-height:1.6"><li>Saved: <b>${esc(when)}</b></li><li>Stars earned: <b>⭐ ${totalStars(d.arcade)}</b></li>${q}</ul><p><b>This replaces the progress currently on this device.</b></p>`,
+      [['Cancel',null],['Yes, load it',()=>{
+        PROG=cleanProg(d.arcade);saveProg();
+        try{if(d.quest)localStorage.setItem(QKEY,JSON.stringify(d.quest));else localStorage.removeItem(QKEY);}catch(_){}
+        location.reload();},'primary']]);};
+  r.onerror=bad;r.readAsText(f);
+};
+showLastBackup();
 $('#resetAll').onclick=()=>modal('<h3>Reset ALL progress?</h3><p>This wipes every game\'s progress on this device, including Codeling Quest. This can\'t be undone.</p>',[['Cancel',null],['Yes, reset everything',()=>{try{localStorage.removeItem(AKEY);localStorage.removeItem(QKEY);}catch(e){}location.reload();},'primary']]);
 APP.show('hub');
 </script>
