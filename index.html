@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Code Arcade</title>
-<meta name="description" content="Code Arcade — 7 story games that teach HTML, CSS and JavaScript by writing real code.">
+<meta name="description" content="Code Arcade — 11 story games that teach HTML, CSS and JavaScript by writing real code.">
 <meta name="theme-color" content="#fdf8ef">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=Press+Start+2P&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -218,6 +218,16 @@ iframe.droom{width:100%;height:230px;border:3px solid var(--ink);border-radius:1
 .countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:54px;color:#fff;font-weight:900;text-shadow:0 4px 0 #2a2840;background:rgba(42,40,64,.35)}
 iframe.mini{height:110px!important}
 
+/* ---------- spell academy ---------- */
+.crystal{background:#f6f2ff;border:3px solid var(--ink);border-radius:12px;padding:10px 12px;font-family:"JetBrains Mono",monospace;min-height:70px;white-space:pre-wrap;font-size:15px;color:#3a2a8a;overflow:auto;max-height:220px}
+/* ---------- brain battle ---------- */
+.qtext{font-size:19px;font-weight:900;margin:8px 0;line-height:1.4}
+.opts{display:grid;gap:8px;margin-top:10px}
+.opt{text-align:left;border:2px solid var(--ink);background:#fff;border-radius:12px;padding:12px 14px;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 3px 0 var(--ink);font-family:inherit}
+.opt:disabled{cursor:default}
+.opt.right{background:#e7f8ef;border-color:var(--good);box-shadow:0 3px 0 var(--good)}
+.opt.wrong{background:#fdecec;border-color:var(--bad);box-shadow:0 3px 0 var(--bad)}
+.opt.gone{opacity:.25}
 /* ---------- robot ---------- */
 .rgridwrap{display:flex;justify-content:center;margin:10px 0}
 .rgrid{position:relative;display:grid;gap:3px;background:#2a2840;padding:3px;border-radius:12px}
@@ -235,11 +245,11 @@ iframe.mini{height:110px!important}
 <section class="screen" id="hub">
   <div class="hubhead">
     <h1 class="hublogo pix">CODE<br>ARCADE</h1>
-    <p class="muted" style="margin:10px 0 0">7 story games. Real code. Learn HTML, CSS &amp; JavaScript by playing.</p>
+    <p class="muted" style="margin:10px 0 0">11 story games · 200+ levels · Real code. Learn HTML, CSS &amp; JavaScript by playing.</p>
   </div>
   <div class="hubgrid" id="hubGrid"></div>
   <div class="hubfoot">
-    <p>Suggested order: 🌿 Codeling Quest → 🐞 Bug Hunter → 🏰 Dungeon → 🎨 Copy the Picture → ☕ Café → 🏎️ Racer → 🤖 Robot</p>
+    <p><b>Suggested order:</b> 🌿 Codeling Quest → 🐞 Bug Hunter → 📝 Form Forge → 🏰 Dungeon → 🎨 Copy the Picture → 🌻 Grid Farm → ☕ Café → 🏎️ Racer → 🧠 Brain Battle → 🧙 Spell Academy → 🤖 Robot</p>
     <p>Your progress saves automatically on this device. <button class="btn ghost sm" id="resetAll">Reset all progress</button></p>
   </div>
 </section>
@@ -327,7 +337,7 @@ const md=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\
 const debounce=(fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};};
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
 const AKEY='code-arcade-v1', QKEY='codeling-quest-v1';
-const freshProg=()=>({bug:{},art:{},dungeon:{},cafe:{code:'',start:'',coins:0,decor:[],stars:{}},racer:{},robot:{}});
+const freshProg=()=>({bug:{},art:{},dungeon:{},cafe:{code:'',start:'',coins:0,decor:[],stars:{}},racer:{},robot:{},form:{},grid:{},spell:{},quiz:{}});
 let PROG=Object.assign(freshProg(),store.get(AKEY,{}));
 const saveProg=()=>store.set(AKEY,PROG);
 
@@ -361,6 +371,7 @@ const cssPx=(s,p,n,m,tol=1)=>[a=>{const e=a.$(s);return !!e&&Math.abs(px(a.css(e
 const cssMin=(s,p,n,m)=>[a=>{const e=a.$(s);return !!e&&px(a.css(e,p))>=n;},m];
 const cssNot=(s,p,vals,m)=>[a=>{const e=a.$(s);return !!e&&![].concat(vals).includes(a.css(e,p));},m];
 const gapPx=(s,n,m)=>[a=>{const e=a.$(s);return !!e&&(Math.abs(px(a.css(e,'columnGap'))-n)<=1||Math.abs(px(a.css(e,'rowGap'))-n)<=1);},m];
+const gridCols=(a,s,p='gridTemplateColumns')=>{const e=a.$(s);const v=e?a.css(e,p):'';return !v||v==='none'?[]:v.trim().split(/\s+/).map(px);};
 const hoverRule=(sel,m)=>[a=>a.rules().some(r=>r.selectorText&&r.selectorText.replace(/\s/g,'').includes(sel)&&r.style.backgroundColor),m];
 async function runChecksCode(frame,code,checks,base){
   const a=await renderInto(frame,code,base);
@@ -1221,16 +1232,118 @@ const BUGS=[
  tip:"When there are several bugs, fix one at a time and watch the preview after each fix.",
  outro:"Two bugs, one detective. High score: YOU.",
  checks:[[a=>a.$$('h1').length===1,"There are still TWO headings on the page. Check how the `<h1>` is closed."],hasText('h1','arcade',"The heading should say Arcade."),cssIs('.score','color',ORANGE,"The score should stay orange."),cssPx('.score','fontSize',30,"The score isn't 30px yet. Check the second CSS rule's selector.")]},
-{id:'b14',ch:'The Big Cases',title:'The Final Boss Bug',
- story:"The hero card is a total disaster. THREE bugs. Even the CSS is leaking onto the page as plain text. This is your hardest case, Detective.",
+{id:'b14',ch:'The Big Cases',title:'The Hero Card Disaster',
+ story:"The hero card is a total disaster. THREE bugs. Even the CSS is leaking onto the page as plain text. This is your hardest case so far, Detective.",
  mission:"Fix all 3 bugs so the card has its **border**, the name is **crimson**, and the level is **bold**.",
  starter:"<div class=\"card\">\n  <h2>Hero</h2>\n  <p>Level 99</p>\n</div"+SS+"  .card { border: 2px solid black; padding: 16px; }\n  .card h2 { colr: crimson; }\n  card p { font-weight: bold; }\n</style>",
  hints:["Bug 1 is why the CSS shows up as text: look at the closing `</div`.","Bug 2: read the property names slowly.","Bug 3: one selector is missing its dot."],
  answer:"<div class=\"card\">\n  <h2>Hero</h2>\n  <p>Level 99</p>\n</div>"+SS+"  .card { border: 2px solid black; padding: 16px; }\n  .card h2 { color: crimson; }\n  .card p { font-weight: bold; }\n</style>",
  tip:"A missing `>` can swallow everything after it. If code shows up as text on the page, look for a tag that never finished.",
+ outro:"The hero card is fixed! But wait... new case files just landed on your desk. 📂",
+ checks:[[a=>!(a.doc.body.innerText||'').includes('{'),"Some of your CSS is showing on the page as text. A tag isn't finished properly — check `</div`."],cssNot('.card','borderTopStyle','none',"The card still has no border."),cssIs('.card h2','color','rgb(220, 20, 60)',"The name isn't crimson yet. Check the spelling of the property."),[a=>px(a.css(a.$('.card p'),'fontWeight'))>=700,"The level isn't bold yet. Check that selector."]]},
+{id:'b15',ch:'Layout Disasters',title:'The Squished Gallery',
+ story:"The photo gallery is squashing every picture into one tiny row. The fix is ONE word, typed wrong.",
+ mission:"Let the photos **wrap** onto new lines.",
+ starter:"<div class=\"gallery\">\n  <div class=\"pic\">🌅</div>\n  <div class=\"pic\">🏔️</div>\n  <div class=\"pic\">🌊</div>\n  <div class=\"pic\">🌲</div>\n  <div class=\"pic\">🏜️</div>\n</div>"+SS+"  .gallery { display: flex; flex-wrap: wrapp; gap: 8px; }\n  .pic { width: 120px; font-size: 40px; background: #eef; text-align: center; }\n</style>",
+ hints:["Look at every value in the `.gallery` rule.","One value has an extra letter.","`wrapp` → `wrap`"],fixes:[['wrapp','wrap']],
+ tip:"CSS quietly ignores values it doesn't understand. No error, no warning — just nothing happens.",
+ outro:"Photos everywhere, neatly wrapped. 📸",
+ checks:[cssIs('.gallery','flexWrap','wrap',"The photos still don't wrap. Check the spelling of the flex-wrap value.")]},
+{id:'b16',ch:'Layout Disasters',title:'The Off-Centre Star',
+ story:"The talent show star should stand in the middle of the stage. The stage manager is Australian... and so is the bug.",
+ mission:"Center the ⭐ left-to-right.",
+ starter:"<div class=\"stage\">\n  <div class=\"star\">⭐</div>\n</div>"+SS+"  .stage { display: flex; justify-content: centre; background: #fff1ea; padding: 20px; }\n  .star { font-size: 40px; }\n</style>",
+ hints:["The CSS looks right... read the VALUE slowly.","CSS uses American spelling for values too.","`centre` → `center`"],fixes:[['centre','center']],
+ tip:"`color` and `center` both use American spelling. Aussies and Brits trip on these all the time.",
+ outro:"The star shines in the spotlight. 🌟",
+ checks:[cssIs('.stage','justifyContent','center',"The star isn't centered yet. Check the spelling of the justify-content value.")]},
+{id:'b17',ch:'Layout Disasters',title:'The Sideways Menu',
+ story:"The phone menu should stack top-to-bottom, but it's stuck sideways and falling off the screen.",
+ mission:"Make the menu items stack in a **column**.",
+ starter:"<div class=\"menu\">\n  <a href=\"#\">Home</a>\n  <a href=\"#\">Shop</a>\n  <a href=\"#\">Help</a>\n</div>"+SS+"  .menu { display: flex; flex-direction: columns; gap: 8px; }\n</style>",
+ hints:["Check the flex-direction value.","There's no s at the end.","`columns` → `column`"],fixes:[['columns','column']],
+ tip:"When CSS 'does nothing', check the spelling of BOTH the property and the value.",
+ outro:"A tidy phone menu. Thumbs love it. 👍",
+ checks:[cssIs('.menu','flexDirection','column',"The menu still isn't a column. Check the flex-direction value.")]},
+{id:'b18',ch:'Layout Disasters',title:'The Gap That Wasn\'t',
+ story:"The toy train's carriages are crashing into each other. Someone forgot something after the number.",
+ mission:"Give the carriages a **20px** gap.",
+ starter:"<div class=\"train\">\n  <div class=\"car\">🚃</div>\n  <div class=\"car\">🚃</div>\n  <div class=\"car\">🚃</div>\n</div>"+SS+"  .train { display: flex; gap: 20; }\n  .car { font-size: 40px; }\n</style>",
+ hints:["Look at the gap value.","Sizes in CSS need a unit, like px.","`20` → `20px`"],fixes:[['gap: 20;','gap: 20px;']],
+ tip:"Only `0` is allowed without a unit. Every other size needs px, %, em or similar.",
+ outro:"Safe distance between carriages. All aboard! 🚂",
+ checks:[gapPx('.train',20,"The carriages still touch. Does the gap value have a unit?")]},
+{id:'b19',ch:'Layout Disasters',title:'The Giant Card',
+ story:"The weather card is HUGE. The designer asked for 20 pixels of padding... someone hit 0 one too many times.",
+ mission:"Make the card's padding **20px**.",
+ starter:"<div class=\"card\">☀️ Sunny, 24°</div>"+SS+"  .card { border: 2px solid #ccc; padding: 200px; border-radius: 12px; }\n</style>",
+ hints:["Compare the padding with what the designer asked for.","`200px` → `20px`"],fixes:[['200px','20px']],
+ tip:"Not every bug is a misspelled word. Wrong numbers are bugs too — always double-check values.",
+ outro:"A cute little weather card again. ☀️",
+ checks:[cssPx('.card','paddingTop',20,"The padding isn't 20px yet.")]},
+{id:'b20',ch:'Layout Disasters',title:'The Hover That Never Happens',
+ story:"The game shop's Buy button should glow gold when you point at it. It never does. Look closely at the selector.",
+ mission:"Make the button turn **gold** on hover.",
+ starter:"<button class=\"btn\">Buy</button>"+SS+"  .btn { padding: 10px 20px; }\n  .btn hover { background-color: gold; }\n</style>",
+ hints:["Hover effects need a special symbol right before the word hover.","It's a colon, with no space: `.btn:hover`"],fixes:[['.btn hover','.btn:hover']],
+ tip:"`.btn hover` means 'a <hover> tag inside .btn' — which doesn't exist. `.btn:hover` means '.btn while the mouse is on it'.",
+ outro:"Shiny gold on hover. Customers can't resist. ✨",
+ checks:[hoverRule('.btn:hover',"There's no working `.btn:hover` rule yet. Check the symbol before hover.")]},
+{id:'b21',ch:'Expert Cases',title:'The Overruled Colour',
+ story:"The ocean page text should be blue. The blue rule is RIGHT THERE... but something later keeps overruling it.",
+ mission:"Make the paragraph **blue**.",
+ starter:"<p>Deep blue sea</p>"+SS+"  p { color: blue; }\n  p { color: red; }\n</style>",
+ hints:["When two rules style the same thing, which one wins?","The LATER rule wins.","Delete the red rule (or change it to blue)."],fixes:[['  p { color: red; }\n','']],
+ tip:"This is the 'Cascading' in Cascading Style Sheets: later rules overwrite earlier ones.",
+ outro:"Ocean blue restored. 🌊 You just learned the cascade!",
+ checks:[cssIs('p','color',BLUE,"The text still isn't blue. Which rule is winning?")]},
+{id:'b22',ch:'Expert Cases',title:'The Broken Quote',
+ story:"The pet shop's cat picture has lost its description. One missing quote mark is eating the alt attribute.",
+ mission:"Fix it so the image has `src=\"cat.png\"` and `alt=\"Cat\"`.",
+ starter:"<img src=\"cat.png alt=\"Cat\">",
+ hints:["Count the quote marks. Every value needs one at the start AND the end.","Right after cat.png there should be a closing quote."],
+ answer:"<img src=\"cat.png\" alt=\"Cat\">",
+ tip:"Code editors colour your code. When everything after one point turns the same colour, look for a missing quote.",
+ outro:"The cat has its description back. Meow. 🐈",
+ checks:[has('img',"Keep the `<img>`."),[a=>a.$('img').getAttribute('src')==='cat.png',"The src should be exactly cat.png — check your quotes."],[a=>(a.$('img').getAttribute('alt')||'').toLowerCase()==='cat',"The alt should be Cat — check your quotes."]]},
+{id:'b23',ch:'Expert Cases',title:'The Headless Heading',
+ story:"The news headline shows up as weird text: 'h2>Breaking News'. The heading lost its head!",
+ mission:"Make **Breaking News** a real `<h2>` heading.",
+ starter:"h2>Breaking News</h2>\n<p>Cats can now code.</p>",
+ hints:["Every opening tag starts with a `<`.","Add `<` before h2 at the very start."],
+ answer:"<h2>Breaking News</h2>\n<p>Cats can now code.</p>",
+ tip:"If bits of tags show up on the page as text, a `<` or `>` is missing nearby.",
+ outro:"Hot off the press! 📰",
+ checks:[hasText('h2','breaking news',"There's still no working `<h2>`. Check the very first character."),[a=>!a.text(a.doc.body).includes('h2>'),"Tag text is still showing on the page."]]},
+{id:'b24',ch:'Expert Cases',title:'The Link Swallower',
+ story:"The menu should have TWO links: Home and Shop. One unfinished tag swallowed the Shop link whole.",
+ mission:"Make both **Home** and **Shop** working links.",
+ starter:"<a href=\"#\">Home</a\n<a href=\"#\">Shop</a>",
+ hints:["Look at the end of the first line.","A closing tag needs its `>`.","`</a` → `</a>`"],
+ answer:"<a href=\"#\">Home</a>\n<a href=\"#\">Shop</a>",
+ tip:"An unfinished tag 'eats' everything up to the next `>` it finds.",
+ outro:"Both links back in business. 🔗",
+ checks:[[a=>a.$$('a').length>=2,"There's still only one link. Check the end of the first line."],[a=>a.$$('a').some(x=>a.text(x)==='shop'),"The second link should say Shop."]]},
+{id:'b25',ch:'Expert Cases',title:'Triple Trouble Café',
+ story:"The café menu has THREE bugs: one in the HTML and two in the CSS. Find them all, Detective.",
+ mission:"Fix all 3: ONE heading, the menu as a **flex** row, and the items **brown**.",
+ starter:"<h1>Café<h1>\n<ul class=\"menu\">\n  <li>Tea</li>\n  <li>Cake</li>\n</ul>"+SS+"  .menu { dispaly: flex; gap: 20px; }\n  li { colour: brown; }\n</style>",
+ hints:["HTML: how is the `<h1>` closed?","CSS: read both property names letter by letter.","`<h1>` → `</h1>`, `dispaly` → `display`, `colour` → `color`"],
+ fixes:[['Café<h1>','Café</h1>'],['dispaly','display'],['colour','color']],
+ tip:"Fix one bug, check the preview, then hunt the next. Pros never try to fix everything at once.",
+ outro:"The café is buzzing again. ☕",
+ checks:[[a=>a.$$('h1').length===1,"There are still two headings. Check how the `<h1>` is closed."],cssIs('.menu','display','flex',"The menu isn't flex yet. Check that property's spelling."),cssIs('li','color','rgb(165, 42, 42)',"The items aren't brown yet. Check that property's spelling.")]},
+{id:'b26',ch:'Expert Cases',title:'The Grand Finale',
+ story:"Bugtown's most wanted: a profile card with FOUR bugs hiding in it. Solve this and you're the greatest detective Bugtown has ever seen.",
+ mission:"Fix all 4: one `<h2>` saying **Sam**, a working Follow link, the card as a **flex** row, and the name in **teal**.",
+ starter:"<div class=\"profile\">\n  <h2>Sam<h2>\n  <a herf=\"#\">Follow</a>\n</div>"+SS+"  .profile { display flex; gap: 10px; }\n  .profile h2 { colr: teal; }\n</style>",
+ hints:["HTML bug 1: the `<h2>` closing tag.","HTML bug 2: the link attribute's spelling.","CSS bugs: a missing colon, and a misspelled property."],
+ fixes:[['Sam<h2>','Sam</h2>'],['herf','href'],['display flex','display: flex'],['colr','color']],
+ tip:"You've now seen every common bug type: missing closers, typos, missing symbols and wrong values. That's most real-world bugs!",
  outro:"Bugtown is saved! You're officially a Master Code Detective. 🕵️",
- checks:[[a=>!(a.doc.body.innerText||'').includes('{'),"Some of your CSS is showing on the page as text. A tag isn't finished properly — check `</div`."],cssNot('.card','borderTopStyle','none',"The card still has no border."),cssIs('.card h2','color','rgb(220, 20, 60)',"The name isn't crimson yet. Check the spelling of the property."),[a=>px(a.css(a.$('.card p'),'fontWeight'))>=700,"The level isn't bold yet. Check that selector."]]}
+ checks:[[a=>a.$$('h2').length===1,"There are still two headings. Check the `<h2>` closing tag."],hasText('h2','sam',"The heading should say Sam."),[a=>!!(a.$('a')&&a.$('a').getAttribute('href')),"The link still has no `href`. Check the attribute's spelling."],cssIs('.profile','display','flex',"The card isn't flex yet. Look for a missing symbol."),cssIs('.profile h2','color','rgb(0, 128, 128)',"The name isn't teal yet. Check that property's spelling.")]}
 ];
+BUGS.forEach(b=>{if(b.fixes)b.answer=b.fixes.reduce((a,[f,t])=>a.split(f).join(t),b.starter);});
 let bench=null;
 const G=Game({id:'bug',emoji:'🐞',title:'Bug Hunter',unit:'Case',winWord:'Case closed!',levels:BUGS,
  intro:`<h2>🕵️ Detective Dot and the Broken Web</h2><p class="lesson">Bugtown's websites are falling apart! Signs are broken, buttons have vanished and colours have gone missing. You're the town's new <b>Code Detective</b>.</p><p class="lesson">Each case gives you broken code. Find the bug, fix it, and close the case. Real developers spend most of their day doing exactly this — you're training for the real thing.</p>`,
@@ -1247,7 +1360,7 @@ window.__BUG=BUGS;
 <script>
 (()=>{
 const ART_BASE='html,body{margin:0}body{font-family:system-ui,sans-serif;color:#222;background:#fff;padding:20px;box-sizing:border-box;height:200px;overflow:hidden}';
-const PL={width:'width',height:'height',backgroundColor:'colour',borderTopLeftRadius:'roundness',x:'left-right position',y:'up-down position',color:'text colour',fontSize:'text size',paddingTop:'top/bottom padding',paddingLeft:'left/right padding'};
+const PL={width:'width',height:'height',backgroundColor:'colour',borderTopLeftRadius:'roundness',x:'left-right position',y:'up-down position',color:'text colour',fontSize:'text size',paddingTop:'top/bottom padding',paddingLeft:'left/right padding',borderTopWidth:'border thickness',borderTopColor:'border colour',opacity:'see-through-ness',fontWeight:'boldness',textAlign:'text alignment'};
 const ART=[
 {id:'a1',ch:'Gallery 1: Shapes',title:'The Lonely Sun',
  story:"Welcome, Restorer! The museum's oldest painting, **The Lonely Sun**, has faded to nothing. Repaint it with CSS so it matches the original exactly.",
@@ -1313,17 +1426,89 @@ const ART=[
  tip:"Try changing gap to 40px and watch. Spacing is half of good design.",
  match:[['.wall','The wall',['backgroundColor','paddingTop']],['.frame:nth-child(1)','The 1st frame',['x','y']],['.frame:nth-child(2)','The 2nd frame',['x','y']],['.frame:nth-child(3)','The 3rd frame',['x','y']]]},
 {id:'a8',ch:'Gallery 3: Masterpieces',title:'Bullseye',
- story:"The museum's masterpiece: **Bullseye**. Three perfect circles, one inside the other, all perfectly centered. Restore this and you're a Master Restorer.",
+ story:"The museum's masterpiece: **Bullseye**. Three perfect circles, one inside the other, all perfectly centered. Restore this and the doors to the Grand Hall open.",
  learn:"Circles inside circles: each `.ring` is round and centers whatever is inside it using flexbox. Then each size gets its own class.",
  starter:"<div class=\"ring outer\">\n  <div class=\"ring mid\">\n    <div class=\"ring inner\"></div>\n  </div>\n</div>\n\n<style>\n  \n</style>",
  target:"<div class=\"ring outer\"><div class=\"ring mid\"><div class=\"ring inner\"></div></div></div><style>.ring{display:flex;justify-content:center;align-items:center;border-radius:50%}.outer{width:150px;height:150px;background:red}.mid{width:100px;height:100px;background:white}.inner{width:50px;height:50px;background:red}</style>",
  answer:"<div class=\"ring outer\">\n  <div class=\"ring mid\">\n    <div class=\"ring inner\"></div>\n  </div>\n</div>\n\n<style>\n  .ring { display: flex; justify-content: center; align-items: center; border-radius: 50%; }\n  .outer { width: 150px; height: 150px; background: red; }\n  .mid { width: 100px; height: 100px; background: white; }\n  .inner { width: 50px; height: 50px; background: red; }\n</style>",
  hints:["`.ring` is round AND centers its child: flex + justify-content + align-items + border-radius 50%.","Sizes: outer 150px, mid 100px, inner 50px.","Colours: red, white, red."],
  tip:"You just combined classes, sizing, colour, shapes and flexbox. That's real front-end skill.",
- match:[['.outer','The outer ring',['width','height','backgroundColor','borderTopLeftRadius']],['.mid','The middle ring',['width','height','backgroundColor','x','y']],['.inner','The inner ring',['width','height','backgroundColor','x','y']]]}
+ match:[['.outer','The outer ring',['width','height','backgroundColor','borderTopLeftRadius']],['.mid','The middle ring',['width','height','backgroundColor','x','y']],['.inner','The inner ring',['width','height','backgroundColor','x','y']]]},
+{id:'a9',ch:'Gallery 4: New Tricks',title:'The Purple Frame',
+ story:"A small lavender painting inside a thick purple frame. The painting is 140px wide, 90px tall, and the frame is 6px thick.",
+ learn:"`border: 6px solid purple;` → thickness, style, colour. The border wraps around the outside of the box.",
+ starter:"<div class=\"art\"></div>\n\n<style>\n  .art {\n    \n  }\n</style>",
+ target:"<div class=\"art\"></div><style>.art{width:140px;height:90px;background:lavender;border:6px solid purple}</style>",
+ answer:"<div class=\"art\"></div>\n\n<style>\n  .art {\n    width: 140px;\n    height: 90px;\n    background: lavender;\n    border: 6px solid purple;\n  }\n</style>",
+ hints:["Size: `width: 140px;` and `height: 90px;`","Colour: `background: lavender;`","Frame: `border: 6px solid purple;`"],
+ tip:"Borders add to a box's size. A 140px box with a 6px border is really 152px wide on screen!",
+ match:[['.art','The painting',['width','height','backgroundColor','borderTopWidth','borderTopColor']]]},
+{id:'a10',ch:'Gallery 4: New Tricks',title:'Fading Ghosts',
+ story:"Three ghostly teal squares, each more see-through than the last: fully solid, then 60%, then 30%.",
+ learn:"`opacity` controls see-through-ness: `1` = solid, `0.5` = half see-through, `0` = invisible.",
+ starter:"<div class=\"row\">\n  <div class=\"g a\"></div>\n  <div class=\"g b\"></div>\n  <div class=\"g c\"></div>\n</div>\n\n<style>\n  .row { display: flex; gap: 12px; }\n  .g { width: 60px; height: 60px; background: teal; }\n  \n</style>",
+ target:"<div class=\"row\"><div class=\"g a\"></div><div class=\"g b\"></div><div class=\"g c\"></div></div><style>.row{display:flex;gap:12px}.g{width:60px;height:60px;background:teal}.b{opacity:.6}.c{opacity:.3}</style>",
+ answer:"<div class=\"row\">\n  <div class=\"g a\"></div>\n  <div class=\"g b\"></div>\n  <div class=\"g c\"></div>\n</div>\n\n<style>\n  .row { display: flex; gap: 12px; }\n  .g { width: 60px; height: 60px; background: teal; }\n  .b { opacity: 0.6; }\n  .c { opacity: 0.3; }\n</style>",
+ hints:["The first square stays solid — leave `.a` alone.","`.b { opacity: 0.6; }`","`.c { opacity: 0.3; }`"],
+ tip:"Opacity fades EVERYTHING inside the box too, including any text.",
+ match:[['.a','The 1st square',['opacity']],['.b','The 2nd square',['opacity']],['.c','The 3rd square',['opacity']]]},
+{id:'a11',ch:'Gallery 4: New Tricks',title:'Bold Words',
+ story:"A word-art poster: the word ART in big (48px), bold, crimson letters, centered.",
+ learn:"Text has its own properties: `font-size` (how big), `font-weight: bold` (how thick), `color`, and `text-align: center`.",
+ starter:"<p class=\"title\">ART</p>\n\n<style>\n  .title {  }\n</style>",
+ target:"<p class=\"title\">ART</p><style>.title{font-size:48px;font-weight:bold;color:crimson;text-align:center}</style>",
+ answer:"<p class=\"title\">ART</p>\n\n<style>\n  .title { font-size: 48px; font-weight: bold; color: crimson; text-align: center; }\n</style>",
+ hints:["`font-size: 48px;` and `font-weight: bold;`","`color: crimson;` and `text-align: center;`"],
+ tip:"`font-weight` can also be a number: 400 is normal, 700 is bold, 900 is extra heavy.",
+ match:[['.title','The word',['fontSize','fontWeight','color','textAlign']]]},
+{id:'a12',ch:'Gallery 4: New Tricks',title:'The Red Dot',
+ story:"A grey card with a red notification dot pinned to its top-right corner, 10px in from the top and the right.",
+ learn:"**Positioning** pins things exactly where you want:\n• the parent gets `position: relative;` (the pin board)\n• the child gets `position: absolute;` plus `top` / `right` / `bottom` / `left` to say where to pin it.",
+ starter:"<div class=\"card\">\n  <div class=\"dot\"></div>\n</div>\n\n<style>\n  .card { width: 200px; height: 120px; background: #e5e7eb; border-radius: 12px; }\n  .dot { width: 24px; height: 24px; background: red; border-radius: 50%; }\n  \n</style>",
+ target:"<div class=\"card\"><div class=\"dot\"></div></div><style>.card{width:200px;height:120px;background:#e5e7eb;border-radius:12px;position:relative}.dot{width:24px;height:24px;background:red;border-radius:50%;position:absolute;top:10px;right:10px}</style>",
+ answer:"<div class=\"card\">\n  <div class=\"dot\"></div>\n</div>\n\n<style>\n  .card { width: 200px; height: 120px; background: #e5e7eb; border-radius: 12px; position: relative; }\n  .dot { width: 24px; height: 24px; background: red; border-radius: 50%; position: absolute; top: 10px; right: 10px; }\n</style>",
+ hints:["The card is the pin board: add `position: relative;` to `.card`","Pin the dot: add `position: absolute;` to `.dot`","Then `top: 10px; right: 10px;`"],
+ tip:"The little red badges on app icons are built exactly like this.",
+ match:[['.dot','The red dot',['x','y']]]},
+{id:'a13',ch:'Gallery 5: Grand Hall',title:'Checkerboard',
+ story:"A 3×3 checkerboard of 50px squares, with black in the corners and the middle.",
+ learn:"**CSS Grid** makes rows AND columns at once:\n`display: grid;`\n`grid-template-columns: repeat(3, 50px);` = 3 columns, 50px each.\nThen `:nth-child(odd)` colours every other square.",
+ starter:"<div class=\"board\">\n  <div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div>\n  <div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div>\n  <div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div>\n</div>\n\n<style>\n  .board { width: 150px; border: 3px solid black; }\n  .c { height: 50px; background: white; }\n  \n</style>",
+ target:"<div class=\"board\"><div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div></div><style>.board{width:150px;border:3px solid black;display:grid;grid-template-columns:repeat(3,50px)}.c{height:50px;background:white}.c:nth-child(odd){background:black}</style>",
+ answer:"<div class=\"board\">\n  <div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div>\n  <div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div>\n  <div class=\"c\"></div><div class=\"c\"></div><div class=\"c\"></div>\n</div>\n\n<style>\n  .board { width: 150px; border: 3px solid black; display: grid; grid-template-columns: repeat(3, 50px); }\n  .c { height: 50px; background: white; }\n  .c:nth-child(odd) { background: black; }\n</style>",
+ hints:["Make the board a grid: add `display: grid; grid-template-columns: repeat(3, 50px);` to `.board`","Colour every other square: `.c:nth-child(odd) { background: black; }`"],
+ tip:"With an ODD number of columns, nth-child(odd) makes a perfect checkerboard. With 4 columns you'd get stripes instead!",
+ match:[['.c:nth-child(1)','Square 1',['backgroundColor']],['.c:nth-child(2)','Square 2',['backgroundColor','x','y']],['.c:nth-child(5)','The middle square',['backgroundColor','x','y']],['.c:nth-child(9)','The last square',['x','y']]]},
+{id:'a14',ch:'Gallery 5: Grand Hall',title:'Profile Card',
+ story:"A modern profile card: 160px wide, 16px padding, a 2px light-grey border and 16px rounded corners. Inside: a 60px coral circle centered at the top, and a bold name.",
+ learn:"`margin: 0 auto;` centers a BOX that has a width — the left and right margins share the spare space equally. `text-align: center` only centers text.",
+ starter:"<div class=\"card\">\n  <div class=\"avatar\"></div>\n  <p class=\"name\">Mia</p>\n</div>\n\n<style>\n  .card {  }\n  .avatar {  }\n  .name {  }\n</style>",
+ target:"<div class=\"card\"><div class=\"avatar\"></div><p class=\"name\">Mia</p></div><style>.card{width:160px;padding:16px;border:2px solid #ddd;border-radius:16px;text-align:center}.avatar{width:60px;height:60px;border-radius:50%;background:coral;margin:0 auto}.name{font-weight:bold}</style>",
+ answer:"<div class=\"card\">\n  <div class=\"avatar\"></div>\n  <p class=\"name\">Mia</p>\n</div>\n\n<style>\n  .card { width: 160px; padding: 16px; border: 2px solid #ddd; border-radius: 16px; text-align: center; }\n  .avatar { width: 60px; height: 60px; border-radius: 50%; background: coral; margin: 0 auto; }\n  .name { font-weight: bold; }\n</style>",
+ hints:["Card: `width: 160px; padding: 16px; border: 2px solid #ddd; border-radius: 16px; text-align: center;`","Avatar: `width: 60px; height: 60px; border-radius: 50%; background: coral; margin: 0 auto;`","Name: `font-weight: bold;`"],
+ tip:"`margin: 0 auto` is the classic way to center a box that has a width.",
+ match:[['.card','The card',['width','paddingTop','borderTopWidth','borderTopLeftRadius']],['.avatar','The avatar',['width','height','backgroundColor','x']],['.name','The name',['fontWeight','textAlign']]]},
+{id:'a15',ch:'Gallery 5: Grand Hall',title:'Night City',
+ story:"A city skyline at night: four golden buildings standing on the ground. Their heights are 60, 110, 80 and 130 pixels.",
+ learn:"`align-items: flex-end;` sits flex children on the BOTTOM of their box — like buildings standing on the ground. Then each building gets its own height.",
+ starter:"<div class=\"city\">\n  <div class=\"b b1\"></div>\n  <div class=\"b b2\"></div>\n  <div class=\"b b3\"></div>\n  <div class=\"b b4\"></div>\n</div>\n\n<style>\n  .city { height: 150px; background: midnightblue; display: flex; gap: 6px; padding: 0 10px; }\n  .b { width: 40px; background: gold; }\n  \n</style>",
+ target:"<div class=\"city\"><div class=\"b b1\"></div><div class=\"b b2\"></div><div class=\"b b3\"></div><div class=\"b b4\"></div></div><style>.city{height:150px;background:midnightblue;display:flex;gap:6px;padding:0 10px;align-items:flex-end}.b{width:40px;background:gold}.b1{height:60px}.b2{height:110px}.b3{height:80px}.b4{height:130px}</style>",
+ answer:"<div class=\"city\">\n  <div class=\"b b1\"></div>\n  <div class=\"b b2\"></div>\n  <div class=\"b b3\"></div>\n  <div class=\"b b4\"></div>\n</div>\n\n<style>\n  .city { height: 150px; background: midnightblue; display: flex; gap: 6px; padding: 0 10px; align-items: flex-end; }\n  .b { width: 40px; background: gold; }\n  .b1 { height: 60px; }\n  .b2 { height: 110px; }\n  .b3 { height: 80px; }\n  .b4 { height: 130px; }\n</style>",
+ hints:["Stand the buildings on the ground: add `align-items: flex-end;` to `.city`","Then one height per building: `.b1 { height: 60px; }` and so on."],
+ tip:"Without align-items, flex children stretch to fill the whole height. That default is called `stretch`.",
+ match:[['.b1','Building 1',['height','y']],['.b2','Building 2',['height','y']],['.b3','Building 3',['height','y']],['.b4','Building 4',['height','y']]]},
+{id:'a16',ch:'Gallery 5: Grand Hall',title:'The Smiling Sun',
+ story:"The museum's newest masterpiece: a golden face, 140px round, with two dark eyes and a rounded mouth, all pinned in place. Restore this and you're a Master Restorer!",
+ learn:"Combine everything: a round face with `position: relative`, and eyes and mouth pinned with `position: absolute`.",
+ starter:"<div class=\"face\">\n  <div class=\"eye left\"></div>\n  <div class=\"eye right\"></div>\n  <div class=\"mouth\"></div>\n</div>\n\n<style>\n  .face {  }\n  .eye {  }\n  .left {  }\n  .right {  }\n  .mouth {  }\n</style>",
+ target:"<div class=\"face\"><div class=\"eye left\"></div><div class=\"eye right\"></div><div class=\"mouth\"></div></div><style>.face{width:140px;height:140px;border-radius:50%;background:gold;position:relative}.eye{position:absolute;top:40px;width:18px;height:18px;background:#222;border-radius:50%}.left{left:35px}.right{right:35px}.mouth{position:absolute;bottom:30px;left:40px;width:60px;height:12px;background:#222;border-radius:6px}</style>",
+ answer:"<div class=\"face\">\n  <div class=\"eye left\"></div>\n  <div class=\"eye right\"></div>\n  <div class=\"mouth\"></div>\n</div>\n\n<style>\n  .face { width: 140px; height: 140px; border-radius: 50%; background: gold; position: relative; }\n  .eye { position: absolute; top: 40px; width: 18px; height: 18px; background: #222; border-radius: 50%; }\n  .left { left: 35px; }\n  .right { right: 35px; }\n  .mouth { position: absolute; bottom: 30px; left: 40px; width: 60px; height: 12px; background: #222; border-radius: 6px; }\n</style>",
+ hints:["Face: `width: 140px; height: 140px; border-radius: 50%; background: gold; position: relative;`","Eyes: `.eye { position: absolute; top: 40px; width: 18px; height: 18px; background: #222; border-radius: 50%; }` then `.left { left: 35px; }` and `.right { right: 35px; }`","Mouth: `position: absolute; bottom: 30px; left: 40px; width: 60px; height: 12px; background: #222; border-radius: 6px;`"],
+ tip:"Icons and logos are often drawn with exactly these tricks — no images needed!",
+ match:[['.face','The face',['width','height','backgroundColor','borderTopLeftRadius']],['.left','The left eye',['x','y','width']],['.right','The right eye',['x','y']],['.mouth','The mouth',['x','y','width','height']]]}
 ];
 function val(a,el,p){if(p==='x'||p==='y'){const r=el.getBoundingClientRect();return p==='x'?r.left:r.top;}return a.css(el,p);}
-function same(a,b){if(a===b)return true;const na=parseFloat(a),nb=parseFloat(b);if(!isNaN(na)&&!isNaN(nb)&&/^-?[\d.]+(px|%)?$/.test(String(a).trim())&&/^-?[\d.]+(px|%)?$/.test(String(b).trim())){const ua=String(a).replace(/[\d.\-]/g,''),ub=String(b).replace(/[\d.\-]/g,'');return ua===ub&&Math.abs(na-nb)<=3;}return false;}
+function same(a,b){if(a===b)return true;a=String(a).trim();b=String(b).trim();const re=/^-?[\d.]+(px|%)?$/;if(re.test(a)&&re.test(b)){const ua=a.replace(/[\d.\-]/g,''),ub=b.replace(/[\d.\-]/g,'');if(ua!==ub)return false;const tol=ua==='px'?3:ua==='%'?1:0.03;return Math.abs(parseFloat(a)-parseFloat(b))<=tol;}return false;}
 async function compare(task,code,fr,tg){
   const u=await renderInto(fr,code,ART_BASE),t=makeApi(tg.contentDocument,tg.contentWindow);
   let total=0,ok=0;const miss=[];
@@ -1357,6 +1542,7 @@ const ROOM_CSS=`html,body{margin:0}body{font-family:system-ui,sans-serif;backgro
 .room box::before{content:"box";position:absolute;top:3px;font-size:10px;color:#7a5a37;font-weight:800}
 .room [class]::after,.room [id]::after,.room [locked]::after{position:absolute;bottom:2px;font-size:10px;color:#6b4c2a;font-weight:800;white-space:nowrap}
 .room [class]::after{content:"." attr(class)}.room [id]::after{content:"#" attr(id)}.room [locked]::after{content:"locked"}
+.room [element]::after{position:absolute;bottom:2px;font-size:10px;color:#6b4c2a;font-weight:800;white-space:nowrap;content:attr(element)}
 .room .gold{filter:drop-shadow(0 0 5px #f5b301)}
 .room [data-tgt]{animation:wig .9s ease-in-out infinite}
 @keyframes wig{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
@@ -1419,10 +1605,50 @@ const ROOMS=[
  story:"Some items are LOCKED. The door wants all the locked things, whatever they are.",
  learn:"An **attribute selector** uses square brackets: `[locked]` selects anything that has a locked attribute.",
  hints:["Look at the labels: what do the wiggling items share?","Square brackets: `[locked]`"],tip:"Real example: `input[type=\"email\"]` styles only email boxes."},
-{id:'r15',ch:'Floor 3: Positions',title:'The Final Door',target:'chest:not(.gold)',markup:"<chest class=\"gold\"></chest>\n<chest></chest>\n<chest class=\"gold\"></chest>\n<chest></chest>\n<potion></potion>",
- story:"The last door. Daylight shines through the cracks! It wants every chest that is NOT gold. Get this, and you're free.",
+{id:'r15',ch:'Floor 3: Positions',title:'The Floor 3 Door',target:'chest:not(.gold)',markup:"<chest class=\"gold\"></chest>\n<chest></chest>\n<chest class=\"gold\"></chest>\n<chest></chest>\n<potion></potion>",
+ story:"The last door. Daylight shines through the cracks! It wants every chest that is NOT gold. Get this, and the stairs to Floor 4 appear!",
  learn:"`:not( )` flips a selector: `chest:not(.gold)` = chests that do NOT have class gold.",
- hints:["Chests... but not the gold ones.","`chest:not(.gold)`"],tip:"You now know more selectors than many junior developers. Seriously."}
+ hints:["Chests... but not the gold ones.","`chest:not(.gold)`"],tip:"You now know more selectors than many junior developers. Seriously."},
+{id:'r16',ch:'Floor 4: Master Selectors',title:'Odd Ones Out',target:'gem:nth-child(odd)',markup:"<gem></gem>\n<gem></gem>\n<gem></gem>\n<gem></gem>\n<gem></gem>",
+ story:"Floor 4 — the deepest part of the dungeon. Five gems sit in a row. The door wants the 1st, 3rd and 5th.",
+ learn:"`:nth-child(odd)` selects children in odd positions: 1, 3, 5...",
+ hints:["Positions 1, 3 and 5 are odd numbers.","`gem:nth-child(odd)`"],tip:"Striped tables use `tr:nth-child(odd)` to colour every other row."},
+{id:'r17',ch:'Floor 4: Master Selectors',title:'Even Steven',target:'potion:nth-child(even)',markup:"<potion></potion>\n<potion></potion>\n<potion></potion>\n<potion></potion>\n<potion></potion>\n<potion></potion>",
+ story:"Six potions. Steven the guard only drinks the even ones.",
+ learn:"`:nth-child(even)` selects positions 2, 4, 6...",
+ hints:["The opposite of odd.","`potion:nth-child(even)`"],tip:"`:nth-child(2n)` also means even — 'every 2nd one'."},
+{id:'r18',ch:'Floor 4: Master Selectors',title:'Next-Door Neighbour',target:'key + chest',markup:"<key></key>\n<chest></chest>\n<chest></chest>\n<key></key>\n<chest></chest>\n<gem></gem>",
+ story:"Only chests standing RIGHT after a key will open this door.",
+ learn:"`+` selects the element **directly after** another one: `key + chest` = a chest that comes right after a key.",
+ hints:["Each wiggling chest comes straight after a key.","`key + chest`"],tip:"Real example: `h2 + p` styles the first paragraph right after each heading."},
+{id:'r19',ch:'Floor 4: Master Selectors',title:'Everyone After',target:'skull ~ gem',markup:"<gem></gem>\n<skull></skull>\n<gem></gem>\n<chest></chest>\n<gem></gem>",
+ story:"A cursed skull! Every gem that comes AFTER it (not before) is cursed... and the door wants them.",
+ learn:"`~` selects ALL the following siblings: `skull ~ gem` = every gem after the skull.",
+ hints:["`+` only grabs the very next one. You need ALL the ones after.","`skull ~ gem`"],tip:"`+` = next one only. `~` = all the ones after."},
+{id:'r20',ch:'Floor 4: Master Selectors',title:'Double Class',target:'.gold.big',markup:"<chest class=\"gold\"></chest>\n<chest class=\"gold big\"></chest>\n<gem class=\"big\"></gem>\n<gem class=\"gold big\"></gem>",
+ story:"The door only wants BIG GOLD things. Gold alone isn't enough. Big alone isn't enough.",
+ learn:"Join two classes with NO space: `.gold.big` = things that have BOTH classes.",
+ hints:["Some items have two classes: gold AND big.","`.gold.big` (no space!)"],tip:"`.gold .big` (with a space) means a .big INSIDE a .gold — totally different!"},
+{id:'r21',ch:'Floor 4: Master Selectors',title:'Fire Element',target:'[element="fire"]',markup:"<potion element=\"fire\"></potion>\n<potion element=\"ice\"></potion>\n<gem element=\"fire\"></gem>\n<potion></potion>",
+ story:"Elemental magic! Only things with the FIRE element will melt this icy door.",
+ learn:"`[element=\"fire\"]` selects things whose element attribute is exactly fire.",
+ hints:["Square brackets, the attribute name, = and the value in quotes.","`[element=\"fire\"]`"],tip:"Real websites use `input[type=\"password\"]` to style only password boxes."},
+{id:'r22',ch:'Floor 4: Master Selectors',title:'The Royal Vault',target:'#vault gem',markup:"<gem></gem>\n<box id=\"vault\">\n  <gem></gem>\n  <chest>\n    <gem></gem>\n  </chest>\n</box>\n<box>\n  <gem></gem>\n</box>",
+ story:"The royal vault has an id. The door wants every gem inside the vault — even the hidden ones.",
+ learn:"Mix an id with a space: `#vault gem` = any gem anywhere inside #vault.",
+ hints:["Start with the vault's id.","Then a space, then gem: `#vault gem`"],tip:"A space means 'anywhere inside', no matter how deep."},
+{id:'r23',ch:'Floor 4: Master Selectors',title:'Children of Boxes',target:'box > *',markup:"<gem></gem>\n<box>\n  <chest></chest>\n  <potion></potion>\n</box>\n<box>\n  <key></key>\n</box>",
+ story:"The door wants every item sitting directly inside a box — whatever it is.",
+ learn:"Combine `>` with `*`: `box > *` = every direct child of a box.",
+ hints:["'Any element' is `*`.","Direct children use `>`: `box > *`"],tip:"Combining small selectors lets you target almost anything on a page."},
+{id:'r24',ch:'Floor 4: Master Selectors',title:'Last of Its Kind',target:'chest:last-of-type',markup:"<chest></chest>\n<chest></chest>\n<gem></gem>\n<chest></chest>\n<key></key>",
+ story:"Tricky! The door wants the last CHEST — but a key is the last thing in the room.",
+ learn:"`:last-child` only works if it's the very last item. `:last-of-type` = the last one of THAT tag.",
+ hints:["`chest:last-child` won't work — the key is last.","`chest:last-of-type`"],tip:"There's also `:first-of-type` and `:nth-of-type(2)`."},
+{id:'r25',ch:'Floor 4: Master Selectors',title:'The Escape Hatch',target:'box .gold:not(chest)',markup:"<gem class=\"gold\"></gem>\n<box>\n  <chest class=\"gold\"></chest>\n  <gem class=\"gold\"></gem>\n  <potion class=\"gold\"></potion>\n</box>\n<box>\n  <key class=\"gold\"></key>\n</box>",
+ story:"The very last door! It wants gold things inside boxes — but NOT chests. Solve it and Sir Select walks free into the sunshine. ☀️",
+ learn:"Combine everything: a space (inside) + a class + `:not()`.",
+ hints:["Start with gold things inside boxes: `box .gold`","Then leave out chests: add `:not(chest)` right after `.gold`","`box .gold:not(chest)`"],tip:"You now know more CSS selectors than many working developers. Seriously impressive."}
 ];
 function matchSet(doc,sel){const room=doc.querySelector('.room');let list;try{list=[...doc.querySelectorAll(sel)];}catch(e){return null;}return list.filter(e=>room.contains(e)&&e!==room);}
 let cur=null,api=null;
@@ -1450,7 +1676,7 @@ function play(L,el,done){
     cnt.textContent=`You're grabbing ${m.length} · The door wants ${matchSet(doc,L.target).length}`;return m;}
   inp.addEventListener('input',live);
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go();}});
-  addSnips($('.snips',el),inp,live,['.','#',' ','>',',','*','[',']',':','(',')']);
+  addSnips($('.snips',el),inp,live,['.','#',' ','>','+','~',',','*','[',']','=','"',':','(',')']);
   $('.snips',el).lastChild.remove();
   [...$('.snips',el).children].find(b=>b.textContent===' ').textContent='␣ space';
   function go(){if(!api)return;const s=inp.value.trim();if(!s){fb('bad','Type a selector first!');return;}
@@ -1555,10 +1781,62 @@ const DAYS=[
  mission:"Make `.menu` `display: flex` with a `gap` of at least **5px**.",
  hints:["Add to your `.menu` rule (or a new one).","`.menu { display: flex; gap: 16px; }`"],snippet:".menu { display: flex; gap: 16px; }",kind:'css',
  tip:"Add `list-style: none;` to `.menu` to remove the bullet dots — looks much cleaner!",
- checks:[cssIs('.menu','display','flex',"Make `.menu` `display: flex;`"),[a=>{const e=a.$('.menu');return !!e&&(px(a.css(e,'columnGap'))>=5);},"Give `.menu` a `gap` of at least 5px."]]}
+ checks:[cssIs('.menu','display','flex',"Make `.menu` `display: flex;`"),[a=>{const e=a.$('.menu');return !!e&&(px(a.css(e,'columnGap'))>=5);},"Give `.menu` a `gap` of at least 5px."]]},
+{id:'d13',ch:'Week 4: Going pro',title:'A friendlier font',coins:60,
+ story:"Customers say the website looks 'a bit computer-y'. Let's give it a warm, friendly font.",
+ mission:"Give the `body` a `font-family` (try `Georgia, serif`).",
+ hints:["Add a rule for `body` inside your style section.","`body { font-family: Georgia, serif; }`"],snippet:"body { font-family: Georgia, serif; }",kind:'css',
+ tip:"Always list a backup after a comma. If someone's device doesn't have Georgia, they still get a serif font.",
+ checks:[[a=>a.css(a.doc.body,'fontFamily')!=='system-ui, sans-serif',"Give the `body` a `font-family`."]]},
+{id:'d14',ch:'Week 4: Going pro',title:'A menu bar',coins:60,
+ story:"Big websites have a menu bar at the top so people can jump around. Let's add one!",
+ mission:"At the very TOP of your code, add a `<nav>` with **3** links (`<a>`).",
+ hints:["`<nav>` is a box for menu links. Put it on the very first line.","`<nav>\n  <a href=\"#\">Home</a>\n  <a href=\"#menu\">Menu</a>\n  <a href=\"#contact\">Contact</a>\n</nav>`"],
+ snippet:"<nav>\n  <a href=\"#\">Home</a>\n  <a href=\"#menu\">Menu</a>\n  <a href=\"#contact\">Contact</a>\n</nav>",kind:'html',
+ apply:c=>"<nav>\n  <a href=\"#\">Home</a>\n  <a href=\"#menu\">Menu</a>\n  <a href=\"#contact\">Contact</a>\n</nav>\n"+c,
+ tip:"`href=\"#contact\"` jumps to the element with `id=\"contact\"` on the same page. You'll make that soon!",
+ checks:[[a=>a.$$('nav a').length>=3,"Add a `<nav>` with 3 `<a>` links inside."]]},
+{id:'d15',ch:'Week 4: Going pro',title:'Style the menu bar',coins:70,
+ story:"The menu links are squashed together on the left. Spread them out and center them.",
+ mission:"Make `nav` a flex box with `justify-content: center` and a `gap`.",
+ hints:["New rule: `nav { }`","`nav { display: flex; justify-content: center; gap: 20px; }`"],snippet:"nav { display: flex; justify-content: center; gap: 20px; }",kind:'css',
+ tip:"Notice you can style a tag (nav) directly — no class needed when there's only one.",
+ checks:[cssIs('nav','display','flex',"Make `nav` `display: flex;`"),cssIs('nav','justifyContent','center',"Add `justify-content: center;` to `nav`."),[a=>px(a.css(a.$('nav'),'columnGap'))>0,"Give `nav` a `gap`, like `gap: 20px;`"]]},
+{id:'d16',ch:'Week 4: Going pro',title:'The coffee club',coins:70,
+ story:"Grandma wants a coffee club newsletter! Add a spot where people can type their email.",
+ mission:"Add an `<h2>` with `id=\"contact\"`, an `<input>` with a `placeholder`, and a `<button>`.",
+ hints:["`<h2 id=\"contact\">Join our coffee club</h2>`","`<input type=\"email\" placeholder=\"Your email\">` then `<button>Join</button>`"],
+ snippet:"<h2 id=\"contact\">Join our coffee club</h2>\n<input type=\"email\" placeholder=\"Your email\">\n<button>Join</button>",kind:'html',
+ tip:"`type=\"email\"` makes phones show the @ key on the keyboard. Tiny detail, big difference.",
+ checks:[has('h2#contact',"Add an `<h2 id=\"contact\">`."),[a=>!!(a.$('input')&&a.$('input').getAttribute('placeholder')),"Add an `<input>` with a `placeholder`."],has('button',"Add a `<button>`.")]},
+{id:'d17',ch:'Week 4: Going pro',title:'A floating menu',coins:80,
+ story:"Fancy cafés have menus that look like they float off the page. That's done with a shadow!",
+ mission:"Give `.menu` a `box-shadow`.",
+ hints:["Add a rule for `.menu`.","`.menu { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }`"],snippet:".menu { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }",kind:'css',
+ tip:"box-shadow values: left-right, up-down, blur, colour. In `rgba(...)` the last number is how see-through it is.",
+ checks:[has('.menu',"You need your `<ul class=\"menu\">` from Day 8."),cssNot('.menu','boxShadow','none',"Give `.menu` a `box-shadow`.")]},
+{id:'d18',ch:'Week 5: Famous',title:'Fit every screen',coins:80,
+ story:"On big computer screens the website stretches super wide and looks odd. Let's keep it a nice reading width.",
+ mission:"Give `body` a `max-width` (like 600px) and `margin: 0 auto` to center it.",
+ hints:["Add another `body` rule (or add to your existing one).","`body { max-width: 600px; margin: 0 auto; }`"],snippet:"body { max-width: 600px; margin: 0 auto; }",kind:'css',
+ tip:"`max-width` means 'never wider than this' — it still shrinks on phones. Perfect for every screen size.",
+ checks:[cssNot('body','maxWidth','none',"Give `body` a `max-width`.")]},
+{id:'d19',ch:'Week 5: Famous',title:'Smooth moves',coins:90,
+ story:"The button changes colour very suddenly. Let's make it fade smoothly — like a fancy app.",
+ mission:"Give `.btn` a `transition` (like `background-color 0.3s`).",
+ hints:["Add to your `.btn` rule, or write a new one.","`.btn { transition: background-color 0.3s; }`"],snippet:".btn { transition: background-color 0.3s; }",kind:'css',
+ tip:"Smooth transitions make websites feel expensive. 0.2 to 0.3 seconds is the sweet spot.",
+ checks:[has('.btn',"You need your `<a class=\"btn\">` from Day 9."),[a=>a.css(a.$('.btn'),'transitionDuration').split(',').some(v=>parseFloat(v)>0),"Give `.btn` a `transition`, like `transition: background-color 0.3s;`"]]},
+{id:'d20',ch:'Week 5: Famous',title:'Famous café!',coins:150,
+ story:"A food blogger just called us the best café website in town! Let's finish with a gorgeous footer. I'm the proudest grandma in the world. — Grandma 👵❤️",
+ mission:"Style `footer` with a `background-color`, `text-align: center` and at least **10px** padding.",
+ hints:["New rule: `footer { }`","`footer { background-color: saddlebrown; color: white; text-align: center; padding: 20px; }`"],
+ snippet:"footer { background-color: saddlebrown; color: white; text-align: center; padding: 20px; }",kind:'css',
+ tip:"Your café site now uses structure, colour, layout, forms and smooth effects. That's a genuine portfolio piece!",
+ checks:[has('footer',"You need your `<footer>` from Day 11."),cssNot('footer','backgroundColor',CLEAR,"Give `footer` a `background-color`."),cssIs('footer','textAlign','center',"Add `text-align: center;` to `footer`."),cssMin('footer','paddingTop',10,"Give `footer` at least `padding: 10px;`")]}
 ];
 DAYS.forEach(d=>{d.answer=d.snippet;d.apply=d.apply||(c=>d.kind==='css'?insertCSS(c,d.snippet):insertHTML(c,d.snippet));});
-const DECOR=[{e:'🪴',n:'Plant',c:20},{e:'🧁',n:'Cake stand',c:40},{e:'🖼️',n:'Painting',c:60},{e:'💡',n:'Neon sign',c:80},{e:'🎵',n:'Jukebox',c:100},{e:'🐈',n:'Café cat',c:150}];
+const DECOR=[{e:'🪴',n:'Plant',c:20},{e:'🧁',n:'Cake stand',c:40},{e:'🖼️',n:'Painting',c:60},{e:'💡',n:'Neon sign',c:80},{e:'🎵',n:'Jukebox',c:100},{e:'🐈',n:'Café cat',c:150},{e:'🛋️',n:'Comfy sofa',c:200},{e:'🎂',n:'Party cake',c:250},{e:'🌟',n:'Gold star award',c:400}];
 const doneDays=()=>DAYS.filter(d=>C().stars[d.id]).length;
 const customers=()=>5+doneDays()*9+C().decor.length*6;
 function cafeName(){const m=/<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(C().code||'');return m?m[1].replace(/<[^>]+>/g,'').trim().slice(0,30):'';}
@@ -1586,7 +1864,7 @@ function play(L,el,done,g){
 }
 Game({id:'cafe',emoji:'☕',title:'Café Tycoon',unit:'Day',winWord:'Great day at the café!',levels:DAYS,starStore:()=>C().stars,header,play,
  intro:`<h2>👵 Grandma's Café</h2><p class="lesson">Your grandma has handed you her little café — but it has no website, and customers can't find it! Each day she leaves you a note with one job.</p><p class="lesson">Unlike the other games, <b>your code carries over</b>: day by day you build ONE real website from scratch. Earn coins, buy decorations, and watch your customers grow.</p>`,
- finale:"Grand opening success! You built a complete, styled website from a blank page — HTML structure, CSS styling and a flexbox layout. That's a real portfolio piece."});
+ finale:"Your café is famous! You built a complete, styled website from a blank page — HTML structure, CSS styling and a flexbox layout. That's a real portfolio piece."});
 window.__CAFE={DAYS,insertCSS,insertHTML};
 })();
 </script>
@@ -1599,6 +1877,7 @@ window.__CAFE={DAYS,insertCSS,insertHTML};
 const h=(q,ans,checks)=>({q,ans,checks});
 const c=(q,html,ans,checks)=>({q,html,ans,checks,css:true});
 const GRID='<div class="grid"><div>A</div><div>B</div><div>C</div></div>';
+const L3='<ul><li>A</li><li>B</li><li>C</li></ul>';
 const RACES=[
 {id:'t1',ch:'Rookie League',title:'Rookie Rally',limit:110,rival:'Rusty the Rookie',
  story:"Welcome to Turbo Tags! Your first race is against Rusty. Every correct line of code is a turbo boost. Type fast — but type right!",
@@ -1641,13 +1920,61 @@ const RACES=[
   c("Give **.hot** an orange background","<p class=\"hot\">Hot</p>",".hot { background-color: orange; }",[cssIs('.hot','backgroundColor',ORANGE,"Pattern: `.hot { background-color: orange; }`")]),
   c("Make **#flag** 30px big","<h2 id=\"flag\">Flag</h2>","#flag { font-size: 30px; }",[cssPx('#flag','fontSize',30,"Pattern: `#flag { font-size: 30px; }`")])]},
 {id:'t6',ch:'Champion League',title:'Flex Grand Prix',limit:150,rival:'Felix Flexbox',
- story:"The Grand Prix! Felix Flexbox is the reigning champion. Every prompt styles the same `.grid` box. Win this and you're the Turbo Tags champion!",
+ story:"The Grand Prix! Felix Flexbox is the reigning champion. Every prompt styles the same `.grid` box. Win this to unlock the Street League!",
  prompts:[c("Make **.grid** a flex box",GRID,".grid { display: flex; }",[cssIs('.grid','display','flex',"Pattern: `.grid { display: flex; }`")]),
   c("**.grid**: flex + justify-content center",GRID,".grid { display: flex; justify-content: center; }",[cssIs('.grid','display','flex',"Need `display: flex;`"),cssIs('.grid','justifyContent','center',"Need `justify-content: center;`")]),
   c("**.grid**: flex + gap 10px",GRID,".grid { display: flex; gap: 10px; }",[cssIs('.grid','display','flex',"Need `display: flex;`"),gapPx('.grid',10,"Need `gap: 10px;`")]),
   c("**.grid**: flex + flex-direction column",GRID,".grid { display: flex; flex-direction: column; }",[cssIs('.grid','display','flex',"Need `display: flex;`"),cssIs('.grid','flexDirection','column',"Need `flex-direction: column;`")]),
   c("**.grid**: flex + align-items center",GRID,".grid { display: flex; align-items: center; }",[cssIs('.grid','display','flex',"Need `display: flex;`"),cssIs('.grid','alignItems','center',"Need `align-items: center;`")]),
-  c("**.grid**: flex + flex-wrap wrap",GRID,".grid { display: flex; flex-wrap: wrap; }",[cssIs('.grid','display','flex',"Need `display: flex;`"),cssIs('.grid','flexWrap','wrap',"Need `flex-wrap: wrap;`")])]}
+  c("**.grid**: flex + flex-wrap wrap",GRID,".grid { display: flex; flex-wrap: wrap; }",[cssIs('.grid','display','flex',"Need `display: flex;`"),cssIs('.grid','flexWrap','wrap',"Need `flex-wrap: wrap;`")])]},
+{id:'t7',ch:'Street League (HTML)',title:'Semantic Speedway',limit:130,rival:'Sam Antic',
+ story:"Welcome to the Street League! Sam Antic only uses tags with MEANING — header, nav, main, footer. They tell browsers what each part of a page IS.",
+ prompts:[h("A `<header>` containing an `<h1>` (any words)","<header><h1>Race</h1></header>",[has('header h1',"Need an `<h1>` inside a `<header>`.")]),
+  h("A `<nav>` containing a link `<a href=\"#\">`","<nav><a href=\"#\">Home</a></nav>",[has('nav a',"Need an `<a>` inside a `<nav>`.")]),
+  h("A `<main>` containing a `<p>`","<main><p>Go!</p></main>",[has('main p',"Need a `<p>` inside a `<main>`.")]),
+  h("A `<footer>` containing a `<p>`","<footer><p>© 2026</p></footer>",[has('footer p',"Need a `<p>` inside a `<footer>`.")]),
+  h("A `<section>` containing an `<h2>`","<section><h2>Results</h2></section>",[has('section h2',"Need an `<h2>` inside a `<section>`.")]),
+  h("An `<article>` with an `<h2>` and a `<p>` inside","<article><h2>News</h2><p>We won!</p></article>",[has('article h2',"Need an `<h2>` inside an `<article>`."),has('article p',"Need a `<p>` inside the `<article>`.")])]},
+{id:'t8',ch:'Street League (HTML)',title:'Form Freeway',limit:140,rival:'Inga Input',
+ story:"Form Freeway is lined with input boxes! Inga Input knows every type. Remember: `<input>` has no closing tag.",
+ prompts:[h("An `<input>` with type **email**","<input type=\"email\">",[[a=>a.$('input')?.getAttribute('type')==='email',"Need `<input type=\"email\">`."]]),
+  h("An `<input>` with type **password**","<input type=\"password\">",[[a=>a.$('input')?.getAttribute('type')==='password',"Need `<input type=\"password\">`."]]),
+  h("An `<input>` with type **checkbox**","<input type=\"checkbox\">",[[a=>a.$('input')?.getAttribute('type')==='checkbox',"Need `<input type=\"checkbox\">`."]]),
+  h("A `<textarea>` (any words inside)","<textarea>Hi</textarea>",[has('textarea',"Need `<textarea></textarea>`.")]),
+  h("A `<select>` with **2** `<option>` tags","<select><option>Red</option><option>Blue</option></select>",[[a=>a.$$('select option').length>=2,"Need a `<select>` with 2 `<option>` inside."]]),
+  h("A `<label>` that says **Name**","<label>Name</label>",[hasText('label','name',"Need `<label>Name</label>`.")])]},
+{id:'t9',ch:'Street League (HTML)',title:'Table Turnpike',limit:150,rival:'Tabby Tables',
+ story:"Table Turnpike! Tables are rows (`<tr>`) of cells (`<td>`). Tabby has raced here for years — show her what you've got.",
+ prompts:[h("A `<table>` with one `<tr>` and one `<td>`","<table><tr><td>1st</td></tr></table>",[has('table tr td',"Need `<table><tr><td>…</td></tr></table>`.")]),
+  h("A table row with **2** `<td>` cells","<table><tr><td>A</td><td>B</td></tr></table>",[[a=>a.$$('table tr td').length>=2,"Need a `<tr>` with 2 `<td>`, inside a `<table>`."]]),
+  h("A table with a `<th>` heading cell","<table><tr><th>Name</th></tr></table>",[has('table th',"Need a `<th>` inside a table row.")]),
+  h("A table with **2** rows (`<tr>`)","<table><tr><td>1</td></tr><tr><td>2</td></tr></table>",[[a=>a.$$('table tr').length>=2,"Need 2 `<tr>` rows inside a `<table>`."]]),
+  h("A table cell (`<td>`) that says **Gold**","<table><tr><td>Gold</td></tr></table>",[hasText('td','gold',"Need a `<td>` that says Gold, inside a table.")]),
+  h("A row with `<th>` **Time** and `<td>` **12s**","<table><tr><th>Time</th><td>12s</td></tr></table>",[hasText('th','time',"Need `<th>Time</th>`."),hasText('td','12s',"Need `<td>12s</td>`.")])]},
+{id:'t10',ch:'Turbo League (CSS)',title:'Box Model Bridge',limit:130,rival:'Paddy Margin',
+ story:"Turbo League! The HTML is built for you — type only the CSS rule. Paddy Margin is the box model king.",
+ prompts:[c("Give the div **20px** margin","<div>Box</div>","div { margin: 20px; }",[cssPx('div','marginTop',20,"Pattern: `div { margin: 20px; }`")]),
+  c("Give the div **15px** padding","<div>Box</div>","div { padding: 15px; }",[cssPx('div','paddingTop',15,"Pattern: `div { padding: 15px; }`")]),
+  c("Make the div **100px** wide","<div>Box</div>","div { width: 100px; }",[cssPx('div','width',100,"Pattern: `div { width: 100px; }`")]),
+  c("Make the div **50px** tall","<div>Box</div>","div { height: 50px; }",[cssPx('div','height',50,"Pattern: `div { height: 50px; }`")]),
+  c("Give the div a **3px dashed red** border","<div>Box</div>","div { border: 3px dashed red; }",[cssPx('div','borderTopWidth',3,"Need a 3px border."),cssIs('div','borderTopStyle','dashed',"The border should be dashed."),cssIs('div','borderTopColor',RED,"The border should be red.")]),
+  c("Round the div's corners by **10px**","<div>Box</div>","div { border-radius: 10px; }",[cssPx('div','borderTopLeftRadius',10,"Pattern: `div { border-radius: 10px; }`")])]},
+{id:'t11',ch:'Turbo League (CSS)',title:'Pseudo Pass',limit:140,rival:'Hover Harriet',
+ story:"Pseudo Pass is full of tricky bends — `:hover`, `:first-child`, `:nth-child`. Hover Harriet takes every corner perfectly.",
+ prompts:[c("Make links **red** on hover","<a href=\"#\">Hi</a>","a:hover { color: red; }",[[a=>a.rules().some(r=>r.selectorText&&r.selectorText.replace(/\s/g,'')==='a:hover'&&r.style.color),"Pattern: `a:hover { color: red; }`"]]),
+  c("Make the **first** li green",L3,"li:first-child { color: green; }",[[a=>a.css(a.$$('li')[0],'color')===GREEN&&a.css(a.$$('li')[1],'color')!==GREEN,"Pattern: `li:first-child { color: green; }`"]]),
+  c("Make the **last** li blue",L3,"li:last-child { color: blue; }",[[a=>a.css(a.$$('li')[2],'color')===BLUE&&a.css(a.$$('li')[0],'color')!==BLUE,"Pattern: `li:last-child { color: blue; }`"]]),
+  c("Make the **2nd** li purple",L3,"li:nth-child(2) { color: purple; }",[[a=>a.css(a.$$('li')[1],'color')===PURPLE&&a.css(a.$$('li')[0],'color')!==PURPLE,"Pattern: `li:nth-child(2) { color: purple; }`"]]),
+  c("Give buttons a **yellow** background on hover","<button>Go</button>","button:hover { background-color: yellow; }",[hoverRule('button:hover',"Pattern: `button:hover { background-color: yellow; }`")]),
+  c("Make every **odd** li orange",L3,"li:nth-child(odd) { color: orange; }",[[a=>{const l=a.$$('li');return a.css(l[0],'color')===ORANGE&&a.css(l[2],'color')===ORANGE&&a.css(l[1],'color')!==ORANGE;},"Pattern: `li:nth-child(odd) { color: orange; }`"]])]},
+{id:'t12',ch:'Turbo League (CSS)',title:'Grid Grand Prix',limit:150,rival:'Gridley the Great',
+ story:"The final Grand Prix — on the Grid circuit! Every prompt styles the same `.grid` box. Win this and you're the undisputed Turbo Tags legend.",
+ prompts:[c("Make **.grid** a grid",GRID,".grid { display: grid; }",[cssIs('.grid','display','grid',"Pattern: `.grid { display: grid; }`")]),
+  c("**.grid**: grid with 2 equal columns (`1fr 1fr`)",GRID,".grid { display: grid; grid-template-columns: 1fr 1fr; }",[cssIs('.grid','display','grid',"Need `display: grid;`"),[a=>gridCols(a,'.grid').length===2,"Need `grid-template-columns: 1fr 1fr;`"]]),
+  c("**.grid**: grid with `repeat(3, 1fr)` columns",GRID,".grid { display: grid; grid-template-columns: repeat(3, 1fr); }",[cssIs('.grid','display','grid',"Need `display: grid;`"),[a=>gridCols(a,'.grid').length===3,"Need `grid-template-columns: repeat(3, 1fr);`"]]),
+  c("**.grid**: grid + gap 10px",GRID,".grid { display: grid; gap: 10px; }",[cssIs('.grid','display','grid',"Need `display: grid;`"),gapPx('.grid',10,"Need `gap: 10px;`")]),
+  c("**.grid**: grid with columns `100px 200px`",GRID,".grid { display: grid; grid-template-columns: 100px 200px; }",[cssIs('.grid','display','grid',"Need `display: grid;`"),[a=>{const t=gridCols(a,'.grid');return t.length===2&&Math.abs(t[0]-100)<=1&&Math.abs(t[1]-200)<=1;},"Need `grid-template-columns: 100px 200px;`"]]),
+  c("**.grid**: grid + `justify-items: center`",GRID,".grid { display: grid; justify-items: center; }",[cssIs('.grid','display','grid',"Need `display: grid;`"),cssIs('.grid','justifyItems','center',"Need `justify-items: center;`")])]}
 ];
 const wrap=(p,input)=>p.css?`${p.html}<style>${input}</style>`:input;
 let timer=null,raf=null,cdT=null;
@@ -1699,7 +2026,7 @@ function play(L,el,done){
 }
 Game({id:'racer',emoji:'🏎️',title:'Tag Racer',unit:'Race',winWord:'You won the race!',levels:RACES,play,cleanup,
  intro:`<h2>🏁 Turbo Tags League</h2><p class="lesson">Welcome to the fastest league in Code City! Each race has 6 prompts. Every correct line of code boosts your car forward. Wrong code = spin out. Beat your rival to the finish line!</p><p class="lesson">This game trains <b>muscle memory</b> — so tags and CSS rules come out of your fingers without thinking. That's how pros code fast.</p>`,
- finale:"You're the Turbo Tags champion! Your fingers now know HTML and CSS by heart."});
+ finale:"You're the Turbo Tags LEGEND! Your fingers now know HTML, forms, tables, the box model, pseudo-classes and grid by heart."});
 window.__RACES={RACES,wrap};
 })();
 </script>
@@ -1776,12 +2103,77 @@ const LV=[
  learn:"A **while loop** repeats as long as something is true:\n`while (!atGoal()) {`\n`  moveRight();`\n`}`\n`!` means NOT. So: \"while NOT at the goal, keep moving right\".",
  hints:["Tap the `while` button.","Put `moveRight();` inside it."],answer:"while (!atGoal()) {\n  moveRight();\n}",
  tip:"Careful: a while loop that never ends freezes the program. Bolt has a safety switch — real programs don't!"},
-{id:'j10',ch:'Part 3: Smart Bolt',title:'The Great Escape',grid:["S..#####","##..*.##","#####..#","######.G"],tools:['while','if','else'],
- story:"The final room! Walls everywhere and a gem on the way. Make Bolt SMART: if there's a wall to the right, go down — otherwise, go right. Get Bolt out and he's free!",
+{id:'j10',ch:'Part 3: Smart Bolt',title:'Smart Bolt',grid:["S..#####","##..*.##","#####..#","######.G"],tools:['while','if','else'],
+ story:"The final room! Walls everywhere and a gem on the way. Make Bolt SMART: if there's a wall to the right, go down — otherwise, go right. Get Bolt out of this room and he'll reach the upper factory!",
  learn:"**if / else** picks between two choices:\n`if (isWallRight()) {`\n`  moveDown();`\n`} else {`\n`  moveRight();`\n`}`\nPut it inside a while loop, and add a gem check too!",
  hints:["Use `while (!atGoal()) { ... }` around everything.","Inside: first check for a gem (`if (isGemHere())`), then the if/else to move.","Tap the `while`, `if` and `if/else` buttons and combine them."],
  answer:"while (!atGoal()) {\n  if (isGemHere()) {\n    pickUp();\n  }\n  if (isWallRight()) {\n    moveDown();\n  } else {\n    moveRight();\n  }\n}",
- tip:"You just wrote a real algorithm — a set of smart rules that solves a problem. That's what programmers do!"}
+ tip:"You just wrote a real algorithm — a set of smart rules that solves a problem. That's what programmers do!"},
+{id:'j11',ch:'Part 4: Variables',title:'Remember a Number',grid:["S.....G"],tools:['for'],
+ story:"Bolt made it to the upper factory! He has a tiny memory chip. Let's teach him to remember numbers.",
+ learn:"A **variable** is a labelled box that stores a value:\n`let steps = 6;`\nNow `steps` means 6. Use it anywhere:\n`for (let i = 0; i < steps; i++) {`",
+ need:[[/^\s*let\s+\w+\s*=\s*\d/m,"This level is about variables! On its own line, make one first, like `let steps = 6;`"]],
+ hints:["Make a variable: `let steps = 6;`","Use it in a for loop: `i < steps`"],answer:"let steps = 6;\nfor (let i = 0; i < steps; i++) {\n  moveRight();\n}",
+ tip:"Good variable names explain themselves. `steps` is much better than `x`."},
+{id:'j12',ch:'Part 4: Variables',title:'Bolt Speaks',grid:["S..G"],tools:[],
+ story:"Bolt wants to say hello to the factory workers! Robots can talk using text.",
+ learn:"Text in code is called a **string**. Strings go inside quote marks:\n`say(\"Hello!\");`\nWithout quotes, JavaScript thinks the word is a command name and gets confused.",
+ need:[[/say\s*\(\s*["'`]/,"Make Bolt talk first! Try `say(\"Hello!\");`"]],
+ hints:["`say(\"Hello!\");`","Then move right 3 times."],answer:"say(\"Hello!\");\nmoveRight();\nmoveRight();\nmoveRight();",
+ tip:"You can use \"double\" or 'single' quotes — just make the start and end match."},
+{id:'j13',ch:'Part 4: Variables',title:'Gem Counter',grid:["S*.*.*G"],tools:['for','if'],
+ story:"Bolt wants to count gems as he collects them, then shout the total at the end.",
+ learn:"Variables can CHANGE:\n`let gems = 0;`\n`gems = gems + 1;` adds one.\nThen `say(gems);` shows the number (no quotes — it's a variable, not text!).",
+ need:[[/^\s*let\s+\w+\s*=\s*0/m,"Start a counter at zero, like `let gems = 0;`"],[/\w+\s*=\s*\w+\s*\+\s*1|\w+\s*\+=\s*1|\w{2,}\s*\+\+/,"Add 1 to your counter each time, like `gems = gems + 1;`"],[/say\s*\(/,"Make Bolt say the total with `say(gems);`"]],
+ hints:["`let gems = 0;` at the top.","Inside your loop, after `pickUp();`, add `gems = gems + 1;`","At the very end: `say(gems);`"],
+ answer:"let gems = 0;\nfor (let i = 0; i < 3; i++) {\n  moveRight();\n  pickUp();\n  gems = gems + 1;\n  moveRight();\n}\nsay(gems);",
+ tip:"`gems++` is a shortcut for `gems = gems + 1`. Pros use it all the time."},
+{id:'j14',ch:'Part 5: Smarter Functions',title:'Commands with Inputs',grid:["S...#####","###.#####","###.....G"],tools:['function','for'],
+ story:"Bolt is tired of counting steps one by one. What if a command could take a NUMBER, like 'walk right 5 steps'?",
+ learn:"Functions can take **inputs** (called parameters):\n`function walkRight(n) {`\n`  for (let i = 0; i < n; i++) {`\n`    moveRight();`\n`  }`\n`}`\nNow `walkRight(3);` walks 3 steps and `walkRight(5);` walks 5!",
+ need:[[/function\s+\w+\s*\(\s*\w+/,"This level needs a function with an input, like `function walkRight(n) { ... }`"]],
+ hints:["Make two functions: `walkRight(n)` and `walkDown(n)`.","The path is: right 3, down 2, right 5.","`walkRight(3); walkDown(2); walkRight(5);`"],
+ answer:"function walkRight(n) {\n  for (let i = 0; i < n; i++) {\n    moveRight();\n  }\n}\n\nfunction walkDown(n) {\n  for (let i = 0; i < n; i++) {\n    moveDown();\n  }\n}\n\nwalkRight(3);\nwalkDown(2);\nwalkRight(5);",
+ tip:"`moveRight` is just a function someone else wrote. Now you're writing your own!"},
+{id:'j15',ch:'Part 5: Smarter Functions',title:'Loops in Loops',grid:["S..######","##...####","####...##","######...","########G"],tools:['for'],
+ story:"A long staircase: 2 steps right, then 1 step down — four times over. Can you put a loop INSIDE a loop?",
+ learn:"**Nested loops** = a loop inside a loop:\n`for (let s = 0; s < 4; s++) {`\n`  for (let i = 0; i < 2; i++) {`\n`    moveRight();`\n`  }`\n`  moveDown();`\n`}`\nThe inner loop runs completely each time the outer loop goes round once.",
+ need:[[/for[\s\S]*for/,"Try putting one loop inside another loop!"]],
+ hints:["Outer loop: 4 times. Inner loop: moveRight 2 times.","After the inner loop (but still inside the outer one): `moveDown();`"],
+ answer:"for (let s = 0; s < 4; s++) {\n  for (let i = 0; i < 2; i++) {\n    moveRight();\n  }\n  moveDown();\n}",
+ tip:"Use different letters (s and i) for nested loops so they don't get mixed up."},
+{id:'j16',ch:'Part 5: Smarter Functions',title:'Until the Wall',grid:["S.....#","#####G#"],tools:['while'],
+ story:"Bolt can sense walls! Keep walking right UNTIL there's a wall, then step down to the exit.",
+ learn:"`isWallRight()` answers true or false. Mix it with a while loop:\n`while (!isWallRight()) {`\n`  moveRight();`\n`}`\n= keep going right while there's NO wall.",
+ need:[[/while/,"Use a `while` loop with `isWallRight()` — don't count the steps!"]],
+ hints:["`while (!isWallRight()) { moveRight(); }`","Then `moveDown();` after the loop."],answer:"while (!isWallRight()) {\n  moveRight();\n}\nmoveDown();",
+ tip:"Code that senses the world (instead of counting) still works if the room changes size. That's smart code!"},
+{id:'j17',ch:'Part 5: Smarter Functions',title:'The Winding Corridor',grid:["S...####","###.####","###....#","######.#","######.G"],tools:['while','else'],
+ story:"A winding corridor full of turns. One smart rule solves it all: if there's a wall ahead, go down — otherwise, go right.",
+ learn:"Put **if / else** inside a **while** loop and Bolt can find his own way:\n`while (!atGoal()) {`\n`  if (isWallRight()) { moveDown(); }`\n`  else { moveRight(); }`\n`}`",
+ need:[[/while/,"Use a `while` loop."],[/else/,"Use `if / else` inside your loop."]],
+ hints:["Tap `+ while`, then put `+ if / else` inside it.","Change the while condition to `!atGoal()`."],
+ answer:"while (!atGoal()) {\n  if (isWallRight()) {\n    moveDown();\n  } else {\n    moveRight();\n  }\n}",
+ tip:"Self-driving robots use rules like this one — just millions of them!"},
+{id:'j18',ch:'Part 6: Master Bolt',title:'The Gem Snake',grid:["S*.*.*",".*..*.","..*..G"],tools:['function','for','if'],
+ story:"Gems scattered across three rows! Sweep right, step down, sweep left, step down, sweep right. Functions will save you SO much typing.",
+ learn:"Mix everything: functions + loops + if.\n`function sweepRight() {`\n`  for (let i = 0; i < 5; i++) {`\n`    moveRight();`\n`    if (isGemHere()) { pickUp(); }`\n`  }`\n`}`\nThen make a `sweepLeft()` too!",
+ hints:["Make `sweepRight()` and `sweepLeft()` (5 moves each, checking for gems each step).","Order: sweepRight, moveDown, sweepLeft, moveDown, sweepRight."],
+ answer:"function sweepRight() {\n  for (let i = 0; i < 5; i++) {\n    moveRight();\n    if (isGemHere()) {\n      pickUp();\n    }\n  }\n}\n\nfunction sweepLeft() {\n  for (let i = 0; i < 5; i++) {\n    moveLeft();\n    if (isGemHere()) {\n      pickUp();\n    }\n  }\n}\n\nsweepRight();\nmoveDown();\nsweepLeft();\nmoveDown();\nsweepRight();",
+ tip:"Breaking a big problem into small named pieces is the most important programming skill there is."},
+{id:'j19',ch:'Part 6: Master Bolt',title:'Countdown',grid:["S..G"],tools:['for'],
+ story:"Before the final escape, Bolt wants a dramatic countdown: 3... 2... 1... GO!",
+ learn:"Loops can count DOWN too:\n`for (let i = 3; i > 0; i--) {`\n`  say(i);`\n`}`\n`i--` means 'take 1 away'. Then say \"GO!\" and move!",
+ need:[[/--|-=\s*1/,"Count DOWN using `i--` in your loop."],[/say\s*\(/,"Use `say(i);` so Bolt counts out loud."]],
+ hints:["`for (let i = 3; i > 0; i--) { say(i); }`","Then `say(\"GO!\");` and move right 3 times."],
+ answer:"for (let i = 3; i > 0; i--) {\n  say(i);\n}\nsay(\"GO!\");\nmoveRight();\nmoveRight();\nmoveRight();",
+ tip:"`say(i)` shows the NUMBER inside i — because there are no quotes around i."},
+{id:'j20',ch:'Part 6: Master Bolt',title:'The Great Escape',grid:["S.*.######","###.######","###.*...##","#######.##","#######*..","#########G"],tools:['while','if','else','function'],
+ story:"The final exit! A long winding path with gems hidden along it. Write ONE smart program and Bolt walks out into the sunshine. ☀️",
+ learn:"Everything you know: a while loop, a gem check, and an if/else to choose a direction. You've got this!",
+ hints:["`while (!atGoal()) { ... }` around everything.","Inside: first check for a gem, then: if wall right → moveDown, else → moveRight."],
+ answer:"while (!atGoal()) {\n  if (isGemHere()) {\n    pickUp();\n  }\n  if (isWallRight()) {\n    moveDown();\n  } else {\n    moveRight();\n  }\n}",
+ tip:"You just wrote a real path-finding algorithm. Robot vacuums use ideas just like this!"}
 ];
 function friendly(err){
   if(!err)return'';const m=err.message||'';
@@ -1816,7 +2208,7 @@ function play(L,el,done){
   const cmds=$('.cmds',el);
   ['moveRight();','moveLeft();','moveUp();','moveDown();','pickUp();'].forEach(cm=>{const b=document.createElement('button');b.className='cmd';b.type='button';b.textContent=cm;b.onmousedown=e=>e.preventDefault();b.onclick=()=>{insertAt(ed,cm+'\n');PROG.robot[key]=ed.value;saveProg();};cmds.appendChild(b);});
   L.tools.forEach(t=>{const b=document.createElement('button');b.className='cmd';b.type='button';b.textContent='+ '+tb[t][0];b.onmousedown=e=>e.preventDefault();b.onclick=()=>{insertAt(ed,tb[t][1]);PROG.robot[key]=ed.value;saveProg();};cmds.appendChild(b);});
-  addSnips($('.snips:not(.cmds)',el),ed,()=>{},['(',')','{','}',';','!','<','=','+']);
+  addSnips($('.snips:not(.cmds)',el),ed,()=>{},['(',')','{','}',';','!','<','>','=','+','-','"']);
   let start=[0,0];const gemCells={};
   function draw(){grid.innerHTML='';L.grid.forEach((r,y)=>[...r].forEach((ch,x)=>{const d=document.createElement('div');d.className='rcell'+(ch==='#'?' wall':ch==='G'?' goal':'');d.textContent=ch==='G'?'🚪':ch==='*'?'💎':'';if(ch==='*')gemCells[x+','+y]=d;if(ch==='S')start=[x,y];grid.appendChild(d);}));
     const bot=document.createElement('div');bot.className='bot';bot.textContent='🤖';grid.appendChild(bot);place(bot,start[0],start[1]);
@@ -1824,6 +2216,7 @@ function play(L,el,done){
   const place=(b,x,y)=>{b.style.left=(3+x*(cell+3))+'px';b.style.top=(3+y*(cell+3))+'px';};
   draw();
   async function run(){if(running)return;if(!ed.value.trim()){fb('bad','Write some commands first! Tap the buttons below the editor to add them.');return;}
+    if(L.need)for(const[re,msg]of L.need)if(!re.test(ed.value)){fb('bad','📚 '+md(msg));return;}
     running=true;cleanup();draw();fb('info','🤖 Bolt is following your code…');
     const r=await runRobot(ed.value,L.grid);
     if(r.timeout){running=false;fb('bad','⏳ Your loop never ended! (That\'s called an infinite loop.) Check the condition in your <code>while</code> or <code>for</code>.');return;}
@@ -1852,8 +2245,625 @@ function play(L,el,done){
 }
 Game({id:'robot',emoji:'🤖',title:'Robot Commander',levels:LV,play,cleanup,
  intro:`<h2>🏭 Bolt's Big Escape</h2><p class="lesson">Bolt is a tiny robot lost in a giant factory. He can't think for himself — he only does exactly what your code says. Guide him to the exit 🚪 and collect every gem 💎.</p><p class="lesson">This game teaches <b>JavaScript</b> — the language that makes websites DO things. You'll learn commands, loops, functions and if-statements. Best played after the HTML &amp; CSS games.</p>`,
- finale:"Bolt is free! You learned commands, loops, functions, if/else and while loops — the core building blocks of every program ever written."});
+ finale:"Bolt is free! ☀️ You learned commands, variables, strings, loops, nested loops, functions with inputs, if/else and while loops — the core building blocks of every program ever written."});
 window.__ROBOT={LV,runRobot};
+})();
+</script>
+
+<!-- =====================================================================
+     GAME 8: FORM FORGE (HTML tables, forms, page structure)
+     ===================================================================== -->
+<script>
+(()=>{
+const SS="\n\n<style>\n  \n</style>";
+const TBL="<table>\n  <tr><th>Fruit</th><th>Price</th></tr>\n  <tr><td>Apple</td><td>$1</td></tr>\n  <tr><td>Mango</td><td>$4</td></tr>\n</table>";
+const F=[
+{id:'f1',ch:'Chapter 1: Tables',title:'The Price Board',
+ story:"Welcome to the Builders' Guild, apprentice! Our first customer is a fruit seller who needs a price board. Boards like this are built with **tables**.",
+ learn:"A table is built from rows and cells:\n• `<table>` = the whole board\n• `<tr>` = one table row\n• `<td>` = one cell (a box of data)",
+ example:"<table>\n  <tr>\n    <td>Apple</td>\n    <td>$1</td>\n  </tr>\n</table>",
+ mission:"Make a table with ONE row containing TWO cells: **Banana** and **$2**.",
+ hints:["Start with `<table>` and end with `</table>`.","Inside: one `<tr>` row.","Inside the row: `<td>Banana</td>` and `<td>$2</td>`."],
+ answer:"<table>\n  <tr>\n    <td>Banana</td>\n    <td>$2</td>\n  </tr>\n</table>",
+ tip:"Tables are for table-shaped info (prices, scores, timetables) — never for page layout.",
+ checks:[has('table tr td',"I need `<table>`, `<tr>` and `<td>` tags, nested in that order."),[a=>a.$$('tr td').length>=2,"Your row needs 2 `<td>` cells."],[a=>{const t=a.text(a.$('table'));return t.includes('banana')&&t.includes('$2');},"The cells should say Banana and $2."]]},
+{id:'f2',ch:'Chapter 1: Tables',title:'Header Row',
+ story:"The fruit seller says customers don't know what each column means. Every good table has headings!",
+ learn:"`<th>` = a heading cell. It works like `<td>`, but browsers make it **bold**, and screen readers announce it as a heading.",
+ example:"<tr>\n  <th>Fruit</th>\n  <th>Price</th>\n</tr>",
+ mission:"Make a table with a heading row (**Fruit**, **Price** in `<th>`) and a data row (**Kiwi**, **$3** in `<td>`).",
+ hints:["Two `<tr>` rows inside one `<table>`.","Row 1 uses `<th>` cells, row 2 uses `<td>` cells."],
+ answer:"<table>\n  <tr>\n    <th>Fruit</th>\n    <th>Price</th>\n  </tr>\n  <tr>\n    <td>Kiwi</td>\n    <td>$3</td>\n  </tr>\n</table>",
+ tip:"For extra-proper tables, wrap the heading row in `<thead>` and the rest in `<tbody>`.",
+ checks:[[a=>a.$$('table th').length>=2,"Your heading row needs 2 `<th>` cells."],[a=>{const t=a.$$('th').map(x=>a.text(x)).join(' ');return t.includes('fruit')&&t.includes('price');},"The headings should be Fruit and Price."],[a=>a.$$('table td').length>=2,"Add a data row with 2 `<td>` cells."],[a=>{const t=a.$$('td').map(x=>a.text(x)).join(' ');return t.includes('kiwi')&&t.includes('$3');},"The data row should say Kiwi and $3."]]},
+{id:'f3',ch:'Chapter 1: Tables',title:'The Full Menu',
+ story:"Business is booming! The seller wants the whole menu: a heading row plus THREE fruits.",
+ learn:"Tables grow downwards: just add more `<tr>` rows. Every row should have the same number of cells.",
+ example:"<tr><td>Pear</td><td>$2</td></tr>",
+ mission:"Make a table with a heading row (2 `<th>`) and **3** data rows (2 `<td>` each). Any fruits and prices!",
+ hints:["4 `<tr>` rows in total.","Row 1 uses `<th>`. Rows 2, 3 and 4 use `<td>`."],
+ answer:"<table>\n  <tr><th>Fruit</th><th>Price</th></tr>\n  <tr><td>Apple</td><td>$1</td></tr>\n  <tr><td>Mango</td><td>$4</td></tr>\n  <tr><td>Grapes</td><td>$5</td></tr>\n</table>",
+ tip:"You can write a whole row on one line, like the answer does. HTML doesn't care about line breaks.",
+ checks:[[a=>a.$$('table th').length>=2,"Add a heading row with 2 `<th>` cells."],[a=>a.$$('table tr').filter(r=>r.querySelectorAll('td').length>=2).length>=3,"Add 3 data rows, each with 2 `<td>` cells."]]},
+{id:'f4',ch:'Chapter 1: Tables',title:'Table Borders',
+ story:"The price board has no lines — customers can't tell where one price ends! Let's add borders with CSS.",
+ learn:"Tables have no borders by default. Style `table`, `th` and `td` together (a comma groups them):\n`table, th, td { border: 1px solid black; }`\nThen `border-collapse: collapse;` on `table` merges the double lines into single ones.",
+ example:"table, th, td { border: 1px solid gray; }\ntable { border-collapse: collapse; }",
+ mission:"Give every `th` and `td` a **solid** border, and make the table `border-collapse: collapse`.",
+ starter:TBL+SS,
+ hints:["`table, th, td { border: 1px solid black; }`","`table { border-collapse: collapse; }`"],
+ answer:TBL+"\n\n<style>\n  table, th, td { border: 1px solid black; padding: 8px; }\n  table { border-collapse: collapse; }\n</style>",
+ tip:"Add `padding: 8px;` to th and td — tables look 10× better with breathing room.",
+ checks:[cssIs('td','borderTopStyle','solid',"The `td` cells need a solid border."),cssIs('th','borderTopStyle','solid',"The `th` cells need a solid border."),cssIs('table','borderCollapse','collapse',"Add `border-collapse: collapse;` to `table`.")]},
+{id:'f5',ch:'Chapter 2: Forms',title:'The Name Box',
+ story:"New customer: the town library wants a sign-up form. First, a box for people's names — with a proper label.",
+ learn:"A `<label>` names an input box. Connect them:\n• give the input an `id`\n• give the label a `for` with the SAME value\nNow tapping the label jumps into the box — great on phones!",
+ example:"<label for=\"city\">City</label>\n<input id=\"city\">",
+ mission:"Make a `<label>` saying **Name**, connected to an `<input>` with `id=\"name\"`.",
+ hints:["Label: `<label for=\"name\">Name</label>`","Input: `<input id=\"name\">`"],
+ answer:"<label for=\"name\">Name</label>\n<input id=\"name\">",
+ tip:"Click the word Name in the preview — the box lights up. That's the connection working.",
+ checks:[has('input#name',"Add `<input id=\"name\">`."),has('label[for="name"]',"Add a label with `for=\"name\"`."),hasText('label','name',"The label should say Name.")]},
+{id:'f6',ch:'Chapter 2: Forms',title:'Email & Password',
+ story:"The library needs a login. An email box, and a password box that shows dots so nobody can peek!",
+ learn:"The `type` attribute changes what an input does:\n• `type=\"email\"` → phones show the @ key\n• `type=\"password\"` → hides letters as dots\n• `type=\"number\"` → numbers only",
+ example:"<input type=\"number\">",
+ mission:"Make one input with `type=\"email\"` and another with `type=\"password\"`.",
+ hints:["`<input type=\"email\">`","`<input type=\"password\">`"],answer:"<input type=\"email\" placeholder=\"Email\">\n<input type=\"password\" placeholder=\"Password\">",
+ tip:"Type into the password box in the preview — dots!",
+ checks:[has('input[type="email"]',"Add `<input type=\"email\">`."),has('input[type="password"]',"Add `<input type=\"password\">`.")]},
+{id:'f7',ch:'Chapter 2: Forms',title:'The Message Box',
+ story:"Readers want to send the library longer messages. One-line boxes are too small!",
+ learn:"`<textarea>` is a big multi-line text box. Unlike `<input>`, it HAS a closing tag: `<textarea></textarea>`.\n`rows=\"4\"` sets how tall it is.",
+ example:"<textarea rows=\"3\"></textarea>",
+ mission:"Add a `<textarea>` with `placeholder=\"Your message\"` and `rows=\"4\"`.",
+ hints:["`<textarea placeholder=\"Your message\" rows=\"4\"></textarea>`"],answer:"<textarea placeholder=\"Your message\" rows=\"4\"></textarea>",
+ tip:"People can drag the corner of a textarea to make it bigger.",
+ checks:[has('textarea',"Add a `<textarea></textarea>`."),[a=>(a.$('textarea').getAttribute('placeholder')||'').toLowerCase().includes('message'),"Add `placeholder=\"Your message\"`."],[a=>a.$('textarea').getAttribute('rows')==='4',"Add `rows=\"4\"`."]]},
+{id:'f8',ch:'Chapter 2: Forms',title:'Pick a Genre',
+ story:"The library wants readers to choose their favourite book genre from a list.",
+ learn:"A dropdown list is a `<select>` with `<option>` tags inside it.",
+ example:"<select>\n  <option>Small</option>\n  <option>Large</option>\n</select>",
+ mission:"Make a `<select>` with **3** options: **Fantasy**, **Mystery**, **Comedy**.",
+ hints:["Open `<select>`, add three `<option>` tags, close `</select>`."],answer:"<select>\n  <option>Fantasy</option>\n  <option>Mystery</option>\n  <option>Comedy</option>\n</select>",
+ tip:"Add `selected` to an option to choose it by default: `<option selected>`.",
+ checks:[[a=>a.$$('select option').length>=3,"Your `<select>` needs 3 `<option>` tags."],[a=>{const t=a.text(a.$('select'));return['fantasy','mystery','comedy'].every(w=>t.includes(w));},"The options should be Fantasy, Mystery and Comedy."]]},
+{id:'f9',ch:'Chapter 2: Forms',title:'Tick the Box',
+ story:"Before joining, readers must promise to return books on time. Time for a checkbox!",
+ learn:"`<input type=\"checkbox\">` makes a tick box. Connect a label with `id` and `for` — same trick as before.",
+ example:"<input type=\"checkbox\" id=\"news\">\n<label for=\"news\">Send me news</label>",
+ mission:"Make a checkbox with `id=\"agree\"` and a label (for=\"agree\") that says **I agree**.",
+ hints:["`<input type=\"checkbox\" id=\"agree\">`","`<label for=\"agree\">I agree</label>`"],answer:"<input type=\"checkbox\" id=\"agree\">\n<label for=\"agree\">I agree</label>",
+ tip:"Click the label words in the preview — it ticks the box!",
+ checks:[has('input[type="checkbox"]#agree',"Add `<input type=\"checkbox\" id=\"agree\">`."),has('label[for="agree"]',"Add a label with `for=\"agree\"`."),hasText('label','i agree',"The label should say I agree.")]},
+{id:'f10',ch:'Chapter 2: Forms',title:'Choose Just One',
+ story:"Readers borrow books for 1 week OR 2 weeks — not both. Checkboxes allow lots of ticks... we need radio buttons!",
+ learn:"`<input type=\"radio\">` = pick ONE from a group. Radios that share the SAME `name` belong together — picking one un-picks the others.",
+ example:"<input type=\"radio\" name=\"size\"> Small\n<input type=\"radio\" name=\"size\"> Large",
+ mission:"Make **2** radio buttons that share `name=\"time\"` (1 week and 2 weeks).",
+ hints:["`<input type=\"radio\" name=\"time\"> 1 week`","Copy it for 2 weeks — keep the same name!"],answer:"<input type=\"radio\" name=\"time\"> 1 week\n<input type=\"radio\" name=\"time\"> 2 weeks",
+ tip:"Click both in the preview — only one can be picked at a time.",
+ checks:[[a=>a.$$('input[type="radio"][name="time"]').length>=2,"Add 2 radio inputs, both with `name=\"time\"`."]]},
+{id:'f11',ch:'Chapter 2: Forms',title:'The Complete Form',
+ story:"Let's put it together! A real form wraps all the boxes and has a submit button.",
+ learn:"`<form>` wraps the inputs. A `<button type=\"submit\">` inside it sends the form.\n(Here nothing really gets sent — that needs a server, which comes much later!)",
+ example:"<form>\n  <input placeholder=\"Email\">\n  <button type=\"submit\">Send</button>\n</form>",
+ mission:"Make a `<form>` containing an email `<input>` and a `<button type=\"submit\">` that says **Join**.",
+ hints:["Open `<form>` and close `</form>`.","Inside: `<input type=\"email\">` and `<button type=\"submit\">Join</button>`"],
+ answer:"<form>\n  <label for=\"email\">Email</label>\n  <input type=\"email\" id=\"email\">\n  <button type=\"submit\">Join</button>\n</form>",
+ tip:"Add `required` to an input and the browser won't let anyone submit it empty!",
+ checks:[has('form input[type="email"]',"Put an `<input type=\"email\">` inside a `<form>`."),has('form button[type="submit"]',"Put a `<button type=\"submit\">` inside the form."),hasText('form button','join',"The button should say Join.")]},
+{id:'f12',ch:'Chapter 3: Page Structure',title:'Top and Bottom',
+ story:"The Guild's biggest job yet: a whole website for the bakery. Real pages have a top part and a bottom part.",
+ learn:"**Semantic tags** are boxes with MEANING:\n• `<header>` = top of the page (logo, title)\n• `<footer>` = bottom (contact info, copyright)\nThey work like `<div>`, but tell Google and screen readers what each part is.",
+ example:"<header>\n  <h1>Bakery</h1>\n</header>\n<footer>\n  <p>Open daily</p>\n</footer>",
+ mission:"Make a `<header>` containing an `<h1>`, and a `<footer>` containing a `<p>`.",
+ hints:["`<header><h1>Bakery</h1></header>`","`<footer><p>© 2026 Bakery</p></footer>`"],
+ answer:"<header>\n  <h1>Sunny Bakery</h1>\n</header>\n\n<footer>\n  <p>© 2026 Sunny Bakery</p>\n</footer>",
+ tip:"Using meaningful tags is called 'semantic HTML'. It's a sign of a professional developer.",
+ checks:[has('header h1',"Put an `<h1>` inside a `<header>`."),has('footer p',"Put a `<p>` inside a `<footer>`.")]},
+{id:'f13',ch:'Chapter 3: Page Structure',title:'The Main Part',
+ story:"Between the top and the bottom lives the main content — the stuff people actually came for.",
+ learn:"• `<main>` = the main content (only ONE per page)\n• `<section>` = a themed part of the page, usually with its own heading",
+ example:"<main>\n  <section>\n    <h2>Our Cakes</h2>\n  </section>\n</main>",
+ mission:"Make a `<main>` containing **2** `<section>` tags, each with an `<h2>`.",
+ hints:["`<main>` wraps everything.","Inside: two `<section>` boxes, each with an `<h2>`."],
+ answer:"<main>\n  <section>\n    <h2>Our Cakes</h2>\n  </section>\n  <section>\n    <h2>Our Bread</h2>\n  </section>\n</main>",
+ tip:"Think of sections as chapters of a book, and main as the book itself.",
+ checks:[has('main',"Add a `<main>`."),[a=>a.$$('main section').length>=2,"Put 2 `<section>` tags inside `<main>`."],[a=>a.$$('main section').filter(s=>s.querySelector('h2')).length>=2,"Each section needs an `<h2>`."]]},
+{id:'f14',ch:'Chapter 3: Page Structure',title:'Blog Posts',
+ story:"The baker wants a recipe blog. Each post makes sense on its own — that's an article!",
+ learn:"`<article>` = a piece that makes sense by itself: a blog post, a news story, a product card.",
+ example:"<article>\n  <h2>Banana Bread</h2>\n  <p>Mash 3 bananas...</p>\n</article>",
+ mission:"Make **2** `<article>` tags, each with an `<h2>` and a `<p>`.",
+ hints:["One article = `<article>` + `<h2>` + `<p>` + `</article>`.","Now make a second one."],
+ answer:"<article>\n  <h2>Banana Bread</h2>\n  <p>Mash 3 ripe bananas.</p>\n</article>\n\n<article>\n  <h2>Choc Chip Cookies</h2>\n  <p>Don't skip the pinch of salt.</p>\n</article>",
+ tip:"Quick test: if you could copy it onto another website and it still makes sense, it's an article.",
+ checks:[[a=>a.$$('article').filter(x=>x.querySelector('h2')&&x.querySelector('p')).length>=2,"Make 2 `<article>` tags, each with an `<h2>` and a `<p>`."]]},
+{id:'f15',ch:'Chapter 3: Page Structure',title:'Menus and Side Notes',
+ story:"The baker wants a menu bar, and a little 'Tip of the day' box on the side.",
+ learn:"• `<nav>` = a group of menu links\n• `<aside>` = side info that's related but not the main thing: tips, ads, related links",
+ example:"<nav>\n  <a href=\"#\">Home</a>\n</nav>\n<aside>\n  <p>Tip: use butter!</p>\n</aside>",
+ mission:"Make a `<nav>` with **2** links, and an `<aside>` with a `<p>` tip.",
+ hints:["`<nav><a href=\"#\">Home</a><a href=\"#\">Recipes</a></nav>`","`<aside><p>Tip: ...</p></aside>`"],
+ answer:"<nav>\n  <a href=\"#\">Home</a>\n  <a href=\"#\">Recipes</a>\n</nav>\n\n<aside>\n  <p>Tip of the day: always preheat the oven!</p>\n</aside>",
+ tip:"Screen reader users can jump straight to the `<nav>` — that's why the tag matters.",
+ checks:[[a=>a.$$('nav a').length>=2,"Make a `<nav>` with 2 `<a>` links."],has('aside p',"Make an `<aside>` with a `<p>` inside.")]},
+{id:'f16',ch:'Chapter 4: Guild Exam',title:'The Sign-up Page',
+ story:"Your Guild exam! Build the bakery's full sign-up page: header, main with a form, and footer. Pass this and you're a Master Builder!",
+ learn:"Put it all together: semantic tags for the structure, and a form (label + input + button) inside main.",
+ example:"<header>...</header>\n<main>\n  <form>...</form>\n</main>\n<footer>...</footer>",
+ mission:"Build: a `<header>` with an `<h1>` · a `<main>` with a `<form>` containing a `<label>`, an email `<input>` and a `<button>` · a `<footer>` with a `<p>`.",
+ hints:["Start with the 3 big boxes: header, main, footer.","Inside main: a `<form>` with a label, `<input type=\"email\">` and `<button type=\"submit\">`."],
+ answer:"<header>\n  <h1>Sunny Bakery</h1>\n</header>\n\n<main>\n  <form>\n    <label for=\"email\">Email</label>\n    <input type=\"email\" id=\"email\">\n    <button type=\"submit\">Sign up</button>\n  </form>\n</main>\n\n<footer>\n  <p>© 2026 Sunny Bakery</p>\n</footer>",
+ tip:"Header, main, footer — almost every website on Earth uses this exact structure.",
+ checks:[has('header h1',"Add a `<header>` with an `<h1>`."),has('main form',"Put a `<form>` inside `<main>`."),has('main form label',"Add a `<label>` inside the form."),has('main form input[type="email"]',"Add an `<input type=\"email\">` inside the form."),has('main form button',"Add a `<button>` inside the form."),has('footer p',"Add a `<footer>` with a `<p>`.")]}
+];
+F.forEach(f=>{if(f.starter==null)f.starter='';});
+Game({id:'form',emoji:'📝',title:'Form Forge',levels:F,winWord:'Perfectly forged!',
+ intro:`<h2>🔨 The Builders' Guild</h2><p class="lesson">You've joined the Builders' Guild as an apprentice! Townsfolk bring you jobs: price boards, sign-up forms, whole bakery websites.</p><p class="lesson">This game teaches the HTML the other games skip: <b>tables</b>, <b>forms</b> and <b>page structure</b> tags like header, main and footer.</p>`,
+ finale:"You're a Master Builder! You can now build tables, complete forms and properly structured pages — the backbone of every real website.",
+ play(L,el,done){const b=Bench(el,{checkLabel:'🔨 Forge it!',winText:'Perfectly forged!',onPass:s=>done(s)});
+   L.storyHTML=storyHTML('Guild Master Hilda',L.story)+`<div class="lesson">📖 ${md(L.learn)}</div><div class="exl">Example</div><pre class="ex">${esc(L.example)}</pre><div class="mission" style="margin-top:10px">🎯 ${md(L.mission)}</div>`;b.load(L);}});
+window.__FORM=F;
+})();
+</script>
+<!-- =====================================================================
+     GAME 9: GRID FARM (CSS Grid, positioning, effects)
+     ===================================================================== -->
+<script>
+(()=>{
+const FARM_BASE='body{font-family:system-ui,sans-serif;margin:12px;color:#222;background:#f4ffe8}.plot{background:#c9a27a;border-radius:8px;min-height:44px;display:flex;align-items:center;justify-content:center;font-size:24px}.sign{background:#fff3c4;border-radius:8px;padding:8px;text-align:center;font-weight:800}';
+const P=items=>'<div class="farm">\n'+items.map(e=>typeof e==='string'?`  <div class="plot">${e}</div>`:`  <div class="${e[0]}">${e[1]}</div>`).join('\n')+'\n</div>';
+const ST=lines=>"\n\n<style>\n"+lines.map(l=>l?'  '+l:'  ').join('\n')+"\n</style>";
+const SIX=['🥕','🥔','🌽','🥬','🍅','🧅'];
+const G3='.farm { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }';
+const R=(a,s)=>a.$(s).getBoundingClientRect();
+const near=(x,y,t=2)=>Math.abs(x-y)<=t;
+const lv=(o)=>Object.assign({starter:o.html+ST(o.css),answer:o.html+ST(o.ans)},o);
+const L=[
+lv({id:'g1',ch:'Chapter 1: Rows & Columns',title:'Ready the Soil',html:P(SIX),css:['.farm {  }'],ans:['.farm { display: grid; }'],
+ story:"Farmer Flo's veggies are a mess — stacked in one wobbly pile! She's heard of a magic layout tool called **CSS Grid** that plants things in perfect rows.",
+ learn:"`display: grid;` turns a box into a grid. On its own it looks the same — the magic starts when you add columns in the next level!",
+ mission:"Make `.farm` a grid.",hints:["Inside the `.farm` rule: `display: grid;`"],
+ tip:"Grid = rows AND columns at once. Flexbox = one row OR one column. Both are super useful.",
+ checks:[cssIs('.farm','display','grid',"`.farm` isn't a grid yet. Add `display: grid;`")]}),
+lv({id:'g2',ch:'Chapter 1: Rows & Columns',title:'Three Columns',html:P(SIX),css:['.farm { display: grid; }'],ans:['.farm { display: grid; grid-template-columns: 80px 80px 80px; }'],
+ story:"Flo wants her veggies in 3 neat columns, each 80 pixels wide.",
+ learn:"`grid-template-columns` sets the columns. Each value is one column's width:\n`grid-template-columns: 100px 100px;` = 2 columns, 100px each.",
+ mission:"Make **3** columns, each **80px** wide.",hints:["Add `grid-template-columns` to `.farm`.","`grid-template-columns: 80px 80px 80px;`"],
+ tip:"Count the values = count the columns. Simple as that.",
+ checks:[cssIs('.farm','display','grid',"Keep `display: grid;`"),[a=>{const t=gridCols(a,'.farm');return t.length===3&&t.every(v=>near(v,80,1));},"Make 3 columns of 80px: `grid-template-columns: 80px 80px 80px;`"]]}),
+lv({id:'g3',ch:'Chapter 1: Rows & Columns',title:'Fair Shares',html:P(SIX),css:['.farm { display: grid; }'],ans:['.farm { display: grid; grid-template-columns: 2fr 1fr; }'],
+ story:"The carrots need extra room! Flo wants 2 columns, with the first one twice as wide as the second.",
+ learn:"`fr` means 'a fair share of the space'. `1fr 1fr` = two equal columns. `2fr 1fr` = the first column gets 2 shares, the second gets 1.",
+ mission:"Make 2 columns where the first is **twice** as wide: `2fr 1fr`.",hints:["`grid-template-columns: 2fr 1fr;`"],
+ tip:"fr columns stretch with the screen. Try making the preview wider — they keep their 2-to-1 ratio.",
+ checks:[cssIs('.farm','display','grid',"Keep `display: grid;`"),[a=>{const t=gridCols(a,'.farm');return t.length===2&&near(t[0],2*t[1],3);},"Make 2 columns, the first twice as wide: `grid-template-columns: 2fr 1fr;`"]]}),
+lv({id:'g4',ch:'Chapter 1: Rows & Columns',title:'The Repeat Spell',html:P(SIX.concat(['🍓','🫑'])),css:['.farm { display: grid; }'],ans:['.farm { display: grid; grid-template-columns: repeat(4, 1fr); }'],
+ story:"Eight veggies now! Flo wants 4 equal columns — but typing `1fr` four times is boring.",
+ learn:"`repeat(4, 1fr)` is a shortcut for `1fr 1fr 1fr 1fr`. The first number is how many, the second is the size.",
+ mission:"Make **4** equal columns using `repeat()`.",hints:["`grid-template-columns: repeat(4, 1fr);`"],
+ tip:"`repeat(12, 1fr)` is how big websites make their famous 12-column layouts.",
+ checks:[cssIs('.farm','display','grid',"Keep `display: grid;`"),[a=>{const t=gridCols(a,'.farm');return t.length===4&&Math.max(...t)-Math.min(...t)<=1;},"Make 4 equal columns."],[a=>a.rules().some(r=>r.style&&/repeat/.test(r.style.gridTemplateColumns||'')),"Use the `repeat()` shortcut: `repeat(4, 1fr)`"]]}),
+lv({id:'g5',ch:'Chapter 1: Rows & Columns',title:'Walking Paths',html:P(SIX),css:['.farm { display: grid; grid-template-columns: repeat(3, 1fr); }'],ans:['.farm { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }'],
+ story:"Flo keeps stepping on the veggies! She needs little walking paths between every plot.",
+ learn:"`gap` adds space between grid cells — both between columns AND between rows.",
+ mission:"Add a **12px** gap.",hints:["Add to `.farm`: `gap: 12px;`"],
+ tip:"Want different gaps? `row-gap` and `column-gap` set them separately.",
+ checks:[[a=>gridCols(a,'.farm').length===3,"Keep the 3 columns."],gapPx('.farm',12,"Add `gap: 12px;` to `.farm`.")]}),
+lv({id:'g6',ch:'Chapter 1: Rows & Columns',title:'Rows Too',html:P(SIX),css:[G3],ans:['.farm { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; grid-template-rows: 50px 90px; }'],
+ story:"The back row is for tall corn. Flo wants the first row short (50px) and the second row tall (90px).",
+ learn:"`grid-template-rows` works just like columns, but for rows:\n`grid-template-rows: 50px 90px;` = row 1 is 50px tall, row 2 is 90px tall.",
+ mission:"Make the rows **50px** and **90px** tall.",hints:["Add to `.farm`: `grid-template-rows: 50px 90px;`"],
+ tip:"Columns go across ↔. Rows go down ↕. Mixing them up is very normal at first!",
+ checks:[[a=>{const t=gridCols(a,'.farm','gridTemplateRows');return t.length===2&&near(t[0],50,1)&&near(t[1],90,1);},"Add `grid-template-rows: 50px 90px;` to `.farm`."]]}),
+lv({id:'g7',ch:'Chapter 2: Placing Crops',title:'The Giant Pumpkin',html:P(['🥕',['plot pumpkin','🎃'],'🌽','🥬','🍅','🧅','🥔']),css:[G3,''],ans:[G3,'.pumpkin { grid-column: span 2; }'],
+ story:"Flo grew a GIANT pumpkin! It's way too big for one plot — it needs two.",
+ learn:"`grid-column: span 2;` makes one item stretch across 2 columns.",
+ mission:"Make `.pumpkin` span **2** columns.",hints:["New rule for `.pumpkin`.","`.pumpkin { grid-column: span 2; }`"],
+ tip:"This is how websites make one big 'featured' card in a grid of small ones.",
+ checks:[has('.pumpkin',"Keep the pumpkin!"),[a=>R(a,'.pumpkin').width>=1.8*R(a,'.plot:not(.pumpkin)').width,"The pumpkin isn't 2 columns wide yet: `.pumpkin { grid-column: span 2; }`"]]}),
+lv({id:'g8',ch:'Chapter 2: Placing Crops',title:'The Scarecrow',html:P([['plot scarecrow','🧑‍🌾'],'🥕','🌽','🥬','🍅']),css:[G3,''],ans:[G3,'.scarecrow { grid-column: 3; }'],
+ story:"The scarecrow must guard the right-hand side of the farm — column 3 exactly.",
+ learn:"`grid-column: 3;` puts an item in column 3, no matter where it is in the HTML.",
+ mission:"Put `.scarecrow` in column **3**.",hints:["`.scarecrow { grid-column: 3; }`"],
+ tip:"Grid lets you move things on screen without changing the HTML order. Super handy!",
+ checks:[[a=>a.css(a.$('.scarecrow'),'gridColumnStart')==='3',"Put the scarecrow in column 3: `.scarecrow { grid-column: 3; }`"]]}),
+lv({id:'g9',ch:'Chapter 2: Placing Crops',title:'The Tall Sunflower',html:P([['plot sunflower','🌻'],'🥕','🌽','🥬','🍅']),css:[G3,''],ans:[G3,'.sunflower { grid-row: span 2; }'],
+ story:"Flo's sunflower is so tall it needs two rows!",
+ learn:"`grid-row: span 2;` makes an item 2 rows tall — the same idea as columns, but going down.",
+ mission:"Make `.sunflower` span **2** rows.",hints:["`.sunflower { grid-row: span 2; }`"],
+ tip:"You can span rows AND columns at the same time for big feature boxes.",
+ checks:[[a=>R(a,'.sunflower').height>=1.8*R(a,'.plot:not(.sunflower)').height,"The sunflower isn't 2 rows tall yet: `.sunflower { grid-row: span 2; }`"]]}),
+lv({id:'g10',ch:'Chapter 2: Placing Crops',title:'Centered Seedlings',html:P(SIX),css:['.farm { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 80px 80px; gap: 8px; background: #e3f5cf; }','.plot { width: 50px; height: 50px; min-height: 0; }',''],ans:['.farm { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 80px 80px; gap: 8px; background: #e3f5cf; justify-items: center; align-items: center; }','.plot { width: 50px; height: 50px; min-height: 0; }'],
+ story:"The seedlings are tiny and huddled in the corners of their plots. Flo wants each one right in the middle.",
+ learn:"• `justify-items: center;` centers items left-right inside their cells\n• `align-items: center;` centers them up-down\n(Just like flexbox's align-items!)",
+ mission:"Center every seedling both ways using `justify-items` and `align-items` on `.farm`.",hints:["Add to `.farm`: `justify-items: center;`","…and `align-items: center;`"],
+ tip:"Shortcut: `place-items: center;` does both at once!",
+ checks:[cssIs('.farm','justifyItems','center',"Add `justify-items: center;` to `.farm`."),cssIs('.farm','alignItems','center',"Add `align-items: center;` to `.farm`.")]}),
+lv({id:'g11',ch:'Chapter 2: Placing Crops',title:'The Farm Sign',html:P([['sign',"🌻 Flo's Farm 🌻"],'🥕','🌽','🥬','🍅','🧅','🥔']),css:[G3,''],ans:[G3,'.sign { grid-column: 1 / -1; }'],
+ story:"Flo painted a sign! It should stretch across the whole top of the farm.",
+ learn:"Grid has invisible numbered lines. `grid-column: 1 / -1;` means 'from the first line to the LAST line' — the full width, however many columns there are.",
+ mission:"Make `.sign` stretch the full width.",hints:["`.sign { grid-column: 1 / -1; }`"],
+ tip:"-1 always means 'the last line'. Add more columns later and the sign still fits perfectly.",
+ checks:[[a=>near(R(a,'.sign').width,R(a,'.farm').width,2),"The sign doesn't stretch the full width yet: `.sign { grid-column: 1 / -1; }`"]]}),
+lv({id:'g12',ch:'Chapter 3: The Farm Shop',title:'The Price Tag',html:'<div class="crate">🍎\n  <div class="tag">$2</div>\n</div>',css:['.crate { width: 140px; height: 100px; background: #c9a27a; font-size: 50px; text-align: center; }','.tag { background: gold; font-size: 14px; padding: 4px 8px; border-radius: 6px; }',''],ans:['.crate { width: 140px; height: 100px; background: #c9a27a; font-size: 50px; text-align: center; position: relative; }','.tag { background: gold; font-size: 14px; padding: 4px 8px; border-radius: 6px; position: absolute; top: 0; right: 0; }'],
+ story:"Flo opened a farm shop! Each apple crate needs a price tag pinned to its top-right corner.",
+ learn:"**Positioning** pins things in place:\n• the parent gets `position: relative;` (the pin board)\n• the child gets `position: absolute;` plus `top` and `right` (where to pin it)",
+ mission:"Pin `.tag` to the **top-right** corner of `.crate` (`top: 0; right: 0;`).",hints:["`.crate` needs `position: relative;`","`.tag` needs `position: absolute; top: 0; right: 0;`"],
+ tip:"Without `position: relative` on the crate, the tag would pin itself to the corner of the whole page!",
+ checks:[cssIs('.crate','position','relative',"Give `.crate` `position: relative;`"),cssIs('.tag','position','absolute',"Give `.tag` `position: absolute;`"),[a=>near(R(a,'.tag').right,R(a,'.crate').right)&&near(R(a,'.tag').top,R(a,'.crate').top),"Pin the tag with `top: 0; right: 0;`"]]}),
+lv({id:'g13',ch:'Chapter 3: The Farm Shop',title:'Grow on Hover',html:P(SIX),css:[G3,''],ans:[G3,'.plot:hover { transform: scale(1.2); }'],
+ story:"Customers love interactive shops! When you point at a veggie, it should grow bigger.",
+ learn:"`transform: scale(1.2);` makes something 20% bigger. Put it in a `:hover` rule and things grow when you point at them!",
+ mission:"Make `.plot` grow to `scale(1.2)` on hover.",hints:["New rule: `.plot:hover { }`","`.plot:hover { transform: scale(1.2); }`"],
+ tip:"Other transforms: `rotate(10deg)` spins, `translateY(-5px)` lifts things up.",
+ checks:[[a=>a.rules().some(r=>r.selectorText&&r.selectorText.replace(/\s/g,'').includes('.plot:hover')&&/scale/.test(r.style.transform||'')),"Add `.plot:hover { transform: scale(1.2); }`"]]}),
+lv({id:'g14',ch:'Chapter 3: The Farm Shop',title:'Smooth Growing',html:P(SIX),css:[G3,'.plot:hover { transform: scale(1.2); }',''],ans:[G3,'.plot:hover { transform: scale(1.2); }','.plot { transition: transform 0.3s; }'],
+ story:"The veggies jump in size too suddenly. Flo wants them to grow smoothly, like magic.",
+ learn:"`transition` animates changes:\n`transition: transform 0.3s;` = when transform changes, animate it over 0.3 seconds.\nIt goes on the normal rule (`.plot`), not the hover rule.",
+ mission:"Give `.plot` a `transition` for `transform`.",hints:["New rule: `.plot { transition: transform 0.3s; }`"],
+ tip:"Hover over the veggies in the preview to see it work!",
+ checks:[[a=>a.css(a.$('.plot'),'transitionDuration').split(',').some(v=>parseFloat(v)>0),"Add `.plot { transition: transform 0.3s; }`"]]}),
+lv({id:'g15',ch:'Chapter 3: The Farm Shop',title:'Soft Shadows',html:P(SIX),css:[G3,''],ans:[G3,'.plot { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }'],
+ story:"Flo wants the plots to look like they're floating — like fancy shop shelves.",
+ learn:"`box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);`\n= left-right, up-down, blur, colour.\n`rgba` colours can be see-through — the last number (0.2) means 20% visible.",
+ mission:"Give `.plot` a `box-shadow`.",hints:["`.plot { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }`"],
+ tip:"Soft, see-through shadows look modern. Solid black shadows look like the 90s!",
+ checks:[cssNot('.plot','boxShadow','none',"Give `.plot` a `box-shadow`.")]}),
+lv({id:'g16',ch:'Chapter 3: The Farm Shop',title:'Paint Buckets',html:P(SIX),css:[G3,''],ans:[G3,':root { --soil: sienna; }','.plot { background: var(--soil); }'],
+ story:"Flo changes her soil colour every season. Instead of updating lots of rules, let's store the colour in ONE place.",
+ learn:"A **CSS variable** stores a value you can reuse:\n`:root { --soil: sienna; }`\nThen use it anywhere: `background: var(--soil);`\nChange it once → it changes everywhere!",
+ mission:"Make a `--soil` variable on `:root` set to **sienna**, then use it as `.plot`'s background.",hints:["`:root { --soil: sienna; }`","`.plot { background: var(--soil); }`"],
+ tip:"Big websites keep ALL their brand colours in variables. Changing the whole site's look takes seconds.",
+ checks:[[a=>a.win.getComputedStyle(a.doc.documentElement).getPropertyValue('--soil').trim()!=='',"Make the variable: `:root { --soil: sienna; }`"],[a=>a.rules().some(r=>r.cssText&&r.cssText.includes('var(--soil)')),"Use it with `var(--soil)`."],cssIs('.plot','backgroundColor','rgb(160, 82, 45)',"The plots should come out sienna: `.plot { background: var(--soil); }`")]}),
+lv({id:'g17',ch:'Chapter 3: The Farm Shop',title:'The Phone Farm',html:P(SIX),css:[G3,''],ans:[G3,'@media (max-width: 600px) {','  .farm { grid-template-columns: 1fr; }','}'],
+ story:"Most of Flo's customers visit on their phones, where 3 columns are cramped. On small screens, the farm should be 1 column.",
+ learn:"A **media query** applies CSS only on certain screens:\n`@media (max-width: 600px) {`\n`  .farm { grid-template-columns: 1fr; }`\n`}`\n= on screens 600px wide or smaller, use 1 column. This is how websites work on phones!",
+ mission:"Add a media query for `max-width: 600px` that makes `.farm` 1 column.",hints:["`@media (max-width: 600px) { }`","Inside the braces: `.farm { grid-template-columns: 1fr; }`"],
+ tip:"Making sites work on every screen size is called 'responsive design'. Every pro must know it.",
+ checks:[[a=>a.rules().some(r=>r.media&&/max-width/.test(r.media.mediaText)&&[...r.cssRules].some(x=>x.selectorText&&x.selectorText.includes('.farm')&&x.style.gridTemplateColumns)),"Add `@media (max-width: 600px) { .farm { grid-template-columns: 1fr; } }`"]]}),
+lv({id:'g18',ch:'Chapter 4: Harvest Festival',title:'The Big Harvest',html:P([['sign','🌻 Harvest Festival 🌻'],['plot pumpkin','🎃'],'🥕','🌽','🍅','🥬']),css:['.farm {  }','.sign {  }','.pumpkin {  }'],ans:['.farm { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }','.sign { grid-column: 1 / -1; }','.pumpkin { grid-column: span 2; }'],
+ story:"It's the Harvest Festival! Lay out the whole farm yourself: the grid, the full-width sign and the giant prize pumpkin. Nail this and you're a Master Grid Farmer! 🏆",
+ learn:"Everything together: a 3-column grid with a gap, a sign across the full width, and a pumpkin across 2 columns.",
+ mission:"`.farm`: grid, 3 equal columns, **10px** gap. `.sign`: full width. `.pumpkin`: 2 columns wide.",hints:["`.farm { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }`","`.sign { grid-column: 1 / -1; }`","`.pumpkin { grid-column: span 2; }`"],
+ tip:"You can now build real page layouts with Grid. That's a skill companies pay for!",
+ checks:[cssIs('.farm','display','grid',"Make `.farm` a grid."),[a=>{const t=gridCols(a,'.farm');return t.length===3&&Math.max(...t)-Math.min(...t)<=1;},"Give `.farm` 3 equal columns."],gapPx('.farm',10,"Give `.farm` a 10px gap."),[a=>near(R(a,'.sign').width,R(a,'.farm').width,2),"Make `.sign` full width."],[a=>R(a,'.pumpkin').width>=1.8*R(a,'.plot:not(.pumpkin)').width,"Make `.pumpkin` span 2 columns."]]})
+];
+Game({id:'grid',emoji:'🌻',title:'Grid Farm',levels:L,winWord:'Bumper crop!',
+ intro:`<h2>👩‍🌾 Farmer Flo's Grid Farm</h2><p class="lesson">Farmer Flo's veggies are a total mess. Help her plant everything in perfect rows using <b>CSS Grid</b> — the most powerful layout tool on the web.</p><p class="lesson">Later, open her farm shop and learn <b>positioning</b>, <b>hover effects</b>, <b>animations</b>, <b>CSS variables</b> and <b>phone-friendly</b> layouts.</p>`,
+ finale:"You're a Master Grid Farmer! Grid, positioning, effects, variables and responsive design — that's advanced CSS.",
+ play(Lv,el,done){const b=Bench(el,{base:FARM_BASE,checkLabel:'🌱 Plant it!',winText:'The crops look perfect!',onPass:s=>done(s)});
+   Lv.storyHTML=storyHTML('Farmer Flo',Lv.story)+`<div class="lesson">📖 ${md(Lv.learn)}</div><div class="mission" style="margin-top:10px">🎯 ${md(Lv.mission)}</div>`;b.load(Lv);}});
+window.__GRID={L,FARM_BASE};
+})();
+</script>
+<!-- =====================================================================
+     GAME 10: SPELL ACADEMY (JavaScript basics)
+     ===================================================================== -->
+<script>
+(()=>{
+const WORKER=`onmessage=e=>{const{code,tests}=e.data;const out=[];
+const fmt=v=>typeof v==='string'?v:(()=>{try{const j=JSON.stringify(v);return j===undefined?String(v):j;}catch(_){return String(v);}})();
+const con={log:(...a)=>{out.push(a.map(fmt).join(' '));if(out.length>300)throw new Error('TOO_MUCH');}};
+let res=null,err=null;
+try{const fn=new Function('console','__code','__out','"use strict";\\n'+code+'\\n;return ['+tests.map(t=>'(()=>{try{return !!('+t+')}catch(_e){return false}})()').join(',')+'];');res=fn(con,code,out);}
+catch(ex){err={name:ex.name,message:ex.message};}
+postMessage({out,res,err});};`;
+let url=null;
+function runSpell(code,tests,ms=1500){return new Promise(res=>{
+  if(!url)url=URL.createObjectURL(new Blob([WORKER],{type:'text/javascript'}));
+  const w=new Worker(url);const t=setTimeout(()=>{w.terminate();res({timeout:true,out:[]});},ms);
+  w.onmessage=e=>{clearTimeout(t);w.terminate();res(e.data);};
+  w.onerror=e=>{clearTimeout(t);w.terminate();res({err:{name:'Error',message:e.message},out:[]});};
+  w.postMessage({code,tests});});}
+function friendly(err){
+  const m=err.message||'';let r;
+  if(m==='TOO_MUCH')return'Your spell printed way too much! Is a loop running forever?';
+  if((r=/([\w$]+) is not defined/.exec(m)))return`JavaScript doesn't know <code>${esc(r[1])}</code>. Did you create it with <code>let</code> first? Check the spelling — capital letters matter!`;
+  if(/Assignment to constant/.test(m))return`You used <code>const</code>, which can never change. Use <code>let</code> for things that change.`;
+  if(/has already been declared/.test(m))return`You used <code>let</code> twice for the same name. Only use <code>let</code> the FIRST time — after that, just write <code>name = ...</code><br><small>${esc(m)}</small>`;
+  if(err.name==='SyntaxError')return`Something's wrong with the punctuation. Check every <code>(</code> has a <code>)</code>, every <code>{</code> has a <code>}</code>, and text has quotes on BOTH sides.<br><small>Browser says: ${esc(m)}</small>`;
+  if(/is not a function/.test(m))return`Something is being used like a command, but it isn't one. A typo in the name?<br><small>${esc(m)}</small>`;
+  return esc(err.name+': '+m);
+}
+const S=[
+{id:'s1',ch:'Year 1: First Spells',title:'Speak!',
+ story:"Welcome to Spell Academy, young wizard! Every spell here is written in **JavaScript**. Your first spell: make the crystal ball speak.",
+ learn:"`console.log()` prints a message into the crystal ball (developers call it the console). Text goes inside quote marks:\n`console.log(\"Hi there!\");`",
+ mission:"Make the crystal ball say **Hello, world!**",starter:"",
+ tests:[["__out.some(l=>/hello/i.test(l))","Use `console.log(\"Hello, world!\");` to print a message."]],
+ hints:["The spell is `console.log( )`","Put your words inside quotes, inside the brackets: `console.log(\"Hello, world!\");`"],answer:"console.log(\"Hello, world!\");",
+ tip:"'Hello, world!' is the very first program almost every programmer ever writes. Welcome to the club!"},
+{id:'s2',ch:'Year 1: First Spells',title:'Name Your Familiar',
+ story:"Every wizard has a magical pet — a familiar. Let's store its name in a magic jar.",
+ learn:"A **variable** is a labelled jar that stores something:\n`let pet = \"Owl\";`\nNow `pet` means \"Owl\". Print it with `console.log(pet);` — NO quotes around pet, because you want what's INSIDE the jar.",
+ mission:"Make a variable called `pet` holding any name, then print it.",starter:"",
+ tests:[["typeof pet==='string'&&pet.length>0","Create a variable called `pet` holding some text, like `let pet = \"Owl\";`"],["__out.some(l=>l===pet)","Print your pet's name with `console.log(pet);` (no quotes around pet!)"]],
+ hints:["`let pet = \"Owl\";`","On the next line: `console.log(pet);`"],answer:"let pet = \"Owl\";\nconsole.log(pet);",
+ tip:"Try `console.log(\"pet\");` WITH quotes and see the difference. Quotes = the actual word. No quotes = what's in the jar."},
+{id:'s3',ch:'Year 1: First Spells',title:'Mana Points',
+ story:"Spells use magic energy called mana. You start with 100.",
+ learn:"Variables can hold numbers too. Numbers do NOT need quotes:\n`let age = 12;`",
+ mission:"Make `let mana = 100;` and print it.",starter:"",
+ tests:[["mana===100","Create `let mana = 100;` — numbers don't need quotes."],["__out.some(l=>l==='100')","Print it with `console.log(mana);`"]],
+ hints:["`let mana = 100;`","`console.log(mana);`"],answer:"let mana = 100;\nconsole.log(mana);",
+ tip:"`100` is a number you can do maths with. `\"100\"` with quotes is just text that looks like a number."},
+{id:'s4',ch:'Year 1: First Spells',title:'Spell Maths',
+ story:"A Power Spell's strength is 7 times 6. Don't do the maths yourself — let the magic do it!",
+ learn:"JavaScript is a super calculator:\n`+` add, `-` subtract, `*` multiply, `/` divide\n`let total = 5 + 3;` → total is 8",
+ mission:"Make `let power = 7 * 6;` and print it.",starter:"",
+ tests:[["power===42","`power` should equal 7 times 6."],["!/=\\s*42\\b/.test(__code)","Don't type 42 yourself — write the maths: `7 * 6`."],["__out.some(l=>l==='42')","Print it with `console.log(power);`"]],
+ hints:["Multiply uses a star: `*`","`let power = 7 * 6;` then `console.log(power);`"],answer:"let power = 7 * 6;\nconsole.log(power);",
+ tip:"Computers can do billions of sums every second. Let them do the maths!"},
+{id:'s5',ch:'Year 1: First Spells',title:'Joining Words',
+ story:"The Academy needs your full wizard name for the register. Your first and last names are already stored.",
+ learn:"`+` also JOINS text together:\n`\"Hi\" + \"There\"` → \"HiThere\"\nNeed a space? Add one in the middle: `first + \" \" + last`",
+ mission:"Make `fullName` by joining `first`, a space and `last`. Then print it.",starter:"let first = \"Luna\";\nlet last = \"Star\";\n\n",
+ tests:[["fullName==='Luna Star'","`fullName` should be \"Luna Star\": first + \" \" + last"],["!/['\"`]Luna Star['\"`]/.test(__code)","Build it from the variables — don't type \"Luna Star\" yourself!"]],
+ hints:["`let fullName = first + \" \" + last;`","Then `console.log(fullName);`"],answer:"let first = \"Luna\";\nlet last = \"Star\";\n\nlet fullName = first + \" \" + last;\nconsole.log(fullName);",
+ tip:"Joining text is called 'concatenation'. Fancy word, simple idea."},
+{id:'s6',ch:'Year 1: First Spells',title:'Level Up!',
+ story:"You just passed your first exam! Time to go up a level.",
+ learn:"Variables made with `let` can change:\n`level = level + 1;`\nRead it as: 'level becomes level plus 1'.\nNo `let` the second time — the jar already exists!",
+ mission:"Add 1 to `level` using `level = level + 1;`",starter:"let level = 1;\n\n// add 1 to level on the line below\n\n\nconsole.log(level);",
+ tests:[["level===2","Add 1 to level: `level = level + 1;`"],["!/let\\s+level\\s*=\\s*2/.test(__code)","Don't change the starting 1 — add to it with `level = level + 1;`"]],
+ hints:["On the empty line: `level = level + 1;`","Don't write `let` again — level already exists."],answer:"let level = 1;\n\n// add 1 to level on the line below\nlevel = level + 1;\n\nconsole.log(level);",
+ tip:"Shortcut: `level++` also adds 1. And `level += 5` adds 5."},
+{id:'s7',ch:'Year 2: Choices',title:'True or False?',
+ story:"The Sorting Hat asks one question: are you a wizard? Answer with a yes or no value.",
+ learn:"**Booleans** are yes/no values: `true` or `false`.\nNo quotes! `\"true\"` with quotes is just text.",
+ mission:"Make `let isWizard = true;` and print it.",starter:"",
+ tests:[["isWizard===true","Make `let isWizard = true;` — no quotes around true!"],["__out.some(l=>l==='true')","Print it with `console.log(isWizard);`"]],
+ hints:["`let isWizard = true;`","`console.log(isWizard);`"],answer:"let isWizard = true;\nconsole.log(isWizard);",
+ tip:"Booleans are named after George Boole, a mathematician from the 1800s."},
+{id:'s8',ch:'Year 2: Choices',title:'Enough Mana?',
+ story:"A Lightning Spell costs 50 mana. You only have 30. Let the computer check if you have enough.",
+ learn:"Comparisons give true or false:\n`>` bigger than · `<` smaller than\n`>=` bigger or equal · `===` exactly equal\n`10 > 3` → true",
+ mission:"Make `let enough = mana > 50;` and print it.",starter:"let mana = 30;\n\n",
+ tests:[["typeof enough==='boolean'","`enough` should be true or false — use a comparison: `mana > 50`"],["enough===false","Check: is mana (30) bigger than 50?"],["/mana\\s*>=?\\s*50/.test(__code)","Let the computer compare: `let enough = mana > 50;`"]],
+ hints:["`let enough = mana > 50;`","`console.log(enough);` — it should print false."],answer:"let mana = 30;\n\nlet enough = mana > 50;\nconsole.log(enough);",
+ tip:"Use `===` (three equals) to check if things are equal. One `=` stores a value, three `===` compare."},
+{id:'s9',ch:'Year 2: Choices',title:'The Healing Spell',
+ story:"Your health (hp) is low! Write a spell that ONLY heals when hp is below 50.",
+ learn:"`if` runs code only when something is true:\n`if (hp < 50) {`\n`  console.log(\"Heal!\");`\n`}`",
+ mission:"If `hp` is less than 50, print **Heal!**",starter:"let hp = 20;\n\n",
+ tests:[["/if\\s*\\(/.test(__code)","Use an `if` statement."],["__out.some(l=>/heal/i.test(l))","When hp is below 50, print \"Heal!\""]],
+ hints:["`if (hp < 50) { }`","Inside the curly braces: `console.log(\"Heal!\");`"],answer:"let hp = 20;\n\nif (hp < 50) {\n  console.log(\"Heal!\");\n}",
+ tip:"Change hp to 80 and run it again. Nothing prints — the if-spell decided not to!"},
+{id:'s10',ch:'Year 2: Choices',title:'Buy or Save',
+ story:"A magic broom costs 10 gold. If you can afford it, buy it. Otherwise, save your money.",
+ learn:"`else` runs when the `if` is false:\n`if (gold >= 10) {`\n`  console.log(\"Buy\");`\n`} else {`\n`  console.log(\"Save\");`\n`}`",
+ mission:"If `gold` is 10 or more, print **Buy**. Else, print **Save**.",starter:"let gold = 5;\n\n",
+ tests:[["/else/.test(__code)","Use `if` and `else`."],["__out.some(l=>/save/i.test(l))&&!__out.some(l=>/buy/i.test(l))","With 5 gold, your spell should print \"Save\" (and not \"Buy\")."]],
+ hints:["`if (gold >= 10) { ... } else { ... }`","Print \"Buy\" in the first part and \"Save\" in the else part."],answer:"let gold = 5;\n\nif (gold >= 10) {\n  console.log(\"Buy\");\n} else {\n  console.log(\"Save\");\n}",
+ tip:"Change gold to 15 and run again. The other path runs!"},
+{id:'s11',ch:'Year 3: Loops & Lists',title:'Triple Cast',
+ story:"Some spells only work if you say them three times. But real wizards never repeat themselves... they use loops!",
+ learn:"A **for loop** repeats code:\n`for (let i = 0; i < 3; i++) {`\n`  console.log(\"Hi\");`\n`}`\n= start at 0, keep going while i is less than 3, add 1 each time → 3 times.",
+ mission:"Print **Abracadabra** exactly 3 times using a for loop.",starter:"",
+ tests:[["__out.filter(l=>/abracadabra/i.test(l)).length===3","Print \"Abracadabra\" exactly 3 times."],["/for\\s*\\(/.test(__code)","Use a `for` loop instead of copying the line."]],
+ hints:["`for (let i = 0; i < 3; i++) { }`","Inside: `console.log(\"Abracadabra\");`"],answer:"for (let i = 0; i < 3; i++) {\n  console.log(\"Abracadabra\");\n}",
+ tip:"Change 3 to 100. Instant 100 spells — that's the power of loops."},
+{id:'s12',ch:'Year 3: Loops & Lists',title:'Count the Stars',
+ story:"The astronomy teacher wants you to count the stars out loud: 1, 2, 3, 4, 5.",
+ learn:"`i` is a variable too — you can print it!\nStart wherever you like: `let i = 1`\nStop when you like: `i <= 5` (less than OR equal to 5)",
+ mission:"Print the numbers **1 to 5**, one per line.",starter:"",
+ tests:[["__out.join(',')==='1,2,3,4,5'","Print 1, 2, 3, 4, 5 — one per line. Start at 1, keep going while i <= 5."]],
+ hints:["`for (let i = 1; i <= 5; i++) { }`","Inside: `console.log(i);`"],answer:"for (let i = 1; i <= 5; i++) {\n  console.log(i);\n}",
+ tip:"Programmers usually count from 0. Arrays (next level!) do too."},
+{id:'s13',ch:'Year 3: Loops & Lists',title:'The Potion Shelf',
+ story:"Your potion shelf has three bottles. Store them all in ONE variable.",
+ learn:"An **array** is a list inside one variable, in square brackets:\n`let snacks = [\"apple\", \"cake\", \"chips\"];`\nCommas between items!",
+ mission:"Make `potions` an array of 3: **\"red\"**, **\"blue\"**, **\"green\"**.",starter:"",
+ tests:[["Array.isArray(potions)&&potions.length===3","Make `potions` a list of 3 items: `[\"red\", \"blue\", \"green\"]`"],["potions.join()==='red,blue,green'","The potions should be \"red\", \"blue\", \"green\" in that order."]],
+ hints:["Square brackets make a list.","`let potions = [\"red\", \"blue\", \"green\"];`"],answer:"let potions = [\"red\", \"blue\", \"green\"];\nconsole.log(potions);",
+ tip:"`potions.length` tells you how many items are in the list."},
+{id:'s14',ch:'Year 3: Loops & Lists',title:'First on the Shelf',
+ story:"Grab the first potion from the shelf — carefully!",
+ learn:"Get an item by its position number, in square brackets. **Arrays start counting at 0!**\n`potions[0]` = first · `potions[1]` = second",
+ mission:"Make `first` equal to the FIRST potion, using `potions[0]`.",starter:"let potions = [\"fire\", \"ice\", \"storm\"];\n\n",
+ tests:[["first==='fire'","`first` should be the FIRST potion. Arrays start at 0: `potions[0]`"],["/potions\\s*\\[\\s*0\\s*\\]/.test(__code)","Take it from the list with `potions[0]` — don't type it yourself."]],
+ hints:["`let first = potions[0];`","Print it: `console.log(first);`"],answer:"let potions = [\"fire\", \"ice\", \"storm\"];\n\nlet first = potions[0];\nconsole.log(first);",
+ tip:"Starting at 0 trips up EVERY beginner. You'll get used to it fast."},
+{id:'s15',ch:'Year 3: Loops & Lists',title:'Brew a New Potion',
+ story:"You just brewed a golden potion! Add it to the end of the shelf.",
+ learn:"`.push()` adds an item to the END of an array:\n`snacks.push(\"pie\");`",
+ mission:"Add **\"gold\"** to the end of `potions`.",starter:"let potions = [\"fire\", \"ice\", \"storm\"];\n\n\nconsole.log(potions);",
+ tests:[["potions.length===4&&potions[3]==='gold'","Add \"gold\" to the end: `potions.push(\"gold\");`"],["/push/.test(__code)","Use `.push()` to add it."]],
+ hints:["`potions.push(\"gold\");`"],answer:"let potions = [\"fire\", \"ice\", \"storm\"];\n\npotions.push(\"gold\");\nconsole.log(potions);",
+ tip:"`.pop()` does the opposite: it removes the LAST item."},
+{id:'s16',ch:'Year 3: Loops & Lists',title:'Read the Shelf',
+ story:"The headmaster wants every potion read out loud, one by one. Imagine if the shelf had 1,000 potions... loops to the rescue!",
+ learn:"`for...of` loops through every item in a list:\n`for (const p of potions) {`\n`  console.log(p);`\n`}`\n`p` becomes each potion in turn.",
+ mission:"Print every potion, one per line, using a loop.",starter:"let potions = [\"fire\", \"ice\", \"storm\"];\n\n",
+ tests:[["__out.join(',')==='fire,ice,storm'","Print each potion on its own line, in order."],["/for/.test(__code)","Use a loop."]],
+ hints:["`for (const p of potions) { }`","Inside: `console.log(p);`"],answer:"let potions = [\"fire\", \"ice\", \"storm\"];\n\nfor (const p of potions) {\n  console.log(p);\n}",
+ tip:"Shopping carts, playlists, message lists — every app loops over lists like this."},
+{id:'s17',ch:'Year 4: Functions',title:'Your Own Spell',
+ story:"Real wizards invent their own spells. In JavaScript, invented spells are called **functions**.",
+ learn:"A **function** is a named, reusable spell:\n`function cheer() {`\n`  console.log(\"Hooray!\");`\n`}`\nIt does nothing until you CALL it: `cheer();`",
+ mission:"Make a function called `greet` that prints **Welcome!** — then call it.",starter:"",
+ tests:[["typeof greet==='function'","Create a function called `greet`."],["__out.some(l=>/welcome/i.test(l))","Call it with `greet();` so it prints \"Welcome!\""]],
+ hints:["`function greet() { console.log(\"Welcome!\"); }`","Don't forget to call it: `greet();`"],answer:"function greet() {\n  console.log(\"Welcome!\");\n}\n\ngreet();",
+ tip:"Call it 3 times and it prints 3 times. Write once, use forever."},
+{id:'s18',ch:'Year 4: Functions',title:'Double Trouble',
+ story:"The Doubling Spell takes any number and gives back twice as much.",
+ learn:"Functions can take an **input** and give back an **output** with `return`:\n`function addOne(n) {`\n`  return n + 1;`\n`}`\n`addOne(4)` → 5",
+ mission:"Make `function double(n)` that **returns** n times 2.",starter:"",
+ tests:[["typeof double==='function'","Create a function called `double`."],["double(4)===8&&double(10)===20&&double(0)===0","`double(n)` should RETURN n times 2: `return n * 2;`"]],
+ hints:["`function double(n) { }`","Inside: `return n * 2;`"],answer:"function double(n) {\n  return n * 2;\n}\n\nconsole.log(double(4));",
+ tip:"`return` hands the answer back. `console.log` only shows it on screen — they're different!"},
+{id:'s19',ch:'Year 4: Functions',title:'Shout!',
+ story:"The Shouting Spell turns any word into CAPITALS with an exclamation mark.",
+ learn:"Text has built-in powers:\n`\"hi\".toUpperCase()` → \"HI\"\n`\"HI\".toLowerCase()` → \"hi\"\nJoin on extra text with `+`.",
+ mission:"Make `function shout(word)` that returns the word in capitals plus **!**",starter:"",
+ tests:[["typeof shout==='function'","Create a function called `shout`."],["shout('hi')==='HI!'&&shout('go')==='GO!'","`shout(word)` should return CAPITALS + \"!\". Try `return word.toUpperCase() + \"!\";`"]],
+ hints:["`function shout(word) { }`","Inside: `return word.toUpperCase() + \"!\";`"],answer:"function shout(word) {\n  return word.toUpperCase() + \"!\";\n}\n\nconsole.log(shout(\"hello\"));",
+ tip:"Built-in powers like toUpperCase are called 'methods'. Text has dozens of them."},
+{id:'s20',ch:'Year 4: Functions',title:'Wizard ID Card',
+ story:"Every student gets a Wizard ID card holding their name and level — all in one variable.",
+ learn:"An **object** groups related info, with labels, inside curly braces:\n`let pet = { name: \"Owl\", age: 3 };`\nRead one part with a dot: `pet.name` → \"Owl\"",
+ mission:"Make `wizard` an object with a `name` (text) and a `level` (number). Then print `wizard.name`.",starter:"",
+ tests:[["wizard&&typeof wizard==='object'&&!Array.isArray(wizard)","Make `wizard` an object with curly braces `{ }`."],["typeof wizard.name==='string'&&wizard.name.length>0","Give it a `name` (text in quotes)."],["typeof wizard.level==='number'","Give it a `level` (a number, no quotes)."],["__out.some(l=>l===wizard.name)","Print the name with `console.log(wizard.name);`"]],
+ hints:["`let wizard = { name: \"Luna\", level: 5 };`","`console.log(wizard.name);`"],answer:"let wizard = { name: \"Luna\", level: 5 };\nconsole.log(wizard.name);",
+ tip:"Almost all data on the internet travels as objects like this (it's called JSON)."},
+{id:'s21',ch:'Year 5: Final Exam',title:'The Final Exam',
+ story:"Your graduation exam! Write ONE spell that decides what happens based on mana. Pass, and you graduate as a Master Wizard! 🎓",
+ learn:"Combine a function, an input, if/else and return:\n• 10 mana or more → return \"Fireball\"\n• less than 10 → return \"Fizzle\"",
+ mission:"Make `function castSpell(mana)` that returns **\"Fireball\"** if mana is 10 or more, otherwise **\"Fizzle\"**.",starter:"",
+ tests:[["typeof castSpell==='function'","Create a function called `castSpell`."],["castSpell(20)==='Fireball'","`castSpell(20)` should return \"Fireball\"."],["castSpell(5)==='Fizzle'","`castSpell(5)` should return \"Fizzle\"."],["castSpell(10)==='Fireball'","`castSpell(10)` should return \"Fireball\" — 10 counts as enough! Use `>=`."]],
+ hints:["`function castSpell(mana) { }`","Inside: `if (mana >= 10) { return \"Fireball\"; } else { return \"Fizzle\"; }`"],
+ answer:"function castSpell(mana) {\n  if (mana >= 10) {\n    return \"Fireball\";\n  } else {\n    return \"Fizzle\";\n  }\n}\n\nconsole.log(castSpell(20));\nconsole.log(castSpell(5));",
+ tip:"You just used variables, comparisons, if/else, functions and return together. That's real programming!"}
+];
+function play(L,el,done){
+  let hints=0,used=false,running=false;
+  el.innerHTML=`<div class="work">
+   <div class="box"><div class="bstory">${storyHTML('Professor Bytewood',L.story)}<div class="lesson">📖 ${md(L.learn)}</div><div class="mission" style="margin-top:10px">🎯 ${md(L.mission)}</div></div></div>
+   <div class="box"><div class="edhead" style="margin-top:0">🪄 Your spell (JavaScript) <small>Ctrl + Enter = cast</small></div>
+     <textarea class="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="JavaScript code" style="min-height:200px"></textarea>
+     <div class="snips cmds"></div><div class="snips"></div>
+     <div class="edhead">🔮 Crystal ball <small>what console.log prints</small></div><div class="crystal"></div>
+     <div class="actions"><button class="btn primary big wide" data-a="run">✨ Cast spell</button><button class="btn" data-a="hint">💡 Hint</button><button class="btn" data-a="tip">✨ Tip</button><button class="btn" data-a="ans">👁 Answer</button><button class="btn ghost wide" data-a="reset">↺ Reset code</button></div>
+     <div class="feedback"></div><div class="hintbox"></div></div></div>`;
+  const ed=$('textarea.code',el),ball=$('.crystal',el),fbEl=$('.feedback',el),hb=$('.hintbox',el);
+  const fb=(t,h)=>{fbEl.className='feedback '+(t||'');fbEl.innerHTML=h||'';};
+  const key='code_'+L.id;ed.value=PROG.spell[key]!=null&&PROG.spell[key]!==''?PROG.spell[key]:L.starter;
+  const save=()=>{PROG.spell[key]=ed.value;saveProg();};
+  ball.innerHTML='<span class="muted">(nothing yet — cast your spell!)</span>';
+  wireEditor(ed,save,()=>run());
+  const cmds=$('.cmds',el);
+  ['console.log();','let ','if () {\n  \n}','for (let i = 0; i < 3; i++) {\n  \n}','function () {\n  \n}','return '].forEach(cm=>{const b=document.createElement('button');b.className='cmd';b.type='button';b.textContent=cm.split('\n')[0].replace(/\s*\{$/,' {…}');b.onmousedown=e=>e.preventDefault();b.onclick=()=>{insertAt(ed,cm);save();};cmds.appendChild(b);});
+  addSnips($('.snips:not(.cmds)',el),ed,save,['(',')','{','}','[',']',';','"','=','+','<','>','.','!']);
+  async function run(){if(running)return;if(!ed.value.trim()){fb('bad','Write your spell first!');return;}
+    running=true;fb('info','✨ Casting…');
+    const r=await runSpell(ed.value,L.tests.map(t=>t[0]));running=false;
+    ball.innerHTML=r.out&&r.out.length?r.out.map(l=>`<div>› ${esc(l)}</div>`).join(''):'<span class="muted">(the crystal ball stayed silent — nothing was printed)</span>';
+    if(r.timeout){fb('bad','⏳ Your spell never finished! A loop is probably running forever. Check your loop condition.');return;}
+    if(r.err){fb('bad','💥 The spell backfired! '+friendly(r.err));return;}
+    const i=r.res.findIndex(x=>!x);
+    if(i>=0){fb('bad','❌ Not quite. '+md(L.tests[i][1])+'<br><small>Stuck? Tap 💡 Hint.</small>');return;}
+    fb('good','✅ The spell works perfectly!');done(used?1:hints?2:3);}
+  $('[data-a=run]',el).onclick=run;
+  $('[data-a=reset]',el).onclick=()=>{ed.value=L.starter;save();fb();};
+  $('[data-a=hint]',el).onclick=()=>{if(hints<L.hints.length)hints++;hb.innerHTML=L.hints.slice(0,hints).map((h,i)=>`<div class="h">💡 <b>Hint ${i+1}:</b> ${md(h)}</div>`).join('')+(hints>=L.hints.length?`<div class="h" style="background:#fff;border-style:dashed">That's every hint! Still stuck? Tap 👁 Answer — totally fine.</div>`:'');};
+  $('[data-a=tip]',el).onclick=()=>hb.insertAdjacentHTML('afterbegin',`<div class="h t">✨ <b>Pro tip:</b> ${md(L.tip)}</div>`);
+  $('[data-a=ans]',el).onclick=()=>{used=true;ed.value=L.answer;save();hb.innerHTML=`<div class="h a">👁 <b>Here's one correct spell.</b> Read it line by line, then press ✨ Cast spell.<br><small>(You'll get 1 star this time — try it from memory later for more.)</small></div>`;};
+}
+Game({id:'spell',emoji:'🧙',title:'Spell Academy',levels:S,unit:'Lesson',winWord:'Spell mastered!',play,
+ intro:`<h2>🏰 Welcome to Spell Academy</h2><p class="lesson">You've been accepted to the most famous school of magic in Code City! Here, every spell is written in <b>JavaScript</b> — the language that makes websites think and act.</p><p class="lesson">Learn variables, numbers, text, true/false, if/else, loops, lists, functions and objects. Type your spell, cast it, and watch the crystal ball. Best played after the HTML &amp; CSS games.</p>`,
+ finale:"You graduated as a Master Wizard! 🎓 You now know the core of JavaScript. Next: Robot Commander uses the same skills to control a robot."});
+window.__SPELL={S,runSpell};
+})();
+</script>
+<!-- =====================================================================
+     GAME 11: BRAIN BATTLE (quiz show)
+     ===================================================================== -->
+<script>
+(()=>{
+// Each question: [question, code or null, [CORRECT answer first, ...wrong answers], explanation]
+const Q=[
+{id:'q1',ch:'Season 1: HTML & CSS',title:'HTML Basics',story:"Welcome to BRAIN BATTLE, the quiz show where code knowledge is king! Round 1 is all about HTML basics. Three lives. Let's GO!",qs:[
+ ["What does HTML stand for?",null,["HyperText Markup Language","High Tech Modern Language","Home Tool Making Language","Hyperlink Text Machine Language"],"HTML = HyperText Markup Language. 'Markup' means labelling text with tags like <h1> and <p>."],
+ ["Which tag makes the BIGGEST heading?",null,["<h1>","<h6>","<head>","<big>"],"h1 is the biggest heading and h6 the smallest. <head> is something else — an invisible area for page info."],
+ ["Which one is a correct CLOSING tag?",null,["</p>","<p/>","<\\p>","<p>"],"Closing tags have a forward slash right after the <."],
+ ["Which tag is for a normal paragraph of text?",null,["<p>","<para>","<text>","<pg>"],"p is short for paragraph."],
+ ["Which of these tags has NO closing tag?",null,["<img>","<p>","<h1>","<ul>"],"<img> has nothing inside it, so it doesn't need closing. <input> and <br> are the same."],
+ ["What does <ul> make?",null,["A bullet list","A numbered list","Underlined text","A link"],"ul = unordered list (bullets). ol = ordered list (numbers)."]]},
+{id:'q2',ch:'Season 1: HTML & CSS',title:'Elements & Attributes',story:"Round 2: attributes — the extra info inside opening tags.",qs:[
+ ["Which attribute holds a link's web address?",null,["href","src","link","url"],"<a href=\"...\">. The src attribute is for images."],
+ ["Which attribute describes an image for people who can't see it?",null,["alt","title","src","desc"],"alt text is read out by screen readers, and shows if the image fails to load."],
+ ["Which words does the visitor click on?","<a href=\"shop.com\">Buy now</a>",["Buy now","shop.com","href","a"],"The words BETWEEN the opening and closing tags are what shows on the page."],
+ ["Which tag is one item inside a list?",null,["<li>","<item>","<ul>","<list>"],"li = list item. It always lives inside a <ul> or <ol>."],
+ ["Which tag makes a box people can type into?",null,["<input>","<type>","<textbox>","<write>"],"<input> makes a typing box. For big multi-line boxes, use <textarea>."],
+ ["What is a <div>?",null,["An invisible box for grouping things","A line across the page","A maths divide sign","A video player"],"A div is a plain box. You can't see it until CSS gives it a look."]]},
+{id:'q3',ch:'Season 1: HTML & CSS',title:'CSS Basics',story:"Round 3: time to paint! CSS questions coming your way.",qs:[
+ ["What does CSS control?",null,["How a page LOOKS","What a page SAYS","How fast the internet is","Page passwords"],"HTML = what things are. CSS = how they look (colours, sizes, layout)."],
+ ["Which is a correctly written CSS rule?",null,["h1 { color: red; }","h1 ( color = red )","h1 { color red }","<h1 color=\"red\">"],"Selector, curly braces, property, colon, value, semicolon."],
+ ["Which property changes the colour of TEXT?",null,["color","colour","text-color","font-color"],"Just color — and only the American spelling works!"],
+ ["Which property changes the colour BEHIND something?",null,["background-color","bg","back-color","fill"],"background-color paints the area behind the content."],
+ ["What does px mean?",null,["Pixels — tiny dots on the screen","Pixar","Percent","Paragraph X"],"Screens are made of millions of pixels. 16px is normal text size."],
+ ["Where does CSS go inside an HTML file?",null,["Between <style> tags","Between <css> tags","Between <script> tags","Between <design> tags"],"<style> holds CSS. <script> holds JavaScript."]]},
+{id:'q4',ch:'Season 1: HTML & CSS',title:'Selectors',story:"Round 4: selectors — how CSS picks what to style. Sir Select would be proud.",qs:[
+ ["How do you select class=\"hero\" in CSS?",null,[".hero","#hero","hero","*hero"],"Classes use a dot."],
+ ["How do you select id=\"logo\" in CSS?",null,["#logo",".logo","logo","@logo"],"ids use a hash."],
+ ["What does this select?","ul li { }",["Every li inside a ul","Only the first li","A ul next to an li","Nothing — it's broken"],"A space means 'inside'."],
+ ["What does this select?","h1, h2 { }",["All h1s AND all h2s","h2s inside h1s","Only the first h1","Nothing — commas aren't allowed"],"A comma groups selectors together."],
+ ["What does this rule do?",".btn:hover { background: gold; }",["Makes .btn gold while the mouse is over it","Makes .btn gold forever","Hides the button","Makes every button gold"],":hover only applies while pointing at it."],
+ ["What does * select?",null,["Every element","Nothing","Only stars","Only images"],"* is the universal selector."]]},
+{id:'q5',ch:'Season 1: HTML & CSS',title:'The Box Model',story:"Round 5: every element is a box. Do you know your padding from your margin?",qs:[
+ ["Padding is space…",null,["Inside the border","Outside the border","Between letters","Between pages"],"Padding = inside (like bubble wrap). Margin = outside."],
+ ["Margin is space…",null,["Outside the border","Inside the border","Between letters","Under the text"],"Margin pushes other boxes away."],
+ ["What does border-radius: 50% do to a square?",null,["Turns it into a circle","Makes it 50% smaller","Makes it half see-through","Adds a thick border"],"50% rounding on a square = a perfect circle."],
+ ["Which CSS centers TEXT?",null,["text-align: center;","align: middle;","center: true;","text-center: yes;"],"text-align centers text inside its box."],
+ ["What border does this make?",".box { border: 2px dashed red; }",["2px thick, dashed, red","2 red dashes","A red box with no border","Two dashed boxes"],"border = thickness, style, colour."],
+ ["Which one is written correctly?",null,["font-size: 20px;","font-size: 20 px;","font size: 20px;","fontsize: 20px;"],"No space between number and unit, and a dash in two-word properties."]]},
+{id:'q6',ch:'Season 1: HTML & CSS',title:'Flexbox & Grid',story:"Round 6: layouts! The topic that makes beginners sweat. Not you though.",qs:[
+ ["Where does display: flex go?",null,["On the PARENT box","On every child","On the body only","On the text"],"Flex goes on the box that holds the items."],
+ ["Which property moves flex items left-right along a row?",null,["justify-content","align-items","text-align","float"],"justify-content = along the row. align-items = across it."],
+ ["Which centers items UP-DOWN in a flex row?",null,["align-items: center;","justify-content: center;","vertical: center;","top: 50%;"],"align-items controls the up-down direction in a row."],
+ ["What does flex-direction: column do?",null,["Stacks items top to bottom","Makes columns of text","Hides the items","Reverses the items"],"Phone layouts use column all the time."],
+ ["What does gap: 10px do?",null,["Adds 10px BETWEEN items","Adds 10px around the outside","Makes items 10px wide","Adds 10 gaps"],"gap only adds space between items."],
+ ["How many columns does this make?",".grid { display: grid; grid-template-columns: 1fr 1fr 1fr; }",["3 equal columns","1 column","111 columns","3 rows"],"Each value = one column. 1fr = one equal share."]]},
+{id:'q7',ch:'Season 2: JavaScript',title:'JavaScript Basics',story:"Season 2! JavaScript makes websites DO things. Round 7 — the basics.",qs:[
+ ["What does JavaScript add to a website?",null,["Actions — making things happen","Colours","Headings","Images"],"HTML = structure, CSS = style, JavaScript = behaviour."],
+ ["Which line correctly creates a variable?",null,["let score = 0;","variable score = 0;","score := 0;","make score 0;"],"let creates a variable."],
+ ["What does this print?","console.log(2 + 3);",["5","23","2 + 3","Error"],"Numbers add up."],
+ ["What does this print?","console.log(\"2\" + \"3\");",["23","5","2 + 3","Error"],"With quotes they're TEXT, and + joins text together."],
+ ["Which of these is a string (text)?",null,["\"hello\"","hello","42","true"],"Strings live inside quotes."],
+ ["In moveRight(); what do the ( ) mean?",null,["Do it now — run the command","It's a comment","It's maths","Nothing"],"The brackets call (run) the function."]]},
+{id:'q8',ch:'Season 2: JavaScript',title:'Predict the Output',story:"Round 8: read the code and predict what it prints. Think like a computer!",qs:[
+ ["What does this print?","let x = 5;\nx = x + 2;\nconsole.log(x);",["7","5","2","x + 2"],"x starts at 5, then becomes 5 + 2."],
+ ["What does this print?","console.log(10 > 3);",["true","false","10","3"],"Comparisons give true or false."],
+ ["What does this print?","let a = 4;\nif (a > 10) {\n  console.log(\"big\");\n} else {\n  console.log(\"small\");\n}",["small","big","big and small","Nothing"],"4 is not bigger than 10, so the else part runs."],
+ ["How many times does this print \"hi\"?","for (let i = 0; i < 3; i++) {\n  console.log(\"hi\");\n}",["3","2","4","Forever"],"i = 0, 1, 2 → three times. When i reaches 3, it stops."],
+ ["What does this print?","let list = [\"a\", \"b\", \"c\"];\nconsole.log(list[1]);",["b","a","c","1"],"Arrays count from 0! list[0] is \"a\", list[1] is \"b\"."],
+ ["What does this print?","function add(a, b) {\n  return a + b;\n}\nconsole.log(add(2, 5));",["7","25","a + b","undefined"],"The function returns 2 + 5."]]},
+{id:'q9',ch:'Season 3: Champions',title:'Spot the Bug',story:"Season 3 — the Champions round! Every snippet has a bug. Find it.",qs:[
+ ["Why does this heading look wrong?","<h1>Welcome<h1>",["The closing tag is missing its /","h1 isn't a real tag","Welcome is spelled wrong","Headings can't hold text"],"It should end with </h1>."],
+ ["Why doesn't this CSS work?","p { colour: blue; }",["CSS only accepts 'color'","blue isn't a colour","p can't be styled","It needs two semicolons"],"American spelling only!"],
+ ["The HTML has class=\"title\". Why doesn't this CSS work?","title { color: red; }",["It's missing the dot: .title","It needs a # instead","red isn't allowed","The braces are wrong"],"Classes need a dot in CSS."],
+ ["What's wrong here?","<a herf=\"page.html\">Go</a>",["herf should be href","Go needs quotes","a should be link","Nothing"],"It's href — H-R-E-F."],
+ ["What's wrong here?","let name = \"Sam\";\nconsole.log(Name);",["Name has a capital N — JavaScript is case-sensitive","console is misspelled","Sam shouldn't have quotes","Nothing"],"name and Name are two different things to JavaScript."],
+ ["Why does this loop never stop?","let i = 0;\nwhile (i < 5) {\n  console.log(i);\n}",["i never goes up, so it's always less than 5","5 is too big","console.log stops loops","while needs a semicolon"],"It needs i++ inside the loop."]]},
+{id:'q10',ch:'Season 3: Champions',title:'The Grand Final',story:"THE GRAND FINAL! Mixed questions from everything. Win this and you're the Brain Battle Champion! 🏆",qs:[
+ ["Which tag holds the MAIN content of a page?",null,["<main>","<content>","<center>","<body2>"],"<main> holds the main content — only one per page."],
+ ["For position: absolute to pin inside a box, the box needs…",null,["position: relative;","display: flex;","margin: auto;","a border"],"The parent with position: relative becomes the pin board."],
+ ["What does this select?","key + chest",["A chest right after a key","Every key and every chest","A chest inside a key","Nothing"],"+ selects the very next sibling."],
+ ["Which creates a list (array) in JavaScript?",null,["[\"a\", \"b\"]","(\"a\", \"b\")","<\"a\", \"b\">","list \"a\" \"b\""],"Square brackets make an array."],
+ ["What does this print?","let n = 3;\nn++;\nconsole.log(n);",["4","3","n++","5"],"n++ adds 1."],
+ ["What does this print?","let p = [\"x\", \"y\"];\np.push(\"z\");\nconsole.log(p.length);",["3","2","z","xyz"],"push adds one item, so there are now 3."]]}
+];
+function play(L,el,done){
+  let i=0,hearts=3,miss=0,used5050=false;
+  const qs=L.qs.map(q=>({q:q[0],code:q[1],opts:q[2].map((t,k)=>({t,ok:k===0})).sort(()=>Math.random()-.5),why:q[3]}));
+  el.innerHTML=`<div class="box"><div class="bstory">${storyHTML('Quizzy, your host',L.story)}</div>
+   <div class="rstat"><span class="chip">❓ Question <b class="qn">1</b>/${qs.length}</span><span class="chip hearts"></span><button class="btn sm" data-a="5050">🎲 50/50 (once per round)</button></div>
+   <div class="qbody"></div><div class="feedback"></div><div class="qnext"></div></div>`;
+  const body=$('.qbody',el),fbEl=$('.feedback',el),nx=$('.qnext',el),b5=$('[data-a="5050"]',el);
+  const fb=(t,h)=>{fbEl.className='feedback '+(t||'');fbEl.innerHTML=h||'';};
+  const drawHearts=()=>{$('.hearts',el).textContent='❤️'.repeat(hearts)+'🤍'.repeat(3-hearts);};
+  function show(){const Qn=qs[i];$('.qn',el).textContent=i+1;drawHearts();fb();nx.innerHTML='';
+    body.innerHTML=`<div class="qtext">${md(Qn.q)}</div>${Qn.code?`<pre class="ex">${esc(Qn.code)}</pre>`:''}<div class="opts">${Qn.opts.map((o,k)=>`<button class="opt" data-k="${k}">${esc(o.t)}</button>`).join('')}</div>`;
+    $$('.opt',body).forEach(b=>b.onclick=()=>pick(+b.dataset.k));
+    b5.disabled=used5050;}
+  function pick(k){const Qn=qs[i],o=Qn.opts[k];const btns=$$('.opt',body);btns.forEach(b=>b.disabled=true);b5.disabled=true;
+    btns[Qn.opts.findIndex(x=>x.ok)].classList.add('right');
+    if(o.ok){fb('good','✅ Correct! '+esc(Qn.why));}
+    else{btns[k].classList.add('wrong');miss++;hearts--;drawHearts();fb('bad','❌ Not quite. '+esc(Qn.why));
+      if(hearts<=0){nx.innerHTML='';setTimeout(()=>modal(`<div class="center"><div style="font-size:52px">💔</div><h2>Out of lives!</h2><p>Every mistake is a lesson — the explanations are the best part. Try the round again!</p></div>`,[['Round list',()=>GAMES.quiz.levels()],['Try again',()=>GAMES.quiz.open(GAMES.quiz.cur),'primary']]),900);return;}}
+    nx.innerHTML=`<div class="actions"><button class="btn primary big wide">${i+1<qs.length?'Next question →':'Finish round 🏁'}</button></div>`;
+    $('button',nx).onclick=()=>{i++;if(i<qs.length)show();else{let s=miss===0?3:miss===1?2:1;if(used5050)s=Math.min(s,2);done(s);}};}
+  b5.onclick=()=>{if(used5050)return;used5050=true;b5.disabled=true;const btns=$$('.opt',body);
+    qs[i].opts.map((o,k)=>k).filter(k=>!qs[i].opts[k].ok).sort(()=>Math.random()-.5).slice(0,2).forEach(k=>{btns[k].disabled=true;btns[k].classList.add('gone');});};
+  show();
+}
+Game({id:'quiz',emoji:'🧠',title:'Brain Battle',levels:Q,unit:'Round',winWord:'Round won!',play,
+ intro:`<h2>📺 BRAIN BATTLE — the code quiz show!</h2><p class="lesson">Lights, camera, CODE! Host Quizzy fires 6 questions per round. You have 3 lives ❤️❤️❤️ and one 50/50 lifeline per round.</p><p class="lesson">Every answer comes with a short explanation — wrong answers teach you just as much as right ones. Great for quick revision, even on the bus!</p>`,
+ finale:"You're the Brain Battle Champion! 🏆 60 questions across HTML, CSS and JavaScript — that's serious knowledge."});
+window.__QUIZ=Q;
 })();
 </script>
 
@@ -1863,12 +2873,16 @@ window.__ROBOT={LV,runRobot};
 <script>
 const CARDS=[
  {id:'quest',em:'🌿',t:'Codeling Quest',d:'Your main adventure! Explore a world and tame wild creatures by writing code.',tags:['html','css'],ribbon:'START HERE'},
- {id:'bug',em:'🐞',t:'Bug Hunter',d:'Be a detective. Solve cases by fixing broken websites.',tags:['html','css']},
- {id:'dungeon',em:'🏰',t:'Dungeon Escape',d:'Open magic doors with CSS selectors. Free the trapped knight.',tags:['css']},
+ {id:'bug',em:'🐞',t:'Bug Hunter',d:'Be a detective. Solve 26 cases by fixing broken websites.',tags:['html','css']},
+ {id:'form',em:'📝',t:'Form Forge',d:'Join the Builders\' Guild. Build tables, forms and full page structures.',tags:['html'],ribbon:'NEW'},
+ {id:'dungeon',em:'🏰',t:'Dungeon Escape',d:'Open 25 magic doors with CSS selectors. Free the trapped knight.',tags:['css']},
  {id:'art',em:'🎨',t:'Copy the Picture',d:'Restore faded museum paintings by recreating them with CSS.',tags:['css']},
+ {id:'grid',em:'🌻',t:'Grid Farm',d:'Plant Farmer Flo\'s crops with CSS Grid, then open her farm shop.',tags:['css'],ribbon:'NEW'},
  {id:'cafe',em:'☕',t:'Café Tycoon',d:'Build Grandma\'s café website day by day. Earn coins, decorate, grow.',tags:['html','css']},
- {id:'racer',em:'🏎️',t:'Tag Racer',d:'Type code fast and right to beat your rivals to the finish line.',tags:['html','css']},
- {id:'robot',em:'🤖',t:'Robot Commander',d:'Program Bolt the robot with real JavaScript. After HTML & CSS.',tags:['js']}
+ {id:'racer',em:'🏎️',t:'Tag Racer',d:'Type code fast and right to beat your rivals across 3 leagues.',tags:['html','css']},
+ {id:'quiz',em:'🧠',t:'Brain Battle',d:'A code quiz show! 60 questions, 3 lives, one 50/50 lifeline.',tags:['html','css','js'],ribbon:'NEW'},
+ {id:'spell',em:'🧙',t:'Spell Academy',d:'Learn JavaScript at wizard school. Every spell is real code.',tags:['js'],ribbon:'NEW'},
+ {id:'robot',em:'🤖',t:'Robot Commander',d:'Program Bolt the robot with real JavaScript. Escape the factory!',tags:['js']}
 ];
 function renderHub(){
   $('#hubGrid').innerHTML=CARDS.map(c=>{
