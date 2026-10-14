@@ -223,6 +223,16 @@ iframe.droom{width:100%;height:230px;border:3px solid var(--ink);border-radius:1
 .countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:54px;color:#fff;font-weight:900;text-shadow:0 4px 0 #2a2840;background:rgba(42,40,64,.35)}
 iframe.mini{height:110px!important}
 
+/* ---------- projects ---------- */
+.where{background:#eef4ff;border:2px solid #c3d6ff;border-radius:12px;padding:8px 12px;margin-top:8px;font-size:15px;line-height:1.5;font-weight:700}
+.where code{background:var(--code);padding:1px 6px;border-radius:6px;font-size:.9em;color:var(--codeInk);white-space:normal;overflow-wrap:anywhere}
+iframe.goalprev{height:200px;background:#fff}
+iframe.fullprev{width:100%;height:65vh;border:3px solid var(--ink);border-radius:12px;background:#fff;display:block}
+.hubsec{max-width:1100px;margin:22px auto 0;padding:0 14px;font-size:21px}
+.hubsec small{display:block;font-size:14px;color:var(--muted);font-weight:700;margin-top:2px}
+.tag.proj{background:#e7f8ef;color:#136c48}
+.h.flash{animation:pop .4s}
+.placehint{display:block;margin-top:8px;padding:8px 10px;background:#fff8e1;border:2px solid #f6dd8a;border-radius:10px;color:#6b4d00}
 /* ---------- spell academy ---------- */
 .crystal{background:#f6f2ff;border:3px solid var(--ink);border-radius:12px;padding:10px 12px;font-family:"JetBrains Mono",monospace;min-height:70px;white-space:pre-wrap;font-size:15px;color:#3a2a8a;overflow:auto;max-height:220px}
 /* ---------- brain battle ---------- */
@@ -250,9 +260,12 @@ iframe.mini{height:110px!important}
 <section class="screen" id="hub">
   <div class="hubhead">
     <h1 class="hublogo pix">CODE<br>ARCADE</h1>
-    <p class="muted" style="margin:10px 0 0">11 story games · 200+ levels · Real code. Learn HTML, CSS &amp; JavaScript by playing.</p>
+    <p class="muted" style="margin:10px 0 0">11 story games · 5 real projects · 270+ lessons · Real code. Learn HTML, CSS &amp; JavaScript by playing.</p>
   </div>
+  <h2 class="hubsec">🎮 Games <small>Learn the skills — one fun lesson at a time.</small></h2>
   <div class="hubgrid" id="hubGrid"></div>
+  <h2 class="hubsec">🛠️ Projects <small>Build real websites step by step, then download them. Perfect after the HTML &amp; CSS games.</small></h2>
+  <div class="hubgrid" id="projGrid"></div>
   <div class="hubfoot">
     <p><b>Suggested order:</b> 🌿 Codeling Quest → 🐞 Bug Hunter → 📝 Form Forge → 🏰 Dungeon → 🎨 Copy the Picture → 🌻 Grid Farm → ☕ Café → 🏎️ Racer → 🧠 Brain Battle → 🧙 Spell Academy → 🤖 Robot</p>
     <div class="box backup">
@@ -348,7 +361,7 @@ const md=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\
 const debounce=(fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};};
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
 const AKEY='code-arcade-v1', QKEY='codeling-quest-v1';
-const freshProg=()=>({bug:{},art:{},dungeon:{},cafe:{code:'',start:'',coins:0,decor:[],stars:{}},racer:{},robot:{},form:{},grid:{},spell:{},quiz:{}});
+const freshProg=()=>({bug:{},art:{},dungeon:{},cafe:{code:'',start:'',coins:0,decor:[],stars:{}},racer:{},robot:{},form:{},grid:{},spell:{},quiz:{},proj:{}});
 function cleanProg(raw){const f=freshProg(),o=Object.assign({},f,raw&&typeof raw==='object'?raw:{});for(const k in f)if(!o[k]||typeof o[k]!=='object'||Array.isArray(o[k]))o[k]=f[k];o.cafe=Object.assign(f.cafe,o.cafe);if(!o.cafe.stars||typeof o.cafe.stars!=='object')o.cafe.stars={};if(!Array.isArray(o.cafe.decor))o.cafe.decor=[];o.cafe.coins=+o.cafe.coins||0;return o;}
 let PROG=cleanProg(store.get(AKEY,{}));
 const saveProg=()=>store.set(AKEY,PROG);
@@ -412,6 +425,15 @@ function wireEditor(ed,onInput,onSubmit){
     if(e.key==='Enter'&&(e.ctrlKey||e.metaKey||ed.tagName==='INPUT')){e.preventDefault();onSubmit();}
   });
 }
+function showTip(hb,tip){const ex=hb.querySelector('.h.t');if(ex){ex.classList.remove('flash');void ex.offsetWidth;ex.classList.add('flash');return;}hb.insertAdjacentHTML('afterbegin','<div class="h t">✨ <b>Pro tip:</b> '+md(tip)+'</div>');}
+function placementHint(code){
+  const at=code.search(/<style/i),endAt=code.toLowerCase().lastIndexOf('</style>'),html=(at>=0?code.slice(0,at):code)+(endAt>=0?'\n'+code.slice(endAt+8):'');
+  if(at>=0&&!/<\/style>/i.test(code))return 'Your <code>&lt;style&gt;</code> section is never closed. Add <code>&lt;/style&gt;</code> at the very end.';
+  const m=/<style[^>]*>([\s\S]*?)<\/style>/i.exec(code),css=m?m[1]:'';
+  if(/<\/?(a|p|h[1-6]|div|ul|ol|li|img|nav|section|header|footer|button|input|label|span|table|tr|td|th|form|main|article|aside)\b/i.test(css))return 'Some HTML tags ended up INSIDE your <code>&lt;style&gt;</code> section. HTML goes ABOVE <code>&lt;style&gt;</code> — only CSS goes inside it.';
+  if(/[.#]?[a-z][\w-]*\s*\{[^{}]*:[^{}]*\}/i.test(html.replace(/<[^>]*>/g,' ')))return at>=0?'Some CSS is sitting OUTSIDE your <code>&lt;style&gt;</code> section, so it shows up as text. Move it between <code>&lt;style&gt;</code> and <code>&lt;/style&gt;</code>.':'Your CSS needs to be inside a <code>&lt;style&gt;</code> section. Put <code>&lt;style&gt;</code> above it and <code>&lt;/style&gt;</code> below it.';
+  return '';
+}
 const starsHTML=(n,max=3)=>`<span class="stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(max-n)}</span></span>`;
 const storyHTML=(who,text)=>`<div class="story"><b class="who">${esc(who)}</b>${md(text)}</div>`;
 
@@ -457,12 +479,12 @@ function Bench(root,opt={}){
     const r=opt.checker?await opt.checker(T,ed.value,{fr,tg,base}):await runChecksCode(fr,ed.value,T.checks,base);
     busy=false;
     if(r.ok){const stars=used?1:hints?2:3;fb('good',`✅ ${opt.winText||'It works! Your code is correct.'} ${r.extra||''}`);opt.onPass&&opt.onPass(stars,ed.value);}
-    else{fb('bad',`❌ ${md(r.msg)}${r.extra?'<br>'+r.extra:''}<br><small style="font-weight:700">Fix it and check again. Stuck? Tap 💡 Hint.</small>`);}
+    else{const ph=placementHint(ed.value);fb('bad',`❌ ${md(r.msg)}${r.extra?'<br>'+r.extra:''}${ph?`<span class="placehint">🧭 ${ph}</span>`:''}<small style="font-weight:700;display:block;margin-top:6px">Fix it and check again. Stuck? Tap 💡 Hint.</small>`);}
   }
   $('[data-a=check]',root).onclick=check;
   hintBtn.onclick=()=>{if(!T)return;if(hints<T.hints.length)hints++;label();
     hb.innerHTML=T.hints.slice(0,hints).map((h,i)=>`<div class="h">💡 <b>Hint ${i+1}:</b> ${md(h)}</div>`).join('')+(hints>=T.hints.length?`<div class="h" style="background:#fff;border-style:dashed">That's every hint! Still stuck? Tap 👁 Answer — totally fine.</div>`:'');};
-  $('[data-a=tip]',root).onclick=()=>{if(T)hb.insertAdjacentHTML('afterbegin',`<div class="h t">✨ <b>Pro tip:</b> ${md(T.tip)}</div>`);};
+  $('[data-a=tip]',root).onclick=()=>{if(T)showTip(hb,T.tip);};
   $('[data-a=answer]',root).onclick=()=>{if(!T)return;used=true;
     if(opt.answer){opt.answer(T,ed,hb,onInput);return;}
     ed.value=T.answer;onInput();
@@ -510,7 +532,7 @@ function Game(def){
       setTimeout(()=>modal(`<div class="center"><div style="font-size:52px">${stars===3?'🏆':stars===2?'🎉':'👍'}</div><h2>${esc(def.winWord||'Level complete!')}</h2><div style="font-size:30px">${starsHTML(stars)}</div>
         ${L.outro?`<p style="font-weight:700">${md(L.outro)}</p>`:''}<p class="muted">${stars===3?'Perfect — no hints needed!':stars===2?'Nice! Try again with no hints for 3 stars.':'You used the answer — try it again later from memory for more stars.'}</p>
         ${!hasNext&&def.finale?`<p style="font-weight:800">${md(def.finale)}</p>`:''}</div>`,
-        hasNext?[['Level list',()=>g.levels()],['Next →',()=>g.open(i+1),'primary']]:[['Level list',()=>g.levels(),'primary']]),700);},
+        hasNext?[['Level list',()=>g.levels()],['Next →',()=>g.open(i+1),'primary']]:[...(def.finaleBtns||[]),['Level list',()=>g.levels(),'primary']]),700);},
     cleanup(){def.cleanup&&def.cleanup();}
   };
   $('[data-back]',sec).onclick=()=>APP.show('hub');
@@ -1033,7 +1055,7 @@ function lose(msg){
  anim($('#foeSprite'),'lungeF');setTimeout(()=>anim($('#meSprite'),'hit'),200);
  S.hp=Math.max(0,S.hp-dmg);
  bmsg(`${ch.name} used ${ATTACKS[Math.floor(Math.random()*ATTACKS.length)]}! −${dmg} HP`);
- fb('bad',`❌ Not quite. ${md(msg)}<br><small style="font-weight:700">Fix it, then attack again. Stuck? Tap 💡 Hint. You've got this.</small>`);
+ const ph=placementHint(editor.value);fb('bad',`❌ Not quite. ${md(msg)}${ph?`<span class="placehint">🧭 ${ph}</span>`:''}<small style="font-weight:700;display:block;margin-top:6px">Fix it, then attack again. Stuck? Tap 💡 Hint. You've got this.</small>`);
  setTimeout(()=>{setMeHP();save();B.locked=false;$('#bAttack').disabled=false;
   if(S.hp<=0){B.locked=true;modal(`<div class="center"><div style="font-size:54px">😵‍💫</div><h2>Your Codeling is worn out!</h2><p>You rush back to the Code Center in Pixel Town. Nothing you learned is lost.</p></div>`,[['Back to town',blackout,'primary']]);}
  },600);
@@ -1049,7 +1071,7 @@ function closeBattle(){$('#battle').classList.add('hidden');document.body.style.
 $('#bAttack').onclick=attack;
 $('#bHint').onclick=()=>{const ch=B.ch;if(B.hints<ch.hints.length)B.hints++;hintLabel();
  $('#hintBox').innerHTML=ch.hints.slice(0,B.hints).map((h,i)=>`<div class="h">💡 <b>Hint ${i+1}:</b> ${md(h)}</div>`).join('')+(B.hints>=ch.hints.length?`<div class="h" style="background:#fff;border-style:dashed">That's every hint! Still stuck? Tap 👁 Answer — totally fine.</div>`:'');};
-$('#bTip').onclick=()=>{$('#hintBox').insertAdjacentHTML('afterbegin',`<div class="h t">✨ <b>Pro tip:</b> ${md(B.ch.tip)}</div>`);};
+$('#bTip').onclick=()=>{showTip($('#hintBox'),B.ch.tip);};
 $('#bAnswer').onclick=()=>{B.usedAnswer=true;editor.value=B.ch.answer;livePreview();
  $('#hintBox').innerHTML=`<div class="h a">👁 <b>Here's a correct answer.</b> Read it line by line and compare it to yours — spot the difference. Then press ⚔️ ATTACK.<br><small>(You'll earn fewer XP this time. Learning is the real win.)</small></div>`;};
 $('#bReset').onclick=()=>{editor.value=B.ch.starter;livePreview();editor.focus();};
@@ -1699,7 +1721,7 @@ function play(L,el,done){
       fb('bad',`❌ The door stays shut. ${missing?`You missed ${missing} wiggling item${missing>1?'s':''}. `:''}${extra?`You grabbed ${extra} item${extra>1?'s':''} the door doesn't want (red outline).`:''}<br><small>Stuck? Tap 💡 Hint.</small>`);}}
   $('[data-a=go]',el).onclick=go;
   $('[data-a=hint]',el).onclick=()=>{if(hints<L.hints.length)hints++;hb.innerHTML=L.hints.slice(0,hints).map((h,i)=>`<div class="h">💡 <b>Hint ${i+1}:</b> ${md(h)}</div>`).join('');};
-  $('[data-a=tip]',el).onclick=()=>hb.insertAdjacentHTML('afterbegin',`<div class="h t">✨ <b>Pro tip:</b> ${md(L.tip)}</div>`);
+  $('[data-a=tip]',el).onclick=()=>showTip(hb,L.tip);
   $('[data-a=ans]',el).onclick=()=>{used=true;inp.value=L.target;live();hb.innerHTML=`<div class="h a">👁 The answer is <code>${esc(L.target)}</code>. Look at how it matches the wiggling items, then open the door.</div>`;};
 }
 Game({id:'dungeon',emoji:'🏰',title:'Dungeon Escape',unit:'Room',winWord:'Door opened!',levels:ROOMS,
@@ -1736,7 +1758,7 @@ const DAYS=[
  mission:"Add an `<h2>` that says **Menu**, then a `<ul>` list with at least **3** items.",
  hints:["Heading: `<h2>Menu</h2>`","Then `<ul>` with `<li>` items inside, and `</ul>`."],snippet:"<h2>Menu</h2>\n<ul>\n  <li>Flat white $5</li>\n  <li>Hot chocolate $4</li>\n  <li>Banana bread $6</li>\n</ul>",kind:'html',
  tip:"Lists are perfect for menus. Later you'll make this list look amazing with CSS.",
- checks:[hasText('h2','menu',"Add an `<h2>` that says Menu."),[a=>a.$$('ul li').length>=3,"Your `<ul>` needs at least 3 `<li>` items."]]},
+ checks:[[a=>a.$$('h2').some(x=>a.text(x).includes('menu')),"Add an `<h2>` that says Menu."],[a=>a.$$('ul li').length>=3,"Your `<ul>` needs at least 3 `<li>` items."]]},
 {id:'d4',ch:'Week 1: Build it',title:'A tasty photo',coins:30,
  story:"People eat with their eyes first! Add a photo of our famous coffee.",
  mission:"Add an `<img>` with any `src` (like coffee.png) and an `alt` description.",
@@ -1748,7 +1770,7 @@ const DAYS=[
  mission:"Add a link (`<a>`) with any `href`, that says **Order now**.",
  hints:["`<a href=\"#\">Order now</a>`","`#` is a placeholder address."],snippet:"<a href=\"#\">Order now</a>",kind:'html',
  tip:"Every shop website needs a clear 'call to action' — the one thing you want visitors to click.",
- checks:[[a=>!!(a.$('a')&&a.$('a').getAttribute('href')),"Add an `<a>` link with an `href`."],hasText('a','order',"The link should say Order now.")]},
+ checks:[[a=>a.$$('a[href]').length>0,"Add an `<a>` link with an `href`, like `<a href=\"#\">`."],[a=>a.$$('a[href]').some(x=>a.text(x).includes('order')),"Your `<a href>` link should say Order now."]]},
 {id:'d6',ch:'Week 2: Make it pretty',title:'Paint the walls',coins:40,
  story:"The website works, but it's so plain! Time for paint. Grandma always loved warm colours.",
  mission:"Add a `<style>` section and give the `body` a `background-color` (not white).",
@@ -1764,16 +1786,18 @@ const DAYS=[
 {id:'d8',ch:'Week 2: Make it pretty',title:'A menu card',coins:50,
  story:"The menu looks like a shopping list. Let's turn it into a pretty menu card!",
  mission:"Add `class=\"menu\"` to your `<ul>`. Then style `.menu` with a `background-color` and at least **10px** padding.",
- hints:["Change `<ul>` to `<ul class=\"menu\">`","Then: `.menu { background-color: white; padding: 16px; }`"],snippet:".menu { background-color: white; padding: 16px; border-radius: 12px; }",kind:'css',
+ hints:["TWO parts today! First, in your HTML, change `<ul>` to `<ul class=\"menu\">`","Then: `.menu { background-color: white; padding: 16px; }`"],snippet:".menu { background-color: white; padding: 16px; border-radius: 12px; }",kind:'css',
+ htmlStep:"Find your `<ul>` and change it to `<ul class=\"menu\">`",
  apply:c=>insertCSS(/<ul class=/.test(c)?c:c.replace('<ul','<ul class="menu"'),".menu { background-color: white; padding: 16px; border-radius: 12px; }"),
  tip:"Adding a class to existing HTML is how you 'hook' CSS onto it.",
  checks:[has('ul.menu',"Add `class=\"menu\"` to your `<ul>`."),cssNot('.menu','backgroundColor',CLEAR,"Give `.menu` a `background-color`."),cssMin('.menu','paddingTop',10,"Give `.menu` at least `padding: 10px;`")]},
 {id:'d9',ch:'Week 2: Make it pretty',title:'A real button',coins:50,
  story:"Our Order link is tiny and blue. Let's make it a big, beautiful button people WANT to tap.",
  mission:"Add `class=\"btn\"` to your link. Style `.btn` with a `background-color`, `padding`, `border-radius` and `text-decoration: none`.",
- hints:["`<a class=\"btn\" href=\"#\">Order now</a>`","`.btn { background-color: tomato; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }`"],
+ hints:["TWO parts today! First, in your HTML, change your link to `<a class=\"btn\" href=\"#\">Order now</a>`","`.btn { background-color: tomato; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }`"],
  snippet:".btn { background-color: tomato; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }",kind:'css',
- apply:c=>insertCSS(/<a class=/.test(c)?c:c.replace('<a ','<a class="btn" '),".btn { background-color: tomato; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }"),
+ htmlStep:"Find your Order now link and add `class=\"btn\"` inside its opening tag, so it becomes: `<a class=\"btn\" href=\"#\">Order now</a>`",
+ apply:c=>insertCSS(/class="btn"/.test(c)?c:c.replace(/<a\b(?![^>]*class=)([^>]*>\s*order)/i,'<a class="btn"$1'),".btn { background-color: tomato; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; }"),
  tip:"`text-decoration: none;` removes the underline that links have by default.",
  checks:[has('a.btn',"Add `class=\"btn\"` to your `<a>` link."),cssNot('.btn','backgroundColor',CLEAR,"Give `.btn` a `background-color`."),cssMin('.btn','paddingTop',4,"Give `.btn` some `padding`."),cssMin('.btn','borderTopLeftRadius',1,"Give `.btn` a `border-radius`."),cssIs('.btn','textDecorationLine','none',"Remove the underline with `text-decoration: none;`")]},
 {id:'d10',ch:'Week 3: Grand opening',title:'Button glow',coins:60,
@@ -1804,7 +1828,7 @@ const DAYS=[
  story:"Big websites have a menu bar at the top so people can jump around. Let's add one!",
  mission:"At the very TOP of your code, add a `<nav>` with **3** links (`<a>`).",
  hints:["`<nav>` is a box for menu links. Put it on the very first line.","`<nav>\n  <a href=\"#\">Home</a>\n  <a href=\"#menu\">Menu</a>\n  <a href=\"#contact\">Contact</a>\n</nav>`"],
- snippet:"<nav>\n  <a href=\"#\">Home</a>\n  <a href=\"#menu\">Menu</a>\n  <a href=\"#contact\">Contact</a>\n</nav>",kind:'html',
+ snippet:"<nav>\n  <a href=\"#\">Home</a>\n  <a href=\"#menu\">Menu</a>\n  <a href=\"#contact\">Contact</a>\n</nav>",kind:'html',where:"This goes at the very TOP of your code — above your `<h1>`.",
  apply:c=>"<nav>\n  <a href=\"#\">Home</a>\n  <a href=\"#menu\">Menu</a>\n  <a href=\"#contact\">Contact</a>\n</nav>\n"+c,
  tip:"`href=\"#contact\"` jumps to the element with `id=\"contact\"` on the same page. You'll make that soon!",
  checks:[[a=>a.$$('nav a').length>=3,"Add a `<nav>` with 3 `<a>` links inside."]]},
@@ -1868,7 +1892,7 @@ function play(L,el,done,g){
   if(!already&&C().day!==L.id){C().start=C().code||'';C().day=L.id;saveProg();}
   bench=Bench(el,{checkLabel:'☕ Open for the day',resetLabel:'Undo today\'s changes',winText:'The customers love it!',
     onInput:v=>{C().code=v;saveProg();},
-    answer:(T,ed,hb,onInput)=>{hb.innerHTML=`<div class="h a">👁 <b>Here's what to add:</b><pre class="ex">${esc(T.snippet)}</pre>${T.kind==='css'?'This goes inside your <code>&lt;style&gt;</code> section.':'This goes in your HTML, above the <code>&lt;style&gt;</code> section.'}<div style="margin-top:8px"><button class="btn sm primary" data-add>✨ Add it for me</button></div></div>`;
+    answer:(T,ed,hb,onInput)=>{hb.innerHTML=`<div class="h a">👁 <b>${T.htmlStep?'This day has TWO parts:':'Here\'s what to add:'}</b>${T.htmlStep?`<div style="margin:6px 0"><b>1️⃣ In your HTML:</b> ${md(T.htmlStep)}</div><b>2️⃣ In your CSS</b> (inside <code>&lt;style&gt;</code>), add:`:''}<pre class="ex">${esc(T.snippet)}</pre>${T.where?md(T.where):T.kind==='css'?'This goes inside your <code>&lt;style&gt;</code> section.':'This goes in your HTML, above the <code>&lt;style&gt;</code> section.'}<div style="margin-top:8px"><button class="btn sm primary" data-add>✨ Add it for me</button></div></div>`;
       $('[data-add]',hb).onclick=()=>{ed.value=T.apply(ed.value);onInput();};},
     onPass:s=>{if(!C().stars[L.id]){C().coins+=L.coins;}C().day=null;saveProg();done(s);}});
   L.storyHTML=storyHTML(`Day ${i+1} · Grandma's note`,L.story)+`<div class="mission">🎯 ${md(L.mission)}</div><p class="muted" style="font-size:14px;margin-bottom:0">Your café's code carries over day by day — it's YOUR website. Reward: 🪙 ${L.coins}</p>`;
@@ -2252,7 +2276,7 @@ function play(L,el,done){
   $('[data-a=run]',el).onclick=run;
   $('[data-a=clear]',el).onclick=()=>{ed.value='';PROG.robot[key]='';saveProg();cleanup();running=false;draw();fb();};
   $('[data-a=hint]',el).onclick=()=>{if(hints<L.hints.length)hints++;hb.innerHTML=L.hints.slice(0,hints).map((h,i)=>`<div class="h">💡 <b>Hint ${i+1}:</b> ${md(h)}</div>`).join('');};
-  $('[data-a=tip]',el).onclick=()=>hb.insertAdjacentHTML('afterbegin',`<div class="h t">✨ <b>Pro tip:</b> ${md(L.tip)}</div>`);
+  $('[data-a=tip]',el).onclick=()=>showTip(hb,L.tip);
   $('[data-a=ans]',el).onclick=()=>{used=true;ed.value=L.answer;PROG.robot[key]=ed.value;saveProg();hb.innerHTML=`<div class="h a">👁 <b>Here's one answer.</b> Read it line by line and imagine Bolt doing each step. Then press ▶ Run.</div>`;};
 }
 Game({id:'robot',emoji:'🤖',title:'Robot Commander',levels:LV,play,cleanup,
@@ -2761,7 +2785,7 @@ function play(L,el,done){
   $('[data-a=run]',el).onclick=run;
   $('[data-a=reset]',el).onclick=()=>{ed.value=L.starter;save();fb();};
   $('[data-a=hint]',el).onclick=()=>{if(hints<L.hints.length)hints++;hb.innerHTML=L.hints.slice(0,hints).map((h,i)=>`<div class="h">💡 <b>Hint ${i+1}:</b> ${md(h)}</div>`).join('')+(hints>=L.hints.length?`<div class="h" style="background:#fff;border-style:dashed">That's every hint! Still stuck? Tap 👁 Answer — totally fine.</div>`:'');};
-  $('[data-a=tip]',el).onclick=()=>hb.insertAdjacentHTML('afterbegin',`<div class="h t">✨ <b>Pro tip:</b> ${md(L.tip)}</div>`);
+  $('[data-a=tip]',el).onclick=()=>showTip(hb,L.tip);
   $('[data-a=ans]',el).onclick=()=>{used=true;ed.value=L.answer;save();hb.innerHTML=`<div class="h a">👁 <b>Here's one correct spell.</b> Read it line by line, then press ✨ Cast spell.<br><small>(You'll get 1 star this time — try it from memory later for more.)</small></div>`;};
 }
 Game({id:'spell',emoji:'🧙',title:'Spell Academy',levels:S,unit:'Lesson',winWord:'Spell mastered!',play,
@@ -2880,6 +2904,528 @@ window.__QUIZ=Q;
 </script>
 
 <!-- =====================================================================
+     PROJECTS: real websites, built step by step
+     ===================================================================== -->
+<script>
+(()=>{
+const ind=(s,n)=>s.replace(/\n/g,'\n'+' '.repeat(n));
+const insCSS=(code,css)=>code.includes('</style>')
+  ?code.replace(/\s*<\/style>(?![\s\S]*<\/style>)/,'\n\n  '+ind(css,2)+'\n</style>')
+  :code.replace(/\s*$/,'')+(code.trim()?'\n\n':'')+'<style>\n  '+ind(css,2)+'\n</style>';
+const insHTML=(code,html)=>{const i=code.search(/<style/i);return i>=0?code.slice(0,i).replace(/\s*$/,'')+(code.slice(0,i).trim()?'\n\n':'')+html+'\n\n'+code.slice(i):(code.replace(/\s*$/,'')+(code.trim()?'\n\n':'')+html);};
+const W_HTML='Below everything you already have — but ABOVE the `<style>` section, if you have one. (HTML always goes above the style section.)';
+const W_CSS='Inside your `<style>` section, just before `</style>`. No style section yet? Type `<style>` on a new line at the very bottom, then your CSS, then `</style>`.';
+const H=(id,title,o)=>Object.assign({id,title,kind:'html',ch:'Part 1: Build it (HTML)'},o);
+const C=(id,title,o)=>Object.assign({id,title,kind:'css',ch:'Part 2: Style it (CSS)'},o);
+const nonDefaultFont=a=>a.css(a.doc.body,'fontFamily')!=='system-ui, sans-serif';
+const labelLinked=(a,scope)=>a.$$(scope+' label[for]').some(l=>a.doc.getElementById(l.getAttribute('for')));
+const anyHover=(re,prop)=>a=>a.rules().some(r=>r.selectorText&&re.test(r.selectorText.replace(/\s+/g,' '))&&r.style[prop]);
+const hasMedia=(re,m)=>[a=>a.rules().some(r=>r.media&&re.test(r.media.mediaText)&&r.cssRules&&r.cssRules.length),m];
+const grad=(s,m)=>[a=>/gradient/.test(a.css(a.$(s)||a.doc.body,'backgroundImage')),m];
+const transOn=(s,m)=>[a=>{const e=a.$(s);return !!e&&a.css(e,'transitionDuration').split(',').some(v=>parseFloat(v)>0);},m];
+
+const PROJECTS=[
+/* ------------------------------------------------------------------ */
+{id:'pcafe',emoji:'☕',title:'Café Website',mentor:'Mia, café owner',uses:'Bug Hunter, Form Forge, Café Tycoon, Grid Farm',
+ blurb:'A full one-page café site: menu cards, opening hours, newsletter sign-up.',
+ intro:"Mia just opened a little café and needs a real website — fast. You'll build it from a blank page: a welcome banner, a menu bar, menu cards, an opening-hours table, a sign-up form and a footer. Then you'll style it until it looks like a real business.",
+ steps:[
+ H('c1','The welcome banner',{why:"Every website starts with a big, friendly welcome. This is the first thing customers see.",
+  todo:"Make a `<header class=\"hero\">` with an `<h1>` (your café's name) and a `<p>` (a short slogan) inside it.",where:"Your code box is empty — type it right at the top.",
+  snippet:"<header class=\"hero\">\n  <h1>The Daily Grind</h1>\n  <p>Fresh coffee and cosy vibes since 2026</p>\n</header>",
+  hints:["Open the box: `<header class=\"hero\">` … close it with `</header>`.","Inside it: an `<h1>` with the café name, then a `<p>` with a slogan."],
+  tip:"Use your OWN café name! The checker only cares that the tags are right, not the words.",
+  checks:[has('header h1',"Put an `<h1>` inside a `<header>`."),has('header p',"Put a `<p>` slogan inside the `<header>` too.")]}),
+ H('c2','The menu bar',{why:"Visitors need to jump straight to the menu, the hours or the contact info.",
+  learn:"A link with `href=\"#menu\"` jumps to the part of the page that has `id=\"menu\"`. You'll make those parts in the next steps!",
+  todo:"Add a `<nav>` with **3** links: `#menu`, `#hours` and `#contact`.",where:"At the very TOP of your code, above `<header>`.",
+  snippet:"<nav>\n  <a href=\"#menu\">Menu</a>\n  <a href=\"#hours\">Hours</a>\n  <a href=\"#contact\">Contact</a>\n</nav>",apply:c=>"<nav>\n  <a href=\"#menu\">Menu</a>\n  <a href=\"#hours\">Hours</a>\n  <a href=\"#contact\">Contact</a>\n</nav>\n\n"+c,
+  hints:["`<nav>` holds menu links. Put it on the very first line.","Each link: `<a href=\"#menu\">Menu</a>` — then the same for hours and contact."],
+  tip:"These links won't jump anywhere yet — the sections they point to don't exist. They will soon!",
+  checks:[[a=>a.$$('nav a').length>=3,"Add a `<nav>` with 3 `<a>` links inside."],[a=>a.$$('nav a[href^="#"]').length>=3,"Each nav link's `href` should start with `#`, like `href=\"#menu\"`."]]}),
+ H('c3','The menu cards',{why:"The most important part: what does the café sell, and how much?",
+  learn:"Each menu item is a little box: `<div class=\"item\">` with a name (`<h3>`) and a price (`<p>`). All the items sit inside one big `<div class=\"menu-grid\">` so we can line them up later.",
+  todo:"Add a `<section id=\"menu\">` with an `<h2>`, and a `<div class=\"menu-grid\">` holding at least **3** `<div class=\"item\">` boxes (each with an `<h3>` and a `<p>`).",where:W_HTML,
+  snippet:"<section id=\"menu\">\n  <h2>Our Menu</h2>\n  <div class=\"menu-grid\">\n    <div class=\"item\">\n      <h3>Flat White</h3>\n      <p>$5.00</p>\n    </div>\n    <div class=\"item\">\n      <h3>Iced Latte</h3>\n      <p>$6.00</p>\n    </div>\n    <div class=\"item\">\n      <h3>Banana Bread</h3>\n      <p>$4.50</p>\n    </div>\n  </div>\n</section>",
+  hints:["Start with `<section id=\"menu\">` and `<h2>Our Menu</h2>`.","Then `<div class=\"menu-grid\">` … `</div>`, with 3 item boxes inside.","One item: `<div class=\"item\"><h3>Flat White</h3><p>$5.00</p></div>`"],
+  tip:"Write ONE item, check it in the preview, then copy and paste it twice and change the words. That's how pros work.",
+  checks:[has('section#menu h2',"Add `<section id=\"menu\">` with an `<h2>` inside."),[a=>a.$$('.menu-grid .item').length>=3,"Put at least 3 `<div class=\"item\">` boxes inside `<div class=\"menu-grid\">`."],[a=>a.$$('.menu-grid .item').filter(x=>x.querySelector('h3')&&x.querySelector('p')).length>=3,"Each item needs an `<h3>` (name) and a `<p>` (price)."]]}),
+ H('c4','Opening hours',{why:"'Are they open right now?' is the #1 question café customers ask.",
+  learn:"Opening hours are table-shaped info, so we use a table. `<th>` for the day, `<td>` for the times.",
+  todo:"Add a `<section id=\"hours\">` with an `<h2>` and a `<table>` of at least **3** rows (`<th>` day + `<td>` times).",where:W_HTML,
+  snippet:"<section id=\"hours\">\n  <h2>Opening Hours</h2>\n  <table>\n    <tr><th>Mon – Fri</th><td>6am – 3pm</td></tr>\n    <tr><th>Saturday</th><td>7am – 2pm</td></tr>\n    <tr><th>Sunday</th><td>Closed</td></tr>\n  </table>\n</section>",
+  hints:["`<section id=\"hours\">` + `<h2>Opening Hours</h2>`","Then `<table>` with 3 rows like `<tr><th>Saturday</th><td>7am – 2pm</td></tr>`"],
+  tip:"Now tap 'Hours' in your nav bar in the preview — it jumps here!",
+  checks:[has('section#hours table',"Add `<section id=\"hours\">` with a `<table>` inside."),[a=>a.$$('section#hours tr').length>=3,"Your table needs at least 3 `<tr>` rows."],has('section#hours th',"Use `<th>` for the day names.")]}),
+ H('c5','Newsletter sign-up',{why:"Mia wants to tell regulars about new cakes. A sign-up form collects their emails.",
+  todo:"Add a `<section id=\"contact\">` with an `<h2>`, an address `<p>`, and a `<form>` with a `<label>`, an email `<input>` and a `<button>`. Connect the label to the input with `for` and `id`.",where:W_HTML,
+  snippet:"<section id=\"contact\">\n  <h2>Visit Us</h2>\n  <p>12 Bean Street, Sydney</p>\n  <form>\n    <label for=\"email\">Join our newsletter</label>\n    <input type=\"email\" id=\"email\" placeholder=\"you@email.com\">\n    <button type=\"submit\">Sign me up</button>\n  </form>\n</section>",
+  hints:["`<section id=\"contact\">`, an `<h2>`, and a `<p>` with an address.","Then `<form>` with: `<label for=\"email\">`, `<input type=\"email\" id=\"email\">`, `<button type=\"submit\">`."],
+  tip:"The label's `for` and the input's `id` must be the SAME word — that's what links them.",
+  checks:[has('section#contact form',"Add `<section id=\"contact\">` with a `<form>` inside."),has('section#contact form input[type="email"]',"Add `<input type=\"email\">` inside the form."),[a=>labelLinked(a,'section#contact'),"Connect a `<label for=\"email\">` to your input with `id=\"email\"`."],has('section#contact form button',"Add a `<button>` inside the form.")]}),
+ H('c6','The footer',{why:"Every professional site ends with a footer — copyright and a friendly sign-off.",
+  todo:"Add a `<footer>` with a `<p>` inside.",where:W_HTML,
+  snippet:"<footer>\n  <p>© 2026 The Daily Grind · Made with ☕ and code</p>\n</footer>",
+  hints:["`<footer>` … `</footer>` with a `<p>` inside."],
+  tip:"The © symbol: on Windows hold Alt and type 0169. Or just copy it!",
+  checks:[has('footer p',"Add a `<footer>` with a `<p>` inside.")]}),
+ C('c7','Page colours and font',{why:"Time to make it look like a café, not a school worksheet! Warm colours and a cosy font.",
+  todo:"Style the `body`: remove its margin, give it a `font-family`, a warm `background-color` and a dark `color`.",where:W_CSS,
+  snippet:"body {\n  margin: 0;\n  font-family: Georgia, serif;\n  background-color: #fdf6ec;\n  color: #3b2a1a;\n}",
+  learn:"`#fdf6ec` is a **hex colour** — a code for an exact shade. Pros use them because there are millions of colours, but only 140 colour names.",
+  hints:["Start your CSS: `<style>` at the bottom, then `body { }` inside it.","Inside: `margin: 0; font-family: Georgia, serif; background-color: #fdf6ec; color: #3b2a1a;`"],
+  tip:"Google 'colour picker' to find hex codes for any colour you like.",
+  checks:[[nonDefaultFont,"Give the `body` a `font-family`."],cssNot('body','backgroundColor',[CLEAR,WHITE],"Give the `body` a `background-color` (not white).")]}),
+ C('c8','The coffee banner',{why:"Make the welcome banner bold: a coffee-brown background, white text, centered.",
+  todo:"Style `.hero`: a `background-color`, white `color`, `text-align: center`, and at least 20px `padding`.",where:W_CSS,
+  snippet:".hero {\n  background-color: #6f4e37;\n  color: white;\n  text-align: center;\n  padding: 40px 20px;\n}",
+  hints:["New rule: `.hero { }` (a dot, because hero is a class).","`background-color: #6f4e37; color: white; text-align: center; padding: 40px 20px;`"],
+  tip:"`padding: 40px 20px;` = 40px top and bottom, 20px left and right.",
+  checks:[cssNot('.hero','backgroundColor',CLEAR,"Give `.hero` a `background-color`."),cssIs('.hero','textAlign','center',"Center the banner text with `text-align: center;`"),cssMin('.hero','paddingTop',20,"Give `.hero` at least 20px of `padding`.")]}),
+ C('c9','A tidy menu bar',{why:"The nav links are squashed to the left. Center them with space between.",
+  todo:"Make `nav` a flex box, `justify-content: center`, with a `gap`.",where:W_CSS,
+  snippet:"nav {\n  display: flex;\n  justify-content: center;\n  gap: 20px;\n  padding: 12px;\n}",
+  hints:["`nav { display: flex; justify-content: center; gap: 20px; padding: 12px; }`"],
+  tip:"Flexbox again! Once you know it, you use it everywhere.",
+  checks:[cssIs('nav','display','flex',"Make `nav` `display: flex;`"),cssIs('nav','justifyContent','center',"Add `justify-content: center;` to `nav`.")]}),
+ C('c10','The menu grid',{why:"Line up the menu cards in a neat grid that works on phones AND big screens.",
+  learn:"`repeat(auto-fit, minmax(140px, 1fr))` is a famous trick: 'fit as many columns as you can, each at least 140px wide'. Phones get 1–2 columns, big screens get more — automatically!",
+  todo:"Give every `section` some padding. Make `.menu-grid` a grid using the auto-fit trick, with a `gap`.",where:W_CSS,
+  snippet:"section {\n  padding: 24px 20px;\n}\n.menu-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));\n  gap: 16px;\n}",
+  hints:["`section { padding: 24px 20px; }`","`.menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }`"],
+  tip:"Drag the preview wider on a computer — watch the columns appear by themselves.",
+  checks:[cssIs('.menu-grid','display','grid',"Make `.menu-grid` `display: grid;`"),[a=>px(a.css(a.$('.menu-grid'),'columnGap'))>=8,"Give `.menu-grid` a `gap` (at least 8px)."],cssMin('section','paddingTop',10,"Give `section` some `padding`.")]}),
+ C('c11','Menu cards',{why:"Turn each menu item into a white card that floats off the page.",
+  todo:"Style `.item`: white background, `padding`, `border-radius`, a soft `box-shadow`, and centered text.",where:W_CSS,
+  snippet:".item {\n  background-color: white;\n  padding: 16px;\n  border-radius: 12px;\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\n  text-align: center;\n}",
+  hints:["`.item { background-color: white; padding: 16px; border-radius: 12px; }`","Then add `box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); text-align: center;`"],
+  tip:"Soft, see-through shadows look modern and expensive.",
+  checks:[cssNot('.item','backgroundColor',CLEAR,"Give `.item` a `background-color`."),cssMin('.item','borderTopLeftRadius',1,"Round the cards with `border-radius`."),cssNot('.item','boxShadow','none',"Give `.item` a `box-shadow`.")]}),
+ C('c12','The hours table',{why:"The hours table has no lines. Give it neat borders.",
+  todo:"Make `table` `border-collapse: collapse`, and give `th, td` a solid border and padding.",where:W_CSS,
+  snippet:"table {\n  border-collapse: collapse;\n}\nth, td {\n  border: 1px solid #d6c3a5;\n  padding: 8px 14px;\n}",
+  hints:["`table { border-collapse: collapse; }`","`th, td { border: 1px solid #d6c3a5; padding: 8px 14px; }`"],
+  tip:"The comma in `th, td` means 'style both of these the same'.",
+  checks:[cssIs('table','borderCollapse','collapse',"Add `border-collapse: collapse;` to `table`."),cssIs('td','borderTopStyle','solid',"Give `td` (and `th`) a solid border.")]}),
+ C('c13','A tasty button',{why:"The sign-up button looks plain grey. Make it match the café, and react when you point at it.",
+  todo:"Style `button` (background, white text, no border, padding, rounded corners, `cursor: pointer`), plus a `button:hover` colour.",where:W_CSS,
+  snippet:"button {\n  background-color: #6f4e37;\n  color: white;\n  border: none;\n  padding: 10px 18px;\n  border-radius: 8px;\n  cursor: pointer;\n}\nbutton:hover {\n  background-color: #4b3423;\n}",
+  hints:["`button { background-color: #6f4e37; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; }`","Then `button:hover { background-color: #4b3423; }`"],
+  tip:"`cursor: pointer;` shows the little hand — it tells people 'you can click me'.",
+  checks:[cssMin('button','borderTopLeftRadius',1,"Round the button with `border-radius`."),cssIs('button','cursor','pointer',"Add `cursor: pointer;` to `button`."),hoverRule('button:hover',"Add a `button:hover { background-color: ... }` rule.")]}),
+ C('c14','The finishing touch',{why:"Last step! A dark-brown footer to finish the page in style.",
+  todo:"Style `footer`: `background-color`, white `color`, `text-align: center`, and `padding`.",where:W_CSS,
+  snippet:"footer {\n  background-color: #3b2a1a;\n  color: white;\n  text-align: center;\n  padding: 16px;\n}",
+  hints:["`footer { background-color: #3b2a1a; color: white; text-align: center; padding: 16px; }`"],
+  tip:"Download your site from the project page and show someone — you built a real business website!",
+  checks:[cssNot('footer','backgroundColor',CLEAR,"Give `footer` a `background-color`."),cssIs('footer','textAlign','center',"Center the footer text.")]})
+ ]},
+/* ------------------------------------------------------------------ */
+{id:'presume',emoji:'📄',title:'My Resume',mentor:'Jordan, career coach',uses:'Bug Hunter, Form Forge, Codeling Quest',
+ blurb:'A clean, printable online resume with skill badges and job history.',
+ intro:"Job hunting? A website resume makes you stand out — and you can print it as a PDF too. Jordan, a career coach, will guide you. Use YOUR real details as you go (or make some up for practice).",
+ steps:[
+ H('r1','Your name',{why:"The first thing an employer reads: who you are and what you do.",
+  todo:"Make a `<header>` with your name in an `<h1>`, and a `<p class=\"role\">` with the job you want.",where:"Your code box is empty — type it right at the top.",
+  snippet:"<header>\n  <h1>Alex Rivera</h1>\n  <p class=\"role\">Junior Web Developer</p>\n</header>",
+  hints:["`<header>` … `</header>`","Inside: `<h1>Your Name</h1>` and `<p class=\"role\">Your dream job</p>`"],
+  tip:"Use your real name! This could become your actual online resume.",
+  checks:[has('header h1',"Put your name in an `<h1>` inside a `<header>`."),has('header p.role',"Add a `<p class=\"role\">` inside the header.")]}),
+ H('r2','Contact links',{why:"Make it easy to contact you — one click to email.",
+  learn:"• `href=\"mailto:you@email.com\"` opens the visitor's email app, ready to write to you!\n• `target=\"_blank\"` opens a link in a NEW tab, so people don't lose your resume.",
+  todo:"Add a `<p class=\"contact\">` with a `mailto:` email link and a link that opens in a new tab (`target=\"_blank\"`).",where:W_HTML,
+  snippet:"<p class=\"contact\">\n  <a href=\"mailto:alex@email.com\">alex@email.com</a> ·\n  <a href=\"https://github.com\" target=\"_blank\">GitHub</a>\n</p>",
+  hints:["Email link: `<a href=\"mailto:alex@email.com\">alex@email.com</a>`","New-tab link: `<a href=\"https://github.com\" target=\"_blank\">GitHub</a>`"],
+  tip:"Later, swap GitHub for your LinkedIn or portfolio link.",
+  checks:[has('a[href^="mailto:"]',"Add an email link: `href=\"mailto:...\"`."),has('a[target="_blank"]',"Add a link with `target=\"_blank\"`.")]}),
+ H('r3','About me',{why:"Two sentences that show your personality. Employers hire people, not robots!",
+  todo:"Add a `<section>` with an `<h2>About Me</h2>` and a `<p>` about you.",where:W_HTML,
+  snippet:"<section>\n  <h2>About Me</h2>\n  <p>I'm learning to build websites one tag at a time. I love solving problems, working in a team and making things look great.</p>\n</section>",
+  hints:["`<section>` … `</section>`","Inside: `<h2>About Me</h2>` and a `<p>` with 1–2 sentences."],
+  tip:"Keep it short. Recruiters skim a resume in about 7 seconds!",
+  checks:[[a=>a.$$('section').some(s=>/about/i.test((s.querySelector('h2')||{}).textContent||'')&&s.querySelector('p')),"Add a `<section>` with `<h2>About Me</h2>` and a `<p>`."]]}),
+ H('r4','Skills',{why:"A quick list of what you're good at. We'll turn these into cool badges later.",
+  todo:"Add a `<section>` with an `<h2>Skills</h2>` and a `<ul class=\"skills\">` with at least **3** `<li>` skills.",where:W_HTML,
+  snippet:"<section>\n  <h2>Skills</h2>\n  <ul class=\"skills\">\n    <li>HTML</li>\n    <li>CSS</li>\n    <li>Teamwork</li>\n    <li>Problem solving</li>\n  </ul>\n</section>",
+  hints:["`<section>` + `<h2>Skills</h2>`","Then `<ul class=\"skills\">` with your skills as `<li>` items."],
+  tip:"Mix tech skills (HTML, CSS) with people skills (teamwork, communication).",
+  checks:[[a=>a.$$('ul.skills li').length>=3,"Add `<ul class=\"skills\">` with at least 3 `<li>` items."]]}),
+ H('r5','Experience',{why:"Your work history. Each job is its own little card.",
+  learn:"`<article>` is perfect for a job — it makes sense on its own. Give it `class=\"job\"` so we can style every job the same way.",
+  todo:"Add a `<section>` with `<h2>Experience</h2>` and an `<article class=\"job\">` containing an `<h3>` (job title), a `<p class=\"dates\">` and a `<ul>` of achievements.",where:W_HTML,
+  snippet:"<section>\n  <h2>Experience</h2>\n  <article class=\"job\">\n    <h3>Barista · The Daily Grind</h3>\n    <p class=\"dates\">2024 – Now</p>\n    <ul>\n      <li>Served 200+ happy customers every day</li>\n      <li>Trained 3 new team members</li>\n    </ul>\n  </article>\n</section>",
+  hints:["`<section>` + `<h2>Experience</h2>` + `<article class=\"job\">`","Inside the article: `<h3>`, `<p class=\"dates\">`, and a `<ul>` with `<li>` achievements."],
+  tip:"Achievements with numbers ('200+ customers') impress employers way more than duties.",
+  checks:[has('article.job h3',"Add `<article class=\"job\">` with an `<h3>` inside."),has('article.job .dates',"Add a `<p class=\"dates\">` inside the job."),has('article.job ul li',"Add a `<ul>` with achievements inside the job.")]}),
+ H('r6','Education',{why:"Your study and certificates. Notice we REUSE the job class — classes can be used again and again!",
+  todo:"Add a `<section>` with `<h2>Education</h2>` and another `<article class=\"job\">` with an `<h3>` and a `<p class=\"dates\">`.",where:W_HTML,
+  snippet:"<section>\n  <h2>Education</h2>\n  <article class=\"job\">\n    <h3>Certificate in Web Development</h3>\n    <p class=\"dates\">2026</p>\n  </article>\n</section>",
+  hints:["Same pattern as Experience: `<section>`, `<h2>`, `<article class=\"job\">`.","Inside: `<h3>` course name and `<p class=\"dates\">` year."],
+  tip:"Reusing a class means when you style `.job` later, BOTH cards change at once.",
+  checks:[[a=>a.$$('section').some(s=>/education/i.test((s.querySelector('h2')||{}).textContent||'')),"Add a `<section>` with `<h2>Education</h2>`."],[a=>a.$$('article.job').length>=2,"Add a second `<article class=\"job\">` for your education."]]}),
+ C('r7','The paper look',{why:"Make it look like a sheet of paper sitting on a desk.",
+  learn:"Trick: colour the `html` (the desk) grey, and make the `body` (the paper) white and not too wide. `margin: 20px auto` centers the paper.\n`line-height: 1.5` adds breathing room between lines of text.",
+  todo:"Give `html` a light grey background. Give `body` a `max-width`, auto margins, padding, a white background, a font, and `line-height`.",where:W_CSS,
+  snippet:"html {\n  background-color: #eef1f5;\n}\nbody {\n  max-width: 700px;\n  margin: 20px auto;\n  padding: 32px;\n  background-color: white;\n  font-family: Arial, sans-serif;\n  line-height: 1.5;\n}",
+  hints:["`html { background-color: #eef1f5; }`","`body { max-width: 700px; margin: 20px auto; padding: 32px; background-color: white; font-family: Arial, sans-serif; line-height: 1.5; }`"],
+  tip:"Most real websites limit their text width. Super-wide lines are hard to read.",
+  checks:[[a=>a.css(a.doc.documentElement,'backgroundColor')!==CLEAR,"Give `html` a `background-color`."],cssNot('body','maxWidth','none',"Give `body` a `max-width`."),cssNot('body','backgroundColor',CLEAR,"Give `body` a `background-color` (white).")]}),
+ C('r8','A stand-out header',{why:"Your name should pop. Center it, add a coloured line underneath, and highlight your job title.",
+  todo:"Style `header` (centered, `border-bottom`, padding) and `.role` (a colour, bold).",where:W_CSS,
+  snippet:"header {\n  text-align: center;\n  border-bottom: 3px solid #2563eb;\n  padding-bottom: 16px;\n}\n.role {\n  color: #2563eb;\n  font-weight: bold;\n}",
+  hints:["`header { text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 16px; }`","`.role { color: #2563eb; font-weight: bold; }`"],
+  tip:"`border-bottom` draws a line on just ONE side. There's also border-top, border-left and border-right.",
+  checks:[cssIs('header','textAlign','center',"Center the header with `text-align: center;`"),cssIs('header','borderBottomStyle','solid',"Add a `border-bottom` to the header."),[a=>px(a.css(a.$('.role'),'fontWeight'))>=700,"Make `.role` bold."]]}),
+ C('r9','Section headings',{why:"Headings in CAPITALS with a little spacing look sharp and professional.",
+  learn:"• `text-transform: uppercase;` shows text in CAPITALS (without retyping it!)\n• `letter-spacing: 2px;` adds space between letters",
+  todo:"Style `h2` with a `color`, `text-transform: uppercase`, `letter-spacing` and a smaller `font-size`.",where:W_CSS,
+  snippet:"h2 {\n  color: #1e3a8a;\n  text-transform: uppercase;\n  letter-spacing: 2px;\n  font-size: 18px;\n}",
+  hints:["`h2 { color: #1e3a8a; text-transform: uppercase; letter-spacing: 2px; font-size: 18px; }`"],
+  tip:"Your HTML still says 'About Me' — CSS just changes how it LOOKS.",
+  checks:[cssIs('h2','textTransform','uppercase',"Add `text-transform: uppercase;` to `h2`.")]}),
+ C('r10','Skill badges',{why:"Turn the boring skills list into colourful badges.",
+  learn:"`list-style: none;` removes the bullet dots. Then flexbox lines the skills up, and `flex-wrap: wrap` lets them flow onto new lines.",
+  todo:"Make `.skills` a wrapping flex row with no bullets. Give `.skills li` a background, padding and very round corners.",where:W_CSS,
+  snippet:".skills {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 8px;\n  list-style: none;\n  padding: 0;\n}\n.skills li {\n  background-color: #dbeafe;\n  padding: 4px 12px;\n  border-radius: 999px;\n}",
+  hints:["`.skills { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; }`","`.skills li { background-color: #dbeafe; padding: 4px 12px; border-radius: 999px; }`"],
+  tip:"`border-radius: 999px` = 'as round as possible'. Perfect pill shapes!",
+  checks:[cssIs('.skills','display','flex',"Make `.skills` `display: flex;`"),cssIs('.skills','listStyleType','none',"Remove the bullets with `list-style: none;`"),cssNot('.skills li','backgroundColor',CLEAR,"Give `.skills li` a `background-color`.")]}),
+ C('r11','Job cards',{why:"Give every job a coloured line down the left side, and make the dates subtle.",
+  todo:"Style `.job` with a `border-left`, `padding-left` and `margin-bottom`. Make `.dates` grey and *italic*.",where:W_CSS,
+  snippet:".job {\n  border-left: 4px solid #2563eb;\n  padding-left: 12px;\n  margin-bottom: 16px;\n}\n.dates {\n  color: gray;\n  font-style: italic;\n}",
+  hints:["`.job { border-left: 4px solid #2563eb; padding-left: 12px; margin-bottom: 16px; }`","`.dates { color: gray; font-style: italic; }`"],
+  tip:"Both job cards changed at once — that's the power of reusing a class.",
+  checks:[cssIs('.job','borderLeftStyle','solid',"Add a `border-left` to `.job`."),cssIs('.dates','fontStyle','italic',"Make `.dates` italic with `font-style: italic;`")]}),
+ C('r12','Ready to print',{why:"Employers often want a PDF. Let's make the resume print perfectly — no grey desk background on paper!",
+  learn:"`@media print { }` holds CSS that ONLY applies when printing. Real pros use this on resumes, tickets and receipts.",
+  todo:"Add an `@media print` block that makes the `html` background white.",where:W_CSS,
+  snippet:"@media print {\n  html {\n    background-color: white;\n  }\n}",
+  hints:["`@media print { }`","Inside it: `html { background-color: white; }`"],
+  tip:"When you download your finished resume, open it and press Ctrl + P (or Share → Print on a phone) → Save as PDF. Done!",
+  checks:[hasMedia(/print/,"Add `@media print { html { background-color: white; } }`")]})
+ ]},
+/* ------------------------------------------------------------------ */
+{id:'plinks',emoji:'🔗',title:'Link-in-Bio Page',mentor:'Kai, content creator',uses:'Codeling Quest, Form Forge, Grid Farm',
+ blurb:'Your own "link in bio" page — like the ones creators put on Instagram and TikTok.',
+ intro:"Creators put ONE link in their social bio that leads to a page full of their links. You'll build your own version, with a gradient background, big tappable buttons and smooth hover effects. Kai, a content creator, will guide you.",
+ steps:[
+ H('l1','Profile',{why:"First, who are you? A picture, your handle and a one-line bio.",
+  todo:"Add a `<div class=\"avatar\">` with an emoji, an `<h1>` with your @handle, and a `<p class=\"bio\">`.",where:"Your code box is empty — type it right at the top.",
+  snippet:"<div class=\"avatar\">🧑‍💻</div>\n<h1>@yourname</h1>\n<p class=\"bio\">Web dev in training · Coffee lover · Sydney</p>",
+  hints:["`<div class=\"avatar\">🧑‍💻</div>`","`<h1>@yourname</h1>` then `<p class=\"bio\">...</p>`"],
+  tip:"Pick an emoji that represents you. We'll turn it into a round profile picture later.",
+  checks:[has('.avatar',"Add `<div class=\"avatar\">`."),has('h1',"Add an `<h1>` with your handle."),has('p.bio',"Add a `<p class=\"bio\">`.")]}),
+ H('l2','Your links',{why:"The whole point of the page: big buttons that go to your stuff.",
+  todo:"Add a `<div class=\"links\">` with at least **3** links (`<a href=\"...\">`). Make one a `mailto:` email link.",where:W_HTML,
+  snippet:"<div class=\"links\">\n  <a href=\"https://github.com\">My GitHub</a>\n  <a href=\"#\">My Projects</a>\n  <a href=\"#\">My Resume</a>\n  <a href=\"mailto:me@email.com\">Email Me</a>\n</div>",
+  learn:"`href=\"mailto:me@email.com\"` opens the visitor's email app, ready to write to you.",
+  hints:["`<div class=\"links\">` … `</div>`","Inside: 3 or 4 links like `<a href=\"#\">My Projects</a>`, and one `<a href=\"mailto:...\">`."],
+  tip:"`href=\"#\"` is a placeholder. Swap it for real links whenever you have them.",
+  checks:[[a=>a.$$('.links a[href]').length>=3,"Add `<div class=\"links\">` with at least 3 `<a href>` links."],has('.links a[href^="mailto:"]',"Make one of the links a `mailto:` email link.")]}),
+ H('l3','Open in a new tab',{kind:'edit',why:"When someone taps your GitHub, your page shouldn't disappear. Open it in a new tab!",
+  learn:"Add `target=\"_blank\"` inside an `<a>` tag and the link opens in a new tab.",
+  todo:"Add `target=\"_blank\"` to your FIRST link (the GitHub one).",where:"Inside the opening `<a ...>` tag of your first link, after the href. Don't add a new link — change the one you have!",
+  snippet:"<a href=\"https://github.com\" target=\"_blank\">My GitHub</a>",
+  apply:c=>/<div class="links">\s*<a\b(?![^>]*target=)/.test(c)?c.replace(/(<div class="links">\s*<a\b)(?![^>]*target=)/,'$1 target="_blank"'):c,
+  hints:["Find your first link inside `<div class=\"links\">`.","Change `<a href=\"https://github.com\">` to `<a href=\"https://github.com\" target=\"_blank\">`"],
+  tip:"Attributes can go in any order inside a tag. `target` before or after `href` both work.",
+  checks:[has('.links a[target="_blank"]',"Add `target=\"_blank\"` to one of your links.")]}),
+ H('l4','Social icons',{why:"A row of little icons for your socials, under the buttons.",
+  learn:"Icon-only links have no words, so screen readers can't tell what they are. `aria-label=\"Instagram\"` gives them a name that's read out loud — but not shown.",
+  todo:"Add a `<div class=\"socials\">` with **3** emoji links, each with an `aria-label`.",where:W_HTML,
+  snippet:"<div class=\"socials\">\n  <a href=\"#\" aria-label=\"Instagram\">📸</a>\n  <a href=\"#\" aria-label=\"YouTube\">▶️</a>\n  <a href=\"#\" aria-label=\"Email\">✉️</a>\n</div>",
+  hints:["`<div class=\"socials\">` … `</div>`","Each icon: `<a href=\"#\" aria-label=\"Instagram\">📸</a>`"],
+  tip:"Making sites work for everyone is called accessibility. It's a big deal — and a big plus on your CV.",
+  checks:[[a=>a.$$('.socials a[aria-label]').length>=3,"Add `<div class=\"socials\">` with 3 links, each with an `aria-label`."]]}),
+ C('l5','Gradient background',{why:"Plain white is boring! A soft colour blend makes it feel like a creator page.",
+  learn:"`linear-gradient(135deg, pink, lightblue)` blends colours. `135deg` is the direction (diagonal).\n`min-height: 100vh` = at least the full screen height (vh = viewport height).",
+  todo:"Style `body` with a `linear-gradient` background, `min-height: 100vh`, a font, centered text and padding.",where:W_CSS,
+  snippet:"body {\n  min-height: 100vh;\n  margin: 0;\n  padding: 24px 16px;\n  font-family: system-ui, sans-serif;\n  text-align: center;\n  background: linear-gradient(135deg, #fde2e4, #e2ecff);\n}",
+  hints:["`body { background: linear-gradient(135deg, #fde2e4, #e2ecff); }`","Also `min-height: 100vh; margin: 0; padding: 24px 16px; text-align: center;`"],
+  tip:"Try other colour pairs! Gradients with soft pastel colours look the most professional.",
+  checks:[grad('body',"Give `body` a `linear-gradient(...)` background."),cssIs('body','textAlign','center',"Center everything with `text-align: center;`")]}),
+ C('l6','Round profile picture',{why:"Turn the emoji into a round profile picture, centered on the page.",
+  todo:"Style `.avatar`: 96px square, `margin: 0 auto`, round, white background, big emoji, and centered with flexbox.",where:W_CSS,
+  snippet:".avatar {\n  width: 96px;\n  height: 96px;\n  margin: 0 auto;\n  border-radius: 50%;\n  background-color: white;\n  font-size: 48px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}",
+  hints:["Size + round: `width: 96px; height: 96px; border-radius: 50%; margin: 0 auto;`","Center the emoji: `display: flex; align-items: center; justify-content: center;` plus `font-size: 48px; background-color: white;`"],
+  tip:"This flex-center trick works for icons, logos and avatars everywhere.",
+  checks:[[a=>{const v=a.css(a.$('.avatar'),'borderTopLeftRadius');return v==='50%'||px(v)>=40;},"Make `.avatar` round with `border-radius: 50%;`"],cssIs('.avatar','display','flex',"Center the emoji: `display: flex;` (plus align-items and justify-content).")]}),
+ C('l7','Stack the buttons',{why:"The links are all on one line. Stack them like real buttons.",
+  todo:"Make `.links` a flex **column** with a `gap`, a `max-width` and auto margins.",where:W_CSS,
+  snippet:".links {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n  max-width: 360px;\n  margin: 20px auto;\n}",
+  hints:["`.links { display: flex; flex-direction: column; gap: 12px; max-width: 360px; margin: 20px auto; }`"],
+  tip:"`max-width` stops the buttons getting silly-wide on big screens.",
+  checks:[cssIs('.links','display','flex',"Make `.links` `display: flex;`"),cssIs('.links','flexDirection','column',"Stack them with `flex-direction: column;`")]}),
+ C('l8','Button style',{why:"Make each link look like a big, tappable button.",
+  todo:"Style `.links a`: white background, dark text, padding, rounded corners, no underline, bold.",where:W_CSS,
+  snippet:".links a {\n  background-color: white;\n  color: #222;\n  padding: 14px;\n  border-radius: 12px;\n  text-decoration: none;\n  font-weight: bold;\n}",
+  learn:"`.links a` (with a space) means 'every link INSIDE .links'. The social icons aren't affected!",
+  hints:["`.links a { background-color: white; color: #222; padding: 14px; }`","Add `border-radius: 12px; text-decoration: none; font-weight: bold;`"],
+  tip:"Big buttons (at least 44px tall) are easy to tap with a thumb.",
+  checks:[cssIs('.links a','textDecorationLine','none',"Remove the underline: `text-decoration: none;`"),cssMin('.links a','borderTopLeftRadius',1,"Round the buttons with `border-radius`."),cssNot('.links a','backgroundColor',CLEAR,"Give the buttons a `background-color`.")]}),
+ C('l9','Lift on hover',{why:"Buttons that lift up when you point at them feel alive.",
+  learn:"`transform: translateY(-3px);` moves something UP by 3px. Add a shadow and it looks like it's floating.",
+  todo:"Add a `.links a:hover` rule with a `transform` and a `box-shadow`.",where:W_CSS,
+  snippet:".links a:hover {\n  transform: translateY(-3px);\n  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);\n}",
+  hints:["`.links a:hover { transform: translateY(-3px); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15); }`"],
+  tip:"Point at the buttons in the preview to test it (on a computer).",
+  checks:[[anyHover(/a:hover/,'transform'),"Add `.links a:hover { transform: translateY(-3px); }`"]]}),
+ C('l10','Smooth it out',{why:"The lift is jumpy. Make it glide.",
+  todo:"Add a `transition` to `.links a`.",where:W_CSS,
+  snippet:".links a {\n  transition: transform 0.2s, box-shadow 0.2s;\n}",
+  hints:["`.links a { transition: transform 0.2s, box-shadow 0.2s; }`"],
+  tip:"You can list several transitions with commas.",
+  checks:[transOn('.links a',"Add a `transition` to `.links a`.")]}),
+ C('l11','Social row',{why:"Line up the social icons in a centered row.",
+  todo:"Make `.socials` a centered flex row with a `gap` and big icons. Remove the underline from `.socials a`.",where:W_CSS,
+  snippet:".socials {\n  display: flex;\n  justify-content: center;\n  gap: 16px;\n  font-size: 26px;\n}\n.socials a {\n  text-decoration: none;\n}",
+  hints:["`.socials { display: flex; justify-content: center; gap: 16px; font-size: 26px; }`","`.socials a { text-decoration: none; }`"],
+  tip:"Same flexbox pattern, different job. You're getting fluent!",
+  checks:[cssIs('.socials','display','flex',"Make `.socials` `display: flex;`"),cssIs('.socials','justifyContent','center',"Center them: `justify-content: center;`")]}),
+ C('l12','A pop of colour',{why:"Last step! Give your handle a brand colour and tidy the bio.",
+  todo:"Give `h1` a `color`. Make `.bio` grey with no top margin.",where:W_CSS,
+  snippet:"h1 {\n  color: #7c3aed;\n  margin-bottom: 4px;\n}\n.bio {\n  color: #555;\n  margin-top: 0;\n}",
+  hints:["`h1 { color: #7c3aed; margin-bottom: 4px; }`","`.bio { color: #555; margin-top: 0; }`"],
+  tip:"Download your page, put it on GitHub Pages, and you've got a real link for your bio!",
+  checks:[cssNot('h1','color',[INK,'rgb(0, 0, 0)'],"Give your `h1` a `color`.")]})
+ ]},
+/* ------------------------------------------------------------------ */
+{id:'precipe',emoji:'🥞',title:'Recipe Page',mentor:'Chef Rosa',uses:'Form Forge, Copy the Picture, Dungeon Escape',
+ blurb:'A recipe page with tick-off ingredients that cross themselves out!',
+ intro:"Chef Rosa wants her famous pancake recipe online. You'll build a clean recipe page with info badges, an ingredient checklist that crosses items off when you tick them, numbered steps, a tip box and a nutrition table. Use your own favourite recipe if you like!",
+ steps:[
+ H('k1','Title and intro',{why:"A mouth-watering title and one tasty sentence.",
+  todo:"Add an `<h1>` with the recipe name and a `<p class=\"intro\">`.",where:"Your code box is empty — type it right at the top.",
+  snippet:"<h1>Easy Fluffy Pancakes</h1>\n<p class=\"intro\">Golden, fluffy and ready in 20 minutes.</p>",
+  hints:["`<h1>Easy Fluffy Pancakes</h1>`","`<p class=\"intro\">Golden, fluffy and ready in 20 minutes.</p>`"],
+  tip:"Use your favourite recipe! Nan's lasagne, Mum's biryani — anything.",
+  checks:[has('h1',"Add an `<h1>` with the recipe name."),has('p.intro',"Add a `<p class=\"intro\">`.")]}),
+ H('k2','Quick info',{why:"Busy cooks want to know at a glance: how long, how many, how hard?",
+  todo:"Add a `<ul class=\"info\">` with **3** `<li>` facts (time, serves, difficulty).",where:W_HTML,
+  snippet:"<ul class=\"info\">\n  <li>⏱️ 20 min</li>\n  <li>🍽️ Serves 4</li>\n  <li>⭐ Easy</li>\n</ul>",
+  hints:["`<ul class=\"info\">` … `</ul>` with 3 `<li>` items."],
+  tip:"Emojis make info easier to scan. We'll turn these into badges later.",
+  checks:[[a=>a.$$('ul.info li').length>=3,"Add `<ul class=\"info\">` with 3 `<li>` items."]]}),
+ H('k3','Ingredient checklist',{why:"Cooks tick off ingredients as they go. Let's make that work for real!",
+  learn:"Each ingredient gets a checkbox AND a label. Each checkbox needs its OWN id (`i1`, `i2`, `i3`...), and its label's `for` must match.",
+  todo:"Add a `<section class=\"card\">` with `<h2>Ingredients</h2>` and a `<ul class=\"ingredients\">`. Each `<li>` holds a checkbox (`id=\"i1\"`, `i2`...) and a matching `<label for>`. At least **3**.",where:W_HTML,
+  snippet:"<section class=\"card\">\n  <h2>Ingredients</h2>\n  <ul class=\"ingredients\">\n    <li><input type=\"checkbox\" id=\"i1\"> <label for=\"i1\">1 cup flour</label></li>\n    <li><input type=\"checkbox\" id=\"i2\"> <label for=\"i2\">1 cup milk</label></li>\n    <li><input type=\"checkbox\" id=\"i3\"> <label for=\"i3\">1 egg</label></li>\n    <li><input type=\"checkbox\" id=\"i4\"> <label for=\"i4\">2 tbsp sugar</label></li>\n  </ul>\n</section>",
+  hints:["`<section class=\"card\">` + `<h2>Ingredients</h2>` + `<ul class=\"ingredients\">`","One item: `<li><input type=\"checkbox\" id=\"i1\"> <label for=\"i1\">1 cup flour</label></li>`","Next items use `i2`, `i3`... — every id must be different!"],
+  tip:"Tap an ingredient's words in the preview — the box ticks. That's the label connection.",
+  checks:[[a=>a.$$('.ingredients input[type="checkbox"]').length>=3,"Add at least 3 checkboxes inside `<ul class=\"ingredients\">`."],[a=>a.$$('.ingredients label[for]').filter(l=>a.doc.getElementById(l.getAttribute('for'))).length>=3,"Each `<label for=\"...\">` must match its checkbox's `id`."]]}),
+ H('k4','The method',{why:"Steps happen in order, so we use a NUMBERED list.",
+  todo:"Add another `<section class=\"card\">` with `<h2>Method</h2>` and an `<ol class=\"steps\">` with at least **3** steps.",where:W_HTML,
+  snippet:"<section class=\"card\">\n  <h2>Method</h2>\n  <ol class=\"steps\">\n    <li>Whisk the flour, sugar, milk and egg together.</li>\n    <li>Heat a buttered pan on medium.</li>\n    <li>Pour in a small cup of batter.</li>\n    <li>Flip when bubbles appear, then cook 1 more minute.</li>\n  </ol>\n</section>",
+  hints:["`<section class=\"card\">` + `<h2>Method</h2>`","`<ol class=\"steps\">` with `<li>` steps inside. ol = numbered!"],
+  tip:"Notice we reused `class=\"card\"`. Both sections will get the same card style later.",
+  checks:[[a=>a.$$('ol.steps li').length>=3,"Add `<ol class=\"steps\">` with at least 3 `<li>` steps."]]}),
+ H('k5','Chef\'s tip',{why:"Every great recipe has a secret tip.",
+  todo:"Add an `<aside class=\"tip\">` that starts with `<strong>Chef's tip:</strong>`.",where:W_HTML,
+  snippet:"<aside class=\"tip\">\n  <strong>Chef's tip:</strong> Don't flip too early — wait for the bubbles!\n</aside>",
+  hints:["`<aside class=\"tip\">` … `</aside>`","Inside: `<strong>Chef's tip:</strong>` then your tip."],
+  tip:"`<aside>` means 'side info' — perfect for tips.",
+  checks:[has('aside.tip strong',"Add `<aside class=\"tip\">` with a `<strong>` inside.")]}),
+ H('k6','Nutrition table',{why:"Health-conscious cooks love a nutrition table.",
+  todo:"Add a `<table class=\"nutrition\">` with at least **2** rows (`<th>` + `<td>`).",where:W_HTML,
+  snippet:"<table class=\"nutrition\">\n  <tr><th>Calories</th><td>220</td></tr>\n  <tr><th>Protein</th><td>6 g</td></tr>\n  <tr><th>Sugar</th><td>8 g</td></tr>\n</table>",
+  hints:["`<table class=\"nutrition\">` … `</table>`","Rows like `<tr><th>Calories</th><td>220</td></tr>`"],
+  tip:"Numbers are for show — don't use these for a real diet!",
+  checks:[[a=>a.$$('table.nutrition tr').length>=2,"Add `<table class=\"nutrition\">` with at least 2 rows."],has('table.nutrition th',"Use `<th>` for the labels.")]}),
+ C('k7','The page',{why:"A warm, creamy page with a comfy reading width.",
+  todo:"Style `body`: `max-width`, auto margins, padding, a font, a warm background and text colour.",where:W_CSS,
+  snippet:"body {\n  max-width: 640px;\n  margin: 0 auto;\n  padding: 20px;\n  font-family: 'Trebuchet MS', sans-serif;\n  background-color: #fffaf0;\n  color: #333;\n}",
+  hints:["`body { max-width: 640px; margin: 0 auto; padding: 20px; }`","Add `font-family: 'Trebuchet MS', sans-serif; background-color: #fffaf0; color: #333;`"],
+  tip:"Font names with spaces need quotes: `'Trebuchet MS'`.",
+  checks:[cssNot('body','maxWidth','none',"Give `body` a `max-width`."),cssNot('body','backgroundColor',[CLEAR,WHITE],"Give `body` a warm `background-color`.")]}),
+ C('k8','A tasty title',{why:"Make the title the colour of a perfectly cooked pancake.",
+  todo:"Give `h1` an orange-ish `color`, a `font-size` and a small bottom margin.",where:W_CSS,
+  snippet:"h1 {\n  color: #d9480f;\n  font-size: 36px;\n  margin-bottom: 4px;\n}",
+  hints:["`h1 { color: #d9480f; font-size: 36px; margin-bottom: 4px; }`"],
+  tip:"Food sites love warm colours — they literally make people hungry.",
+  checks:[cssNot('h1','color',[INK,'rgb(51, 51, 51)','rgb(0, 0, 0)'],"Give `h1` a `color`.")]}),
+ C('k9','Info badges',{why:"Turn the quick-info list into little badges in a row.",
+  todo:"Make `.info` a wrapping flex row with no bullets. Give `.info li` a background, padding and round corners.",where:W_CSS,
+  snippet:".info {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 10px;\n  list-style: none;\n  padding: 0;\n}\n.info li {\n  background-color: #ffe8cc;\n  padding: 6px 12px;\n  border-radius: 20px;\n}",
+  hints:["`.info { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; }`","`.info li { background-color: #ffe8cc; padding: 6px 12px; border-radius: 20px; }`"],
+  tip:"You did this exact trick in the resume project. Patterns repeat — that's how you get fast!",
+  checks:[cssIs('.info','display','flex',"Make `.info` `display: flex;`"),cssIs('.info','listStyleType','none',"Remove bullets: `list-style: none;`")]}),
+ C('k10','Recipe cards',{why:"Put the ingredients and method on clean white cards.",
+  todo:"Style `.card`: white background, round corners, padding, margin and a soft shadow.",where:W_CSS,
+  snippet:".card {\n  background-color: white;\n  border-radius: 16px;\n  padding: 16px 20px;\n  margin: 16px 0;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);\n}",
+  hints:["`.card { background-color: white; border-radius: 16px; padding: 16px 20px; }`","Add `margin: 16px 0; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);`"],
+  tip:"Both sections changed at once — they share the `card` class.",
+  checks:[cssMin('.card','borderTopLeftRadius',1,"Round `.card` with `border-radius`."),cssNot('.card','boxShadow','none',"Give `.card` a `box-shadow`.")]}),
+ C('k11','Cross it off!',{why:"The magic step: when you tick an ingredient, it crosses itself out. No JavaScript needed!",
+  learn:"• `:checked` = a checkbox that is ticked\n• `+` = the element RIGHT after it\nSo `input:checked + label` means 'the label right after a ticked checkbox'.\n`text-decoration: line-through;` draws a line through text.",
+  todo:"Add an `input:checked + label` rule with `text-decoration: line-through` and a grey `color`.",where:W_CSS,
+  snippet:"input:checked + label {\n  text-decoration: line-through;\n  color: gray;\n}",
+  hints:["`input:checked + label { }`","Inside: `text-decoration: line-through; color: gray;`"],
+  tip:"Now tick the ingredients in the preview. Satisfying, right? 😄",
+  checks:[[a=>{const i=a.$('.ingredients input');const l=i&&i.id?a.doc.querySelector('label[for="'+i.id+'"]'):null;if(!l)return false;i.checked=true;const ok=a.css(l,'textDecorationLine').includes('line-through');i.checked=false;return ok;},"Add `input:checked + label { text-decoration: line-through; }` (and keep each label right after its checkbox)."]]}),
+ C('k12','Tip box',{why:"Make the chef's tip stand out like a sticky note.",
+  todo:"Style `.tip`: `display: block`, a yellow background, a thick `border-left`, padding and round corners.",where:W_CSS,
+  snippet:".tip {\n  display: block;\n  background-color: #fff3bf;\n  border-left: 6px solid #fab005;\n  padding: 12px 16px;\n  border-radius: 8px;\n}",
+  hints:["`.tip { display: block; background-color: #fff3bf; border-left: 6px solid #fab005; }`","Add `padding: 12px 16px; border-radius: 8px;`"],
+  tip:"Coloured side borders are a classic way to show 'note' or 'warning' boxes.",
+  checks:[cssIs('.tip','borderLeftStyle','solid',"Add a `border-left` to `.tip`."),cssNot('.tip','backgroundColor',CLEAR,"Give `.tip` a `background-color`.")]}),
+ C('k13','Nutrition style',{why:"Last step! Neat lines for the nutrition table.",
+  todo:"Make `.nutrition` `border-collapse: collapse`, and give its `th` and `td` a border and padding.",where:W_CSS,
+  snippet:".nutrition {\n  border-collapse: collapse;\n}\n.nutrition th,\n.nutrition td {\n  border: 1px solid #e5d3b3;\n  padding: 8px 14px;\n  text-align: left;\n}",
+  hints:["`.nutrition { border-collapse: collapse; }`","`.nutrition th, .nutrition td { border: 1px solid #e5d3b3; padding: 8px 14px; text-align: left; }`"],
+  tip:"Download the page and cook from it on your phone. Tick as you go!",
+  checks:[cssIs('.nutrition','borderCollapse','collapse',"Add `border-collapse: collapse;` to `.nutrition`."),cssIs('.nutrition td','borderTopStyle','solid',"Give the cells a solid border.")]})
+ ]},
+/* ------------------------------------------------------------------ */
+{id:'planding',emoji:'👟',title:'Product Launch Page',mentor:'Leo, product manager',uses:'All HTML & CSS games',
+ blurb:'A modern product landing page: gradient hero, feature grid, reviews, FAQ dropdowns.',
+ intro:"A sneaker company is launching the Cloud Runner X, and Leo needs the launch page. This is the BIG one — it uses almost everything you've learned, plus new tricks like FAQ dropdowns that open and close with zero JavaScript. Every part is made-up for practice.",
+ steps:[
+ H('p1','The hero',{why:"The 'hero' is the big top section. It has 3 seconds to grab attention: name, slogan, buy button.",
+  todo:"Add a `<section class=\"hero\">` with an `<h1>`, a `<p>` slogan, and an `<a class=\"cta\" href=\"#buy\">` button.",where:"Your code box is empty — type it right at the top.",
+  snippet:"<section class=\"hero\">\n  <h1>Cloud Runner X</h1>\n  <p>Run lighter. Go further.</p>\n  <a class=\"cta\" href=\"#buy\">Shop now · $129</a>\n</section>",
+  learn:"CTA = Call To Action: the ONE button you want every visitor to press.",
+  hints:["`<section class=\"hero\">` … `</section>`","Inside: `<h1>`, `<p>`, and `<a class=\"cta\" href=\"#buy\">Shop now</a>`"],
+  tip:"Invent your own product if you like! A drink, a game, an app...",
+  checks:[has('section.hero h1',"Add `<section class=\"hero\">` with an `<h1>` inside."),has('section.hero a.cta[href]',"Add `<a class=\"cta\" href=\"#buy\">` inside the hero.")]}),
+ H('p2','Features',{why:"Three quick reasons to buy, each with an icon.",
+  todo:"Add a `<section class=\"features\">` with **3** `<div class=\"feature\">` boxes, each with a `<div class=\"icon\">`, an `<h3>` and a `<p>`.",where:W_HTML,
+  snippet:"<section class=\"features\">\n  <div class=\"feature\">\n    <div class=\"icon\">🪶</div>\n    <h3>Featherlight</h3>\n    <p>Only 180 grams per shoe.</p>\n  </div>\n  <div class=\"feature\">\n    <div class=\"icon\">☁️</div>\n    <h3>Cloud Foam</h3>\n    <p>A soft landing, every step.</p>\n  </div>\n  <div class=\"feature\">\n    <div class=\"icon\">♻️</div>\n    <h3>Recycled</h3>\n    <p>Made from ocean plastic.</p>\n  </div>\n</section>",
+  hints:["`<section class=\"features\">` … `</section>`","One feature: `<div class=\"feature\"><div class=\"icon\">🪶</div><h3>Featherlight</h3><p>...</p></div>` — make 3."],
+  tip:"Write one feature, then copy-paste and edit. Never type the same thing three times!",
+  checks:[[a=>a.$$('.features .feature').filter(f=>f.querySelector('h3')).length>=3,"Add 3 `<div class=\"feature\">` boxes (each with an `<h3>`) inside `<section class=\"features\">`."]]}),
+ H('p3','Reviews',{why:"People trust other people. Show what runners say.",
+  learn:"`<blockquote>` is the tag for a quote from someone else.",
+  todo:"Add a `<section class=\"reviews\">` with an `<h2>` and at least **2** `<blockquote>` reviews.",where:W_HTML,
+  snippet:"<section class=\"reviews\">\n  <h2>What runners say</h2>\n  <blockquote>\"The comfiest shoes I've ever owned.\" · Sam</blockquote>\n  <blockquote>\"Like running on clouds!\" · Priya</blockquote>\n</section>",
+  hints:["`<section class=\"reviews\">` + `<h2>`","Then `<blockquote>\"...\" · Name</blockquote>` twice."],
+  tip:"On a real site, only ever show REAL reviews from real customers.",
+  checks:[[a=>a.$$('.reviews blockquote').length>=2,"Add `<section class=\"reviews\">` with at least 2 `<blockquote>` reviews."]]}),
+ H('p4','The buy box',{why:"Remember `href=\"#buy\"` on the hero button? This is where it lands.",
+  todo:"Add a `<section id=\"buy\">` with an `<h2>`, a `<label for=\"size\">`, a `<select id=\"size\">` with **3** sizes, and a `<button>`.",where:W_HTML,
+  snippet:"<section id=\"buy\" class=\"buy\">\n  <h2>Get yours today</h2>\n  <label for=\"size\">Choose your size</label>\n  <select id=\"size\">\n    <option>US 8</option>\n    <option>US 9</option>\n    <option>US 10</option>\n  </select>\n  <button>Add to cart</button>\n</section>",
+  hints:["`<section id=\"buy\">` + `<h2>Get yours today</h2>`","`<label for=\"size\">` + `<select id=\"size\">` with 3 `<option>`s + `<button>Add to cart</button>`"],
+  tip:"Tap 'Shop now' in the preview — it jumps down here!",
+  checks:[[a=>a.$$('section#buy select option').length>=3,"Add `<section id=\"buy\">` with a `<select>` of 3 `<option>`s."],has('section#buy button',"Add a `<button>` in the buy section."),[a=>labelLinked(a,'section#buy'),"Connect `<label for=\"size\">` to `<select id=\"size\">`."]]}),
+ H('p5','FAQ dropdowns',{why:"Questions people always ask — tucked away until they tap them.",
+  learn:"`<details>` makes a box that opens and closes by itself — no JavaScript! `<summary>` is the part you tap.\n`<details>`\n`  <summary>Question?</summary>`\n`  <p>Answer.</p>`\n`</details>`",
+  todo:"Add a `<section class=\"faq\">` with an `<h2>` and at least **2** `<details>` boxes (each with a `<summary>` and a `<p>`).",where:W_HTML,
+  snippet:"<section class=\"faq\">\n  <h2>Questions</h2>\n  <details>\n    <summary>Can I return them?</summary>\n    <p>Yes! Free returns within 30 days.</p>\n  </details>\n  <details>\n    <summary>How long is shipping?</summary>\n    <p>2 to 4 days anywhere in Australia.</p>\n  </details>\n</section>",
+  hints:["`<section class=\"faq\">` + `<h2>Questions</h2>`","Each question: `<details><summary>Question?</summary><p>Answer.</p></details>`"],
+  tip:"Tap the questions in the preview — they open and close!",
+  checks:[[a=>a.$$('.faq details').filter(d=>d.querySelector('summary')).length>=2,"Add `<section class=\"faq\">` with 2 `<details>` boxes, each with a `<summary>`."]]}),
+ C('p6','The basics',{why:"Clean font, and every section gets space and centered text.",
+  todo:"Style `body` (no margin, a font, a text colour) and `section` (padding, centered text).",where:W_CSS,
+  snippet:"body {\n  margin: 0;\n  font-family: system-ui, sans-serif;\n  color: #1f2937;\n}\nsection {\n  padding: 40px 20px;\n  text-align: center;\n}",
+  hints:["`body { margin: 0; font-family: system-ui, sans-serif; color: #1f2937; }`","`section { padding: 40px 20px; text-align: center; }`"],
+  tip:"Generous padding is the #1 difference between amateur and pro designs.",
+  checks:[cssMin('section','paddingTop',20,"Give `section` at least 20px of `padding`."),cssIs('section','textAlign','center',"Center section text with `text-align: center;`")]}),
+ C('p7','Gradient hero',{why:"Make the hero section unforgettable with a colour blend.",
+  todo:"Give `.hero` a `linear-gradient` background, and make `.hero h1` 40px with a small margin.",where:W_CSS,
+  snippet:".hero {\n  background: linear-gradient(135deg, #a5f3fc, #c4b5fd);\n}\n.hero h1 {\n  font-size: 40px;\n  margin: 0 0 8px;\n}",
+  hints:["`.hero { background: linear-gradient(135deg, #a5f3fc, #c4b5fd); }`","`.hero h1 { font-size: 40px; margin: 0 0 8px; }`"],
+  tip:"`margin: 0 0 8px;` = top 0, sides 0, bottom 8px.",
+  checks:[grad('.hero',"Give `.hero` a `linear-gradient(...)` background.")]}),
+ C('p8','The buy button',{why:"The CTA must look like the most clickable thing on the page.",
+  learn:"Links are 'inline' — padding doesn't push things around properly. `display: inline-block;` fixes that, so the link can act like a real button.",
+  todo:"Style `.cta`: `display: inline-block`, dark background, white text, padding, pill shape, no underline, bold.",where:W_CSS,
+  snippet:".cta {\n  display: inline-block;\n  background-color: #111827;\n  color: white;\n  padding: 14px 28px;\n  border-radius: 999px;\n  text-decoration: none;\n  font-weight: bold;\n}",
+  hints:["`.cta { display: inline-block; background-color: #111827; color: white; padding: 14px 28px; }`","Add `border-radius: 999px; text-decoration: none; font-weight: bold;`"],
+  tip:"A dark button on a light background = maximum attention.",
+  checks:[cssIs('.cta','display','inline-block',"Add `display: inline-block;` to `.cta`."),cssIs('.cta','textDecorationLine','none',"Remove the underline: `text-decoration: none;`")]}),
+ C('p9','Feature grid',{why:"Line the features up in a responsive grid.",
+  todo:"Make `.features` a grid with the auto-fit trick and a `gap`. Make `.icon` big.",where:W_CSS,
+  snippet:".features {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));\n  gap: 20px;\n}\n.icon {\n  font-size: 40px;\n}",
+  learn:"`repeat(auto-fit, minmax(160px, 1fr))` = 'as many columns as fit, each at least 160px'. Phones get 1 column, computers get 3 — automatically.",
+  hints:["`.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; }`","`.icon { font-size: 40px; }`"],
+  tip:"This one line of grid is used on thousands of professional websites.",
+  checks:[cssIs('.features','display','grid',"Make `.features` `display: grid;`"),[a=>px(a.css(a.$('.features'),'columnGap'))>=8,"Give `.features` a `gap`."]]}),
+ C('p10','Feature cards',{why:"Cards that float up when you point at them.",
+  todo:"Style `.feature` (background, round corners, padding, a `transition`) and add `.feature:hover` with a `transform`.",where:W_CSS,
+  snippet:".feature {\n  background-color: #f9fafb;\n  border-radius: 16px;\n  padding: 20px;\n  transition: transform 0.2s;\n}\n.feature:hover {\n  transform: translateY(-6px);\n}",
+  hints:["`.feature { background-color: #f9fafb; border-radius: 16px; padding: 20px; transition: transform 0.2s; }`","`.feature:hover { transform: translateY(-6px); }`"],
+  tip:"Transition on the normal rule + transform on the hover rule = smooth lift.",
+  checks:[cssMin('.feature','borderTopLeftRadius',1,"Round `.feature` with `border-radius`."),[anyHover(/\.feature:hover/,'transform'),"Add `.feature:hover { transform: translateY(-6px); }`"]]}),
+ C('p11','Review quotes',{why:"Make the reviews look like quotes, not plain text.",
+  todo:"Style `blockquote`: `max-width`, auto margins, padding, italic, left-aligned, a background and a coloured `border-left`.",where:W_CSS,
+  snippet:"blockquote {\n  max-width: 480px;\n  margin: 12px auto;\n  padding: 12px 16px;\n  font-style: italic;\n  text-align: left;\n  background-color: #f3f4f6;\n  border-left: 5px solid #8b5cf6;\n}",
+  hints:["`blockquote { max-width: 480px; margin: 12px auto; padding: 12px 16px; }`","Add `font-style: italic; text-align: left; background-color: #f3f4f6; border-left: 5px solid #8b5cf6;`"],
+  tip:"A coloured left border is THE classic quote style.",
+  checks:[cssIs('blockquote','borderLeftStyle','solid',"Add a `border-left` to `blockquote`."),cssIs('blockquote','fontStyle','italic',"Make quotes italic: `font-style: italic;`")]}),
+ C('p12','The buy box',{why:"Big, friendly size picker and a bold Add to cart button.",
+  todo:"Give `select, button` a bigger font, padding, margin and round corners. Then style `button` (purple, white text, no border, `cursor: pointer`).",where:W_CSS,
+  snippet:"select,\nbutton {\n  font-size: 16px;\n  padding: 10px 14px;\n  margin: 8px;\n  border-radius: 10px;\n}\nbutton {\n  background-color: #8b5cf6;\n  color: white;\n  border: none;\n  cursor: pointer;\n}",
+  hints:["`select, button { font-size: 16px; padding: 10px 14px; margin: 8px; border-radius: 10px; }`","`button { background-color: #8b5cf6; color: white; border: none; cursor: pointer; }`"],
+  tip:"A 16px font on inputs stops iPhones zooming in when you tap them. Pro trick!",
+  checks:[cssMin('button','borderTopLeftRadius',1,"Round the button with `border-radius`."),cssIs('button','cursor','pointer',"Add `cursor: pointer;` to `button`.")]}),
+ C('p13','FAQ style',{why:"Turn the FAQ into tidy, tappable cards.",
+  todo:"Style `details` (max-width, auto margins, padding, left-aligned, background, round corners) and `summary` (bold, `cursor: pointer`).",where:W_CSS,
+  snippet:"details {\n  max-width: 480px;\n  margin: 10px auto;\n  padding: 12px 16px;\n  text-align: left;\n  background-color: #f9fafb;\n  border-radius: 10px;\n}\nsummary {\n  font-weight: bold;\n  cursor: pointer;\n}",
+  hints:["`details { max-width: 480px; margin: 10px auto; padding: 12px 16px; text-align: left; background-color: #f9fafb; border-radius: 10px; }`","`summary { font-weight: bold; cursor: pointer; }`"],
+  tip:"FAQ sections cut down customer emails a LOT. Businesses love them.",
+  checks:[cssMin('details','borderTopLeftRadius',1,"Round `details` with `border-radius`."),cssIs('summary','cursor','pointer',"Add `cursor: pointer;` to `summary`.")]}),
+ C('p14','Phone-friendly',{why:"Final step! A 40px title is too big on a small phone. Shrink it on small screens only.",
+  learn:"`@media (max-width: 600px) { }` = 'only on screens 600px wide or smaller'. CSS inside it only applies on phones.",
+  todo:"Add an `@media (max-width: 600px)` block that makes `.hero h1` 30px.",where:W_CSS,
+  snippet:"@media (max-width: 600px) {\n  .hero h1 {\n    font-size: 30px;\n  }\n}",
+  hints:["`@media (max-width: 600px) { }`","Inside: `.hero h1 { font-size: 30px; }`"],
+  tip:"You just built a modern, responsive landing page. Download it — this is portfolio material!",
+  checks:[hasMedia(/max-width/,"Add `@media (max-width: 600px) { .hero h1 { font-size: 30px; } }`")]})
+ ]}
+];
+
+/* ---------- shared project engine ---------- */
+PROJECTS.forEach(P=>{P.steps.forEach(s=>{if(!s.apply)s.apply=c=>s.kind==='css'?insCSS(c,s.snippet):insHTML(c,s.snippet);s.answer=s.snippet;s.starter='';});
+  let code='';P.ref=P.steps.map(s=>(code=s.apply(code)));});
+const docFor=(P,code)=>{const t=(/<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(code)||[])[1];const title=esc((t||P.title).replace(/<[^>]+>/g,'').trim()||P.title);
+  return `<!doctype html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>${title}</title>\n</head>\n<body>\n\n${code}\n\n</body>\n</html>\n`;};
+function download(P,code){const blob=new Blob([docFor(P,code)],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='index.html';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+  modal(`<div class="center"><div style="font-size:48px">⬇️</div><h3>Your website is downloading!</h3></div><p>The file is called <b>index.html</b>. Double-click it to open your site in any browser.</p><p>Want it online for free? Upload <b>index.html</b> to a new GitHub repository and turn on <b>GitHub Pages</b> in the repository settings — you'll get a real link to share.</p>`);}
+function fullPreview(P,code){modal(`<h3>${P.emoji} ${esc(P.title)} — full preview</h3><iframe class="fullprev" sandbox="allow-same-origin" title="Full preview"></iframe>`,[['Close',null,'primary']]);renderInto($('#modalCard .fullprev'),code);}
+function copyCode(P,code){const txt=docFor(P,code);const ok=()=>modal('<h3>Copied! 📋</h3><p>Your whole website is on your clipboard, ready to paste anywhere.</p>');
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(ok,()=>fallback());else fallback();
+  function fallback(){const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand('copy');ok();}catch(e){modal('<h3>Couldn\'t copy automatically</h3><p>Use the Download button instead.</p>');}t.remove();}}
+
+PROJECTS.forEach(P=>{
+  const PS=()=>{const o=PROG.proj[P.id]&&typeof PROG.proj[P.id]==='object'?PROG.proj[P.id]:(PROG.proj[P.id]={});if(!o.stars||typeof o.stars!=='object')o.stars={};if(typeof o.code!=='string')o.code='';if(typeof o.start!=='string')o.start='';return o;};
+  Game({id:P.id,emoji:P.emoji,title:P.title,unit:'Step',winWord:'Step complete! ✅',levels:P.steps,starStore:()=>PS().stars,
+    intro:`<h2>${P.emoji} ${esc(P.title)}</h2><p class="lesson">${md(P.intro)}</p><p class="lesson">🧭 <b>How it works:</b> every step tells you exactly <b>what</b> to add and <b>where</b>, and shows a picture of how your page should look after it. Your code carries over from step to step — by the end, it's one complete website you can download.</p><p class="muted" style="font-size:14px;margin-bottom:0">Skills from: ${esc(P.uses)}</p>`,
+    header(el,g){const code=PS().code;const p=g.progress();
+      el.innerHTML=`<div class="box" style="margin-top:12px"><b>🖥️ Your website so far</b> <span class="muted" style="font-size:14px">· ${p.done} of ${p.total} steps done</span>
+        <div class="pbar" style="margin:8px 0 10px"><i style="width:${Math.round(p.done/p.total*100)}%"></i></div>
+        ${code.trim()?`<iframe class="prev" sandbox="allow-same-origin" title="Your website" style="height:220px"></iframe>`:`<p class="muted">Nothing yet — start with Step 1 below!</p>`}
+        <div class="row2" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn sm primary" data-p="full" ${code.trim()?'':'disabled'}>👀 Full preview</button>
+          <button class="btn sm" data-p="dl" ${code.trim()?'':'disabled'}>⬇️ Download index.html</button>
+          <button class="btn sm" data-p="copy" ${code.trim()?'':'disabled'}>📋 Copy code</button>
+          <button class="btn sm ghost" data-p="restart" ${code.trim()?'':'disabled'}>↺ Start over</button></div></div>`;
+      if(code.trim())renderInto($('iframe',el),code);
+      $('[data-p=full]',el).onclick=()=>fullPreview(P,PS().code);
+      $('[data-p=dl]',el).onclick=()=>download(P,PS().code);
+      $('[data-p=copy]',el).onclick=()=>copyCode(P,PS().code);
+      $('[data-p=restart]',el).onclick=()=>modal(`<h3>Start ${esc(P.title)} over?</h3><p>This deletes your code and stars for this project only. Tip: download it first if you want to keep a copy.</p>`,[['Cancel',null],['Yes, start over',()=>{PROG.proj[P.id]={code:'',start:'',stars:{}};saveProg();g.levels();},'primary']]);},
+    finale:`🎉 Your ${P.title} is finished! Download it, open it, show it off. Put it on GitHub Pages and you have a real website.`,
+    finaleBtns:[['⬇️ Download my website',()=>download(P,PS().code)],['👀 Full preview',()=>fullPreview(P,PS().code)]],
+    play(S,el,done){const st=PS();const i=P.steps.indexOf(S);const already=!!st.stars[S.id];
+      if(!already&&st.cur!==S.id){st.start=st.code;st.cur=S.id;saveProg();}
+      const b=Bench(el,{checkLabel:'✅ Check this step',resetLabel:'Undo this step\'s changes',winText:'Step complete!',
+        onInput:v=>{PS().code=v;saveProg();},
+        answer:(T,ed,hb,onInput)=>{hb.innerHTML=`<div class="h a">👁 <b>${T.kind==='edit'?'Change it to look like this:':'Here\'s the code for this step:'}</b><pre class="ex">${esc(T.snippet)}</pre>📍 <b>Where:</b> ${md(T.where)}<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm primary" data-add>✨ Put it in for me</button></div><small>(Typing it yourself = more stars and better memory. But no shame in using this!)</small></div>`;
+          $('[data-add]',hb).onclick=()=>{const before=ed.value;const after=T.apply(before);if(after===before){$('[data-add]',hb).insertAdjacentHTML('afterend','<span class="muted" style="font-size:13px"> Couldn\'t place it automatically — please type the change yourself.</span>');return;}ed.value=after;onInput();};},
+        onPass:s=>{PS().cur=null;saveProg();done(s);}});
+      const N=P.steps.length;
+      S.storyHTML=`<div style="margin-bottom:10px"><div class="pbar"><i style="width:${Math.round(i/N*100)}%"></i></div><small class="muted">Step ${i+1} of ${N} · ${esc(S.ch)}</small></div>`
+        +storyHTML(P.mentor,S.why)+(S.learn?`<div class="lesson">📖 ${md(S.learn)}</div>`:'')
+        +`<div class="mission" style="margin-top:10px">🎯 <b>Your task:</b> ${md(S.todo)}</div><div class="where">📍 <b>Where:</b> ${md(S.where)}</div>`
+        +`<div class="edhead">🏁 Goal: your page after this step <small>your words can be different</small></div><iframe class="prev goalprev" sandbox="allow-same-origin" title="Goal"></iframe>`;
+      b.load(S,st.code);b.setReset(already?st.code:st.start);
+      renderInto($('.goalprev',el),P.ref[i]);}
+  });
+});
+window.__PROJ={PROJECTS,insCSS,insHTML,docFor};
+})();
+</script>
+
+<!-- =====================================================================
      HUB
      ===================================================================== -->
 <script>
@@ -2896,18 +3442,28 @@ const CARDS=[
  {id:'spell',em:'🧙',t:'Spell Academy',d:'Learn JavaScript at wizard school. Every spell is real code.',tags:['js'],ribbon:'NEW'},
  {id:'robot',em:'🤖',t:'Robot Commander',d:'Program Bolt the robot with real JavaScript. Escape the factory!',tags:['js']}
 ];
+const PCARDS=[
+ {id:'pcafe',d:'A full café website: menu cards, opening hours, newsletter sign-up.',ribbon:'NEW'},
+ {id:'presume',d:'Your own online resume — with skill badges, and it prints as a PDF.',ribbon:'NEW'},
+ {id:'plinks',d:'A "link in bio" page like the ones creators use on Instagram & TikTok.',ribbon:'NEW'},
+ {id:'precipe',d:'A recipe page where ingredients cross themselves off when ticked.',ribbon:'NEW'},
+ {id:'planding',d:'A modern product launch page with a feature grid and FAQ dropdowns.',ribbon:'NEW'}
+];
+function hubCard(c,em,t,tags,label,p){return `<div class="gcard" data-id="${c.id}" role="button" tabindex="0">${c.ribbon?`<span class="ribbon">${c.ribbon}</span>`:''}<div class="em">${em}</div><h3>${t}</h3><p>${c.d}</p>
+      <div class="tags">${tags.map(x=>`<span class="tag ${x}">${x==='proj'?'PROJECT':x.toUpperCase()}</span>`).join('')}</div>
+      <div class="pbar"><i style="width:${Math.round(p*100)}%"></i></div><small class="muted">${label}</small></div>`;}
 function renderHub(){
   $('#hubGrid').innerHTML=CARDS.map(c=>{
     let p,label;
     if(c.id==='quest'){const q=QUEST.progress();p=q.done/q.total;label=`${q.done}/${q.total} Codelings · ${q.badges}/4 badges`;}
     else{const g=GAMES[c.id].progress();p=g.done/g.total;label=`${g.done}/${g.total} ${GAMES[c.id].def.unit||'Level'}s · ⭐ ${g.stars}/${g.max}`;}
-    return `<div class="gcard" data-id="${c.id}" role="button" tabindex="0">${c.ribbon?`<span class="ribbon">${c.ribbon}</span>`:''}<div class="em">${c.em}</div><h3>${c.t}</h3><p>${c.d}</p>
-      <div class="tags">${c.tags.map(t=>`<span class="tag ${t}">${t.toUpperCase()}</span>`).join('')}</div>
-      <div class="pbar"><i style="width:${Math.round(p*100)}%"></i></div><small class="muted">${label}</small></div>`;}).join('');
+    return hubCard(c,c.em,c.t,c.tags,label,p);}).join('');
+  $('#projGrid').innerHTML=PCARDS.map(c=>{const g=GAMES[c.id],pr=g.progress();
+    return hubCard(c,g.def.emoji,g.def.title,['proj','html','css'],pr.done===pr.total?'✅ Finished! Open it to download your site.':`${pr.done}/${pr.total} steps · ⭐ ${pr.stars}/${pr.max}`,pr.done/pr.total);}).join('');
   $$('.gcard').forEach(el=>{const go=()=>APP.show(el.dataset.id);el.onclick=go;el.onkeydown=e=>{if(e.key==='Enter')go();};});
 }
 const BKEY='code-arcade-last-backup';
-function totalStars(arc){let n=0;for(const k in arc){const o=k==='cafe'?(arc.cafe&&arc.cafe.stars)||{}:arc[k];if(o&&typeof o==='object')for(const v of Object.values(o))if(typeof v==='number'&&v>=0&&v<=3)n+=v;}return n;}
+function totalStars(arc){let n=0;for(const k in arc){if(k==='proj'){for(const pr of Object.values(arc.proj||{}))if(pr&&pr.stars)for(const v of Object.values(pr.stars))if(typeof v==='number'&&v>=0&&v<=3)n+=v;continue;}const o=k==='cafe'?(arc.cafe&&arc.cafe.stars)||{}:arc[k];if(o&&typeof o==='object')for(const v of Object.values(o))if(typeof v==='number'&&v>=0&&v<=3)n+=v;}return n;}
 function showLastBackup(){const d=store.get(BKEY,null);$('#lastBackup').textContent=d?'Last backup: '+new Date(d).toLocaleString():'No backup downloaded yet.';}
 $('#exportProg').onclick=()=>{
   const data={app:'code-arcade',version:2,exportedAt:new Date().toISOString(),arcade:PROG,quest:store.get(QKEY,null)};
